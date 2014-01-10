@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.gitflow;
 
+import java.util.Collections;
 import java.util.List;
 
 import hudson.model.PermalinkProjectAction;
@@ -10,8 +11,9 @@ import hudson.model.PermalinkProjectAction;
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
 public class GitflowReleaseAction implements PermalinkProjectAction {
+
     public List<Permalink> getPermalinks() {
-        return null;
+        return Collections.emptyList();
     }
 
     public String getIconFileName() {

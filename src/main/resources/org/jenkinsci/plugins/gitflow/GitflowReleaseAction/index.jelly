@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <l:layout norefresh="true">
+        <l:main-panel>
+            <f:form method="post" action="submit" name="performGitflowRelease">
+                <f:section title="Gitflow">
+                    <!-- TODO Add form field entries. -->
+                </f:section>
+            </f:form>
+        </l:main-panel>
+    </l:layout>
+</j:jelly>
