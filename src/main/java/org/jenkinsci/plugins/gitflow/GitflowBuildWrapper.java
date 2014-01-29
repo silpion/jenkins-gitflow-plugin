@@ -8,9 +8,14 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
+import hudson.model.Hudson;
+import hudson.model.Item;
 import hudson.plugins.git.GitSCM;
+import hudson.security.Permission;
+import hudson.security.PermissionScope;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
+import jenkins.util.NonLocalizable;
 
 /**
  * Wraps a build that works on a Git repository. It enables the creation of Git releases,
@@ -32,6 +37,8 @@ public class GitflowBuildWrapper extends BuildWrapper {
 
     @Extension
     public static class DescriptorImpl extends BuildWrapperDescriptor {
+
+        public static final Permission EXECUTE_GITFLOW = new Permission(Item.PERMISSIONS, "Gitflow", new NonLocalizable("Gitflow"), Hudson.ADMINISTER, PermissionScope.ITEM);
 
         @Override
         public boolean isApplicable(final AbstractProject<?, ?> item) {
