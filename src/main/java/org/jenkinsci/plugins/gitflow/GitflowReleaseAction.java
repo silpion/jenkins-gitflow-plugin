@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.gitflow;
 import java.util.Collections;
 import java.util.List;
 
+import hudson.model.AbstractProject;
 import hudson.model.PermalinkProjectAction;
 
 /**
@@ -12,12 +13,22 @@ import hudson.model.PermalinkProjectAction;
  */
 public class GitflowReleaseAction implements PermalinkProjectAction {
 
+    private AbstractProject<?, ?> job;
+
+    public GitflowReleaseAction(final AbstractProject<?, ?> job) {
+        this.job = job;
+    }
+
     public List<Permalink> getPermalinks() {
         return Collections.emptyList();
     }
 
     public String getIconFileName() {
-        return "installer.gif";
+        if (GitflowBuildWrapper.hasReleasePermission(this.job)) {
+            return "installer.gif";
+        } else {
+            return null;
+        }
     }
 
     public String getDisplayName() {

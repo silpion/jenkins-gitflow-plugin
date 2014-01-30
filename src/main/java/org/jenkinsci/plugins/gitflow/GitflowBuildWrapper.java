@@ -30,9 +30,13 @@ public class GitflowBuildWrapper extends BuildWrapper {
         // TODO Add config params
     }
 
+    public static boolean hasReleasePermission(@SuppressWarnings("rawtypes") AbstractProject job) {
+        return job.hasPermission(DescriptorImpl.EXECUTE_GITFLOW);
+    }
+
     @Override
-    public Collection<? extends Action> getProjectActions(final AbstractProject job) {
-        return Collections.singletonList(new GitflowReleaseAction());
+    public Collection<? extends Action> getProjectActions(@SuppressWarnings("rawtypes") final AbstractProject job) {
+        return Collections.singletonList(new GitflowReleaseAction(job));
     }
 
     @Extension
