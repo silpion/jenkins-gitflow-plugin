@@ -2,6 +2,9 @@
 *.ipr
 *.iws
 .idea
+.classpath
+.project
+.settings
 work
 target
 temp
