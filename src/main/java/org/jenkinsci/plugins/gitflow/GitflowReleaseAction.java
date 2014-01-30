@@ -25,7 +25,7 @@ public class GitflowReleaseAction implements PermalinkProjectAction {
 
     public String getIconFileName() {
         if (GitflowBuildWrapper.hasReleasePermission(this.job)) {
-            return "installer.gif";
+            return "/plugin/" + this.getUrlName() + "/images/24x24/gitflow.png";
         } else {
             return null;
         }
