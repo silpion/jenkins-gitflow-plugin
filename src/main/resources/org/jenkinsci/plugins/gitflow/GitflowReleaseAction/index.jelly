@@ -5,6 +5,11 @@
             <f:form method="post" action="submit" name="performGitflowRelease">
                 <f:section title="Gitflow">
                     <!-- TODO Add form field entries. -->
+                    <f:entry>
+                        <a href="http://www.silpion.de" target="_blank" style="position: absolute; right:0px; padding-right:1em">
+                            <img src="${rootURL}/plugin/gitflow/images/SilpionLogo.gif" />
+                        </a>
+                    </f:entry>
                 </f:section>
             </f:form>
         </l:main-panel>
