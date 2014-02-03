@@ -1,13 +1,17 @@
 package org.jenkinsci.plugins.gitflow;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import hudson.Extension;
+import hudson.Launcher;
+import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
+import hudson.model.BuildListener;
 import hudson.model.Hudson;
 import hudson.model.Item;
 import hudson.plugins.git.GitSCM;
@@ -30,6 +34,13 @@ public class GitflowBuildWrapper extends BuildWrapper {
         // TODO Add config params
     }
 
+    @Override
+    public Environment setUp(final AbstractBuild build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
+        return new Environment() {
+            // There's nothing to be overwritten so far.
+        };
+    }
+
     public static boolean hasReleasePermission(@SuppressWarnings("rawtypes") AbstractProject job) {
         return job.hasPermission(DescriptorImpl.EXECUTE_GITFLOW);
     }
@@ -42,7 +53,8 @@ public class GitflowBuildWrapper extends BuildWrapper {
     @Extension
     public static class DescriptorImpl extends BuildWrapperDescriptor {
 
-        public static final Permission EXECUTE_GITFLOW = new Permission(Item.PERMISSIONS, "Gitflow", new NonLocalizable("Gitflow"), Hudson.ADMINISTER, PermissionScope.ITEM);
+        public static final Permission EXECUTE_GITFLOW =
+                new Permission(Item.PERMISSIONS, "Gitflow", new NonLocalizable("Gitflow"), Hudson.ADMINISTER, PermissionScope.ITEM);
 
         @Override
         public boolean isApplicable(final AbstractProject<?, ?> item) {
