@@ -4,13 +4,49 @@
         <l:main-panel>
             <f:form method="post" action="submit" name="performGitflowRelease">
                 <f:section title="Gitflow">
-                    <!-- TODO Add form field entries. -->
-                    <f:entry>
+                    <f:radioBlock name="action" value="startFeature" title="Start Feature" checked="false">
+                        <f:entry>
+                            TODO Add form field entries to configure the <i>Start Feature</i> action.
+                        </f:entry>
+                    </f:radioBlock>
+                    <f:radioBlock name="action" value="finishFeature" title="Finish Feature" checked="false">
+                        <f:entry>
+                            TODO Add form field entries to configure the <i>Finish Feature</i> action.
+                        </f:entry>
+                    </f:radioBlock>
+                    <f:radioBlock name="action" value="startRelease" title="Start Release" checked="false">
+                        <f:entry>
+                            TODO Add form field entries to configure the <i>Start Release</i> action.
+                        </f:entry>
+                    </f:radioBlock>
+                    <f:radioBlock name="action" value="finishRelease" title="Finish Release" checked="false">
+                        <f:entry>
+                            TODO Add form field entries to configure the <i>Finish Release</i> action.
+                        </f:entry>
+                    </f:radioBlock>
+                    <f:radioBlock name="action" value="startHotfix" title="Start Hotfix" checked="false">
+                        <f:entry>
+                            TODO Add form field entries to configure the <i>Start Hotfix</i> action.
+                        </f:entry>
+                    </f:radioBlock>
+                    <f:radioBlock name="action" value="finishHotfix" title="Finish Hotfix" checked="false">
+                        <f:entry>
+                            TODO Add form field entries to configure the <i>Finish Hotfix</i> action.
+                        </f:entry>
+                    </f:radioBlock>
+                </f:section>
+                <tr>
+                    <td colspan="4" align="left">
+                        <f:submit value="Execute Gitflow Action..." />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4" align="right">
                         <a href="http://www.silpion.de" target="_blank" style="position: absolute; right:0px; padding-right:1em">
                             <img src="${rootURL}/plugin/gitflow/images/SilpionLogo.gif" />
                         </a>
-                    </f:entry>
-                </f:section>
+                    </td>
+                </tr>
             </f:form>
         </l:main-panel>
     </l:layout>

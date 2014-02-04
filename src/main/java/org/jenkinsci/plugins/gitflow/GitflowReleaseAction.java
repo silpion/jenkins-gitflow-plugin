@@ -1,9 +1,20 @@
 package org.jenkinsci.plugins.gitflow;
 
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import hudson.model.AbstractProject;
+import hudson.model.Cause;
 import hudson.model.PermalinkProjectAction;
 
 /**
@@ -12,6 +23,8 @@ import hudson.model.PermalinkProjectAction;
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
 public class GitflowReleaseAction implements PermalinkProjectAction {
+
+    private transient Logger log = LoggerFactory.getLogger(GitflowReleaseAction.class);
 
     private AbstractProject<?, ?> job;
 
@@ -37,5 +50,22 @@ public class GitflowReleaseAction implements PermalinkProjectAction {
 
     public String getUrlName() {
         return "gitflow";
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public void doSubmit(final StaplerRequest request, final StaplerResponse response) throws IOException, ServletException {
+
+        // Log the form field values.
+        final Map parameterMap = request.getParameterMap();
+        for (final Object entry : parameterMap.entrySet()) {
+            final Map.Entry<String, String[]> paramEntry = (Map.Entry<String, String[]>) entry;
+            this.log.info("Submitted action param '" + paramEntry.getKey() + "': " + Arrays.asList(paramEntry.getValue()));
+        }
+
+        // Start a standard build.
+        this.job.scheduleBuild(0, new Cause.UserIdCause());
+
+        // Return to the main page of the job.
+        response.sendRedirect(request.getContextPath() + '/' + this.job.getUrl());
     }
 }
