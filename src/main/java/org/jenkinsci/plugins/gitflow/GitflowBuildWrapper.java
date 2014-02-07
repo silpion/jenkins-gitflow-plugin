@@ -9,6 +9,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import hudson.Extension;
 import hudson.Launcher;
+import hudson.maven.MavenModuleSet;
+import hudson.maven.MavenModuleSetBuild;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
@@ -20,6 +22,7 @@ import hudson.security.Permission;
 import hudson.security.PermissionScope;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
+import hudson.tasks.Maven;
 import jenkins.util.NonLocalizable;
 
 /**
@@ -68,13 +71,21 @@ public class GitflowBuildWrapper extends BuildWrapper {
             final String releaseBranch = "release/" + releaseVersion;
             listener.getLogger().println("Gitflow - Start Release: Creating branch " + releaseBranch);
             gitClient.checkoutBranch(releaseBranch, "origin/" + DEVELOP_BRANCH);
+            // TODO Check result.
 
-            // TODO Set releaseVersion in POMs.
+            if (build instanceof MavenModuleSetBuild) {
+                final MavenModuleSetBuild mavenModuleSetBuild = (MavenModuleSetBuild) build;
+                executeMaven("versions:set -DnewVersion=" + releaseVersion + " -DgenerateBackupPoms=false", launcher, listener, mavenModuleSetBuild);
+                // TODO Check result.
+            } else {
+                // TODO Warn that version numbers in project files are not updated.
+            }
 
             buildEnvironment = new Environment() {
 
                 @Override
                 public boolean tearDown(final AbstractBuild build, final BuildListener listener) throws IOException, InterruptedException {
+                    // TODO Only if the build is successful.
 
                     // Get the client that enables us to execute Git commands on the workspace.
                     final GitSCM gitSCM = (GitSCM) build.getProject().getScm();
@@ -90,6 +101,16 @@ public class GitflowBuildWrapper extends BuildWrapper {
         }
 
         return buildEnvironment;
+    }
+
+    private static void executeMaven(final String arguments, final Launcher launcher, final BuildListener listener,
+                                     final MavenModuleSetBuild build) throws IOException, InterruptedException {
+
+        final MavenModuleSet project = build.getProject();
+        final String mavenInstallation = project.getMaven().getName();
+        final String pom = project.getRootPOM(build.getEnvironment(listener));
+
+        new Maven(arguments, mavenInstallation, pom, null, null).perform(build, launcher, listener);
     }
 
     public static boolean hasReleasePermission(@SuppressWarnings("rawtypes") AbstractProject job) {
