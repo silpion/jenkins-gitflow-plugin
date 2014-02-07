@@ -15,8 +15,8 @@
                         </f:entry>
                     </f:radioBlock>
                     <f:radioBlock name="action" value="startRelease" title="Start Release" checked="false">
-                        <f:entry>
-                            TODO Add form field entries to configure the <i>Start Release</i> action.
+                        <f:entry title="Release Version">
+                            <f:textbox name="startRelease_releaseVersion" />
                         </f:entry>
                     </f:radioBlock>
                     <f:radioBlock name="action" value="finishRelease" title="Finish Release" checked="false">

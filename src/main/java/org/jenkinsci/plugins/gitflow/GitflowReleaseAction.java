@@ -62,8 +62,14 @@ public class GitflowReleaseAction implements PermalinkProjectAction {
             this.log.info("Submitted action param '" + paramEntry.getKey() + "': " + Arrays.asList(paramEntry.getValue()));
         }
 
-        // Start a standard build.
-        this.job.scheduleBuild(0, new Cause.UserIdCause());
+        // TODO Validate that the releaseVersion is not empty.
+
+        // Record the settings for the action to be executed.
+        final GitflowArgumentsAction gitflowArgumentsAction = new GitflowArgumentsAction();
+        gitflowArgumentsAction.setReleaseVersion(request.getParameter("startRelease_releaseVersion"));
+
+        // Start a build.
+        this.job.scheduleBuild(0, new Cause.UserIdCause(), gitflowArgumentsAction);
 
         // Return to the main page of the job.
         response.sendRedirect(request.getContextPath() + '/' + this.job.getUrl());

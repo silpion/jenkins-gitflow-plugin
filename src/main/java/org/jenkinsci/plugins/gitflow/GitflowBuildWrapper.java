@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.jenkinsci.plugins.gitclient.GitClient;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import hudson.Extension;
@@ -29,6 +30,8 @@ import jenkins.util.NonLocalizable;
  */
 public class GitflowBuildWrapper extends BuildWrapper {
 
+    private static final String DEVELOP_BRANCH = "develop";
+
     @DataBoundConstructor
     public GitflowBuildWrapper() {
         // TODO Add config params
@@ -36,9 +39,57 @@ public class GitflowBuildWrapper extends BuildWrapper {
 
     @Override
     public Environment setUp(final AbstractBuild build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
-        return new Environment() {
-            // There's nothing to be overwritten so far.
-        };
+        final Environment buildEnvironment;
+
+        // Non-Gitflow builds don't contain the Gitflow settings.
+        final GitflowArgumentsAction gitflowArgumentsAction = build.getAction(GitflowArgumentsAction.class);
+        if (gitflowArgumentsAction == null) {
+            buildEnvironment = new Environment() {
+                // There's nothing to be overwritten for a non-Gitflow build.
+            };
+        } else {
+
+            // Read the settings for the action to be executed.
+            final String releaseVersion = gitflowArgumentsAction.getReleaseVersion();
+
+            // Get the client that enables us to execute Git commands on the workspace.
+            final GitSCM gitSCM = (GitSCM) build.getProject().getScm();
+            final GitClient gitClient = gitSCM.createClient(listener, build.getEnvironment(listener), build);
+
+            // Switch to the develop branch.
+            // This doesn't seem to work with the new version of the Git Plugin (2.0.1).
+            // Can we live without it or do we need to file a feature request or bug report?
+            //listener.getLogger().println("Switching to branch " + DEVELOP_BRANCH);
+            //gitClient.checkout(DEVELOP_BRANCH);
+
+            // TODO Verify that the release branch to be created doesn't exist.
+
+            // Create a new release branch based on the develop branch.
+            final String releaseBranch = "release/" + releaseVersion;
+            listener.getLogger().println("Gitflow - Start Release: Creating branch " + releaseBranch);
+            gitClient.checkoutBranch(releaseBranch, "origin/" + DEVELOP_BRANCH);
+
+            // TODO Set releaseVersion in POMs.
+
+            buildEnvironment = new Environment() {
+
+                @Override
+                public boolean tearDown(final AbstractBuild build, final BuildListener listener) throws IOException, InterruptedException {
+
+                    // Get the client that enables us to execute Git commands on the workspace.
+                    final GitSCM gitSCM = (GitSCM) build.getProject().getScm();
+                    final GitClient gitClient = gitSCM.createClient(listener, build.getEnvironment(listener), build);
+
+                    // Push release branch to remote repo.
+                    listener.getLogger().println("Gitflow - Start Release: Pushing branch: " + releaseBranch);
+                    gitClient.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
+
+                    return true;
+                }
+            };
+        }
+
+        return buildEnvironment;
     }
 
     public static boolean hasReleasePermission(@SuppressWarnings("rawtypes") AbstractProject job) {
