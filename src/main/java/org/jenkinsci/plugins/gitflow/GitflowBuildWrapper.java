@@ -17,6 +17,7 @@ import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.Hudson;
 import hudson.model.Item;
+import hudson.model.Result;
 import hudson.plugins.git.GitSCM;
 import hudson.security.Permission;
 import hudson.security.PermissionScope;
@@ -54,63 +55,62 @@ public class GitflowBuildWrapper extends BuildWrapper {
 
             // Read the settings for the action to be executed.
             final String releaseVersion = gitflowArgumentsAction.getReleaseVersion();
-
-            // Get the client that enables us to execute Git commands on the workspace.
-            final GitSCM gitSCM = (GitSCM) build.getProject().getScm();
-            final GitClient gitClient = gitSCM.createClient(listener, build.getEnvironment(listener), build);
-
-            // Switch to the develop branch.
-            // This doesn't seem to work with the new version of the Git Plugin (2.0.1).
-            // Can we live without it or do we need to file a feature request or bug report?
-            //listener.getLogger().println("Switching to branch " + DEVELOP_BRANCH);
-            //gitClient.checkout(DEVELOP_BRANCH);
-
-            // TODO Verify that the release branch to be created doesn't exist.
+            final String releaseBranch = "release/" + releaseVersion;
 
             // Create a new release branch based on the develop branch.
-            final String releaseBranch = "release/" + releaseVersion;
             listener.getLogger().println("Gitflow - Start Release: Creating branch " + releaseBranch);
-            gitClient.checkoutBranch(releaseBranch, "origin/" + DEVELOP_BRANCH);
-            // TODO Check result.
+            createGitClient(build, listener).checkoutBranch(releaseBranch, "origin/" + DEVELOP_BRANCH);
 
+            // Update the version numbers in the project files.
+            final boolean isVersionUpdateSuccess;
             if (build instanceof MavenModuleSetBuild) {
                 final MavenModuleSetBuild mavenModuleSetBuild = (MavenModuleSetBuild) build;
-                executeMaven("versions:set -DnewVersion=" + releaseVersion + " -DgenerateBackupPoms=false", launcher, listener, mavenModuleSetBuild);
-                // TODO Check result.
+                final String mavenArgs = "versions:set -DnewVersion=" + releaseVersion + " -DgenerateBackupPoms=false";
+                isVersionUpdateSuccess = executeMaven(mavenArgs, launcher, listener, mavenModuleSetBuild);
             } else {
                 // TODO Warn that version numbers in project files are not updated.
+                isVersionUpdateSuccess = true;
             }
 
-            buildEnvironment = new Environment() {
+            if (isVersionUpdateSuccess) {
+                buildEnvironment = new Environment() {
 
-                @Override
-                public boolean tearDown(final AbstractBuild build, final BuildListener listener) throws IOException, InterruptedException {
-                    // TODO Only if the build is successful.
+                    @Override
+                    public boolean tearDown(final AbstractBuild build, final BuildListener listener) throws IOException, InterruptedException {
 
-                    // Get the client that enables us to execute Git commands on the workspace.
-                    final GitSCM gitSCM = (GitSCM) build.getProject().getScm();
-                    final GitClient gitClient = gitSCM.createClient(listener, build.getEnvironment(listener), build);
+                        // Only run the Gitflow post build actions if the main build was successful.
+                        if (build.getResult() == Result.SUCCESS) {
 
-                    // Push release branch to remote repo.
-                    listener.getLogger().println("Gitflow - Start Release: Pushing branch: " + releaseBranch);
-                    gitClient.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
+                            // Push release branch to remote repo.
+                            listener.getLogger().println("Gitflow - Start Release: Pushing branch: " + releaseBranch);
+                            createGitClient(build, listener).push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
+                        }
 
-                    return true;
-                }
-            };
+                        return true;
+                    }
+                };
+            } else {
+                // Returning build environment 'null' dnotes a failure.
+                buildEnvironment = null;
+            }
         }
 
         return buildEnvironment;
     }
 
-    private static void executeMaven(final String arguments, final Launcher launcher, final BuildListener listener,
-                                     final MavenModuleSetBuild build) throws IOException, InterruptedException {
+    private static boolean executeMaven(final String arguments, final Launcher launcher, final BuildListener listener,
+                                        final MavenModuleSetBuild build) throws IOException, InterruptedException {
 
         final MavenModuleSet project = build.getProject();
         final String mavenInstallation = project.getMaven().getName();
         final String pom = project.getRootPOM(build.getEnvironment(listener));
 
-        new Maven(arguments, mavenInstallation, pom, null, null).perform(build, launcher, listener);
+        return new Maven(arguments, mavenInstallation, pom, null, null).perform(build, launcher, listener);
+    }
+
+    private static GitClient createGitClient(final AbstractBuild build, final BuildListener listener) throws IOException, InterruptedException {
+        final GitSCM gitSCM = (GitSCM) build.getProject().getScm();
+        return gitSCM.createClient(listener, build.getEnvironment(listener), build);
     }
 
     public static boolean hasReleasePermission(@SuppressWarnings("rawtypes") AbstractProject job) {
