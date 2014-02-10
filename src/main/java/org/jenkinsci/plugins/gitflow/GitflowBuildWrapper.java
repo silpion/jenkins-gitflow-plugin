@@ -6,6 +6,11 @@ import java.util.Collections;
 
 import org.jenkinsci.plugins.gitclient.GitClient;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.StaplerRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import net.sf.json.JSONObject;
 
 import hudson.Extension;
 import hudson.Launcher;
@@ -24,6 +29,7 @@ import hudson.security.PermissionScope;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
 import hudson.tasks.Maven;
+
 import jenkins.util.NonLocalizable;
 
 /**
@@ -125,8 +131,22 @@ public class GitflowBuildWrapper extends BuildWrapper {
     @Extension
     public static class DescriptorImpl extends BuildWrapperDescriptor {
 
+        private transient Logger log = LoggerFactory.getLogger(GitflowBuildWrapper.class);
+
         public static final Permission EXECUTE_GITFLOW =
                 new Permission(Item.PERMISSIONS, "Gitflow", new NonLocalizable("Gitflow"), Hudson.ADMINISTER, PermissionScope.ITEM);
+
+        private String masterBranch = "master";
+        private String developBranch = "develop";
+        private String releaseBranchPrefix = "release/";
+        private String hotfixBranchPrefix = "hotfix/";
+        private String featureBranchPrefix = "feature/";
+        private String versionTagPrefix = "version/";
+
+        public DescriptorImpl() {
+            super(GitflowBuildWrapper.class);
+            load();
+        }
 
         @Override
         public boolean isApplicable(final AbstractProject<?, ?> item) {
@@ -134,8 +154,69 @@ public class GitflowBuildWrapper extends BuildWrapper {
         }
 
         @Override
+        public boolean configure(StaplerRequest staplerRequest, JSONObject json) throws FormException {
+            this.masterBranch = json.getString("masterBranch");
+            this.developBranch = json.getString("developBranch");
+            this.releaseBranchPrefix = json.getString("releaseBranchPrefix");
+            this.hotfixBranchPrefix = json.getString("hotfixBranchPrefix");
+            this.versionTagPrefix = json.getString("versionTagPrefix");
+            this.featureBranchPrefix = json.getString("featureBranchPrefix");
+
+            save();
+            return true; // everything is allright so far
+        }
+
+        @Override
         public String getDisplayName() {
             return "Gitflow";
+        }
+
+        public String getMasterBranch() {
+            return masterBranch;
+        }
+
+        public void setMasterBranch(String masterBranch) {
+            this.masterBranch = masterBranch;
+        }
+
+        public String getDevelopBranch() {
+            return developBranch;
+        }
+
+        public void setDevelopBranch(String developBranch) {
+            this.developBranch = developBranch;
+        }
+
+        public String getFeatureBranchPrefix() {
+            return featureBranchPrefix;
+        }
+
+        public void setFeatureBranchPrefix(String featureBranchPrefix) {
+            this.featureBranchPrefix = featureBranchPrefix;
+        }
+
+        public String getReleaseBranchPrefix() {
+            return releaseBranchPrefix;
+        }
+
+        public void setReleaseBranchPrefix(String releaseBranchPrefix) {
+            this.releaseBranchPrefix = releaseBranchPrefix;
+        }
+
+        public String getHotfixBranchPrefix() {
+            return hotfixBranchPrefix;
+        }
+
+        public void setHotfixBranchPrefix(String hotfixBranchPrefix) {
+            this.hotfixBranchPrefix = hotfixBranchPrefix;
+        }
+
+        public String getVersionTagPrefix() {
+            return versionTagPrefix;
+        }
+
+        public void setVersionTagPrefix(String versionTagPrefix) {
+            this.versionTagPrefix = versionTagPrefix;
         }
     }
 }
