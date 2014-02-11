@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitclient.GitClient;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
@@ -14,6 +15,7 @@ import net.sf.json.JSONObject;
 
 import hudson.Extension;
 import hudson.Launcher;
+import hudson.maven.MavenModule;
 import hudson.maven.MavenModuleSet;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.model.AbstractBuild;
@@ -62,37 +64,134 @@ public class GitflowBuildWrapper extends BuildWrapper {
             // Read the settings for the action to be executed.
             final String releaseVersion = gitflowArgumentsAction.getReleaseVersion();
             final String releaseBranch = "release/" + releaseVersion;
+            final String nextDevelopmentVersion = gitflowArgumentsAction.getNextDevelopmentVersion();
+
+            // Ensure that there are no modified files in the working directory.
+            listener.getLogger().println("Gitflow: Ensuring clean working/checkout directory");
+            createGitClient(build, listener).clean();
 
             // Create a new release branch based on the develop branch.
-            listener.getLogger().println("Gitflow - Start Release: Creating branch " + releaseBranch);
+            listener.getLogger().println("Gitflow - Start Release: Creating release branch " + releaseBranch);
             createGitClient(build, listener).checkoutBranch(releaseBranch, "origin/" + DEVELOP_BRANCH);
 
-            // Update the version numbers in the project files.
+            // Set the release version numbers in the project files and commit them.
             final boolean isVersionUpdateSuccess;
             if (build instanceof MavenModuleSetBuild) {
-                final MavenModuleSetBuild mavenModuleSetBuild = (MavenModuleSetBuild) build;
-                final String mavenArgs = "versions:set -DnewVersion=" + releaseVersion + " -DgenerateBackupPoms=false";
-                isVersionUpdateSuccess = executeMaven(mavenArgs, launcher, listener, mavenModuleSetBuild);
+                final MavenModuleSetBuild mavenBuild = (MavenModuleSetBuild) build;
+
+                listener.getLogger().println("Gitflow - Start Release: Setting Maven POM(s) to version " + releaseVersion);
+
+                // Set the release version numbers in the Maven POM(s).
+                final String mavenArgs = "org.codehaus.mojo:versions-maven-plugin:2.1:set -DnewVersion=" + releaseVersion + " -DgenerateBackupPoms=false";
+                isVersionUpdateSuccess = executeMaven(mavenArgs, launcher, listener, mavenBuild);
+                if (isVersionUpdateSuccess) {
+
+                    // Add the project files with the release version numbers to the Git stage.
+                    // TODO Would be nicer if the GitSCM offered something like 'git ls-files -m'.
+                    for (final MavenModule module : mavenBuild.getProject().getModules()) {
+                        final String moduleRelativePath = module.getRelativePath();
+                        final String modulePomFile = (StringUtils.isBlank(moduleRelativePath) ? "." : moduleRelativePath) + "/pom.xml";
+                        createGitClient(build, listener).add(modulePomFile);
+                    }
+                }
+
             } else {
-                // TODO Warn that version numbers in project files are not updated.
+                listener.getLogger().println("[WARNING] Gitflow - Start Release: Unsupported project type. Cannot change release number in project files.");
                 isVersionUpdateSuccess = true;
             }
+            createGitClient(build, listener).commit("Gitflow: Start release " + releaseVersion);
 
             if (isVersionUpdateSuccess) {
                 buildEnvironment = new Environment() {
 
                     @Override
                     public boolean tearDown(final AbstractBuild build, final BuildListener listener) throws IOException, InterruptedException {
+                        boolean isVersionUpdateSuccess;
 
                         // Only run the Gitflow post build actions if the main build was successful.
                         if (build.getResult() == Result.SUCCESS) {
 
-                            // Push release branch to remote repo.
-                            listener.getLogger().println("Gitflow - Start Release: Pushing branch: " + releaseBranch);
+                            // Push the new release branch to the remote repo.
+                            listener.getLogger().println("Gitflow - Start Release: Pushing new release branch " + releaseBranch);
                             createGitClient(build, listener).push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
+
+                            // Create and push a tag for the new release version.
+                            final String tagName = "version/" + releaseVersion;
+                            listener.getLogger().println("Gitflow - Start Release: Creating tag " + tagName);
+                            createGitClient(build, listener).tag(tagName, "Gitflow: Start release tag " + tagName);
+                            createGitClient(build, listener).push("origin", "refs/tags/" + tagName + ":refs/tags/" + tagName);
+
+                            // Set the devlopment version numbers for the next release fix in the project files and commit them.
+                            final String releaseNextDevelopmentVersion = releaseVersion + ".1-SNAPSHOT";
+                            if (build instanceof MavenModuleSetBuild) {
+                                final MavenModuleSetBuild mavenBuild = (MavenModuleSetBuild) build;
+
+                                listener.getLogger().println("Gitflow - Start Release: Setting Maven POM(s) to version " + releaseNextDevelopmentVersion);
+
+                                // Set the version numbers in the Maven POM(s).
+                                final String mavenArgs = "org.codehaus.mojo:versions-maven-plugin:2.1:set -DnewVersion=" + releaseNextDevelopmentVersion + " " +
+                                        "-DgenerateBackupPoms=false";
+                                isVersionUpdateSuccess = executeMaven(mavenArgs, launcher, listener, mavenBuild);
+                                if (isVersionUpdateSuccess) {
+
+                                    // Add the project files with the changed numbers to the Git stage.
+                                    // TODO Would be nicer if the GitSCM offered something like 'git ls-files -m'.
+                                    for (final MavenModule module : mavenBuild.getProject().getModules()) {
+                                        final String moduleRelativePath = module.getRelativePath();
+                                        final String modulePomFile = (StringUtils.isBlank(moduleRelativePath) ? "." : moduleRelativePath) + "/pom.xml";
+                                        createGitClient(build, listener).add(modulePomFile);
+                                    }
+                                }
+
+                            } else {
+                                listener.getLogger().println("[WARNING] Gitflow - Start Release: Unsupported project type. Cannot change release number in project files.");
+                                isVersionUpdateSuccess = true;
+                            }
+                            createGitClient(build, listener).commit("Gitflow: Start release - next release fix version " + releaseNextDevelopmentVersion);
+                            createGitClient(build, listener).push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
+
+                            if (isVersionUpdateSuccess) {
+
+                                listener.getLogger().println("Gitflow - Start Release: Merging release branch to branch " + DEVELOP_BRANCH);
+                                createGitClient(build, listener).checkoutBranch(DEVELOP_BRANCH, "origin/" + DEVELOP_BRANCH);
+
+                                if (build instanceof MavenModuleSetBuild) {
+                                    final MavenModuleSetBuild mavenBuild = (MavenModuleSetBuild) build;
+
+                                    listener.getLogger().println("Gitflow - Start Release: Setting Maven POM(s) to version " + nextDevelopmentVersion);
+
+                                    final String mavenArgs = "org.codehaus.mojo:versions-maven-plugin:2.1:set -DnewVersion=" + nextDevelopmentVersion + " " +
+                                            "-DgenerateBackupPoms=false";
+                                    isVersionUpdateSuccess = executeMaven(mavenArgs, launcher, listener, mavenBuild);
+                                    if (isVersionUpdateSuccess) {
+
+                                        // Add the project files with the changed numbers to the Git stage.
+                                        // TODO Would be nicer if the GitSCM offered something like 'git ls-files -m'.
+                                        for (final MavenModule module : mavenBuild.getProject().getModules()) {
+                                            final String moduleRelativePath = module.getRelativePath();
+                                            final String modulePomFile = (StringUtils.isBlank(moduleRelativePath) ? "." : moduleRelativePath) + "/pom.xml";
+                                            createGitClient(build, listener).add(modulePomFile);
+                                        }
+                                    }
+                                } else {
+                                    listener.getLogger().println("[WARNING] Gitflow - Start Release: Unsupported project type. Cannot change release number "
+                                            + "in project files.");
+                                    isVersionUpdateSuccess = true;
+                                }
+                                createGitClient(build, listener).commit("Gitflow: Start release - next development version " + nextDevelopmentVersion);
+                                createGitClient(build, listener).push("origin", "refs/heads/" + DEVELOP_BRANCH + ":refs/heads/" + DEVELOP_BRANCH);
+
+                                // TODO Might configure further branches to merge to.
+
+                            } else {
+                                isVersionUpdateSuccess = false;
+                            }
+
+                        } else {
+                            isVersionUpdateSuccess = false;
                         }
 
-                        return true;
+                        return isVersionUpdateSuccess;
                     }
                 };
             } else {

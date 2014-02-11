@@ -10,6 +10,7 @@ import hudson.model.Action;
 public class GitflowArgumentsAction implements Action {
 
     private String releaseVersion;
+    private String nextDevelopmentVersion;
 
     public String getIconFileName() {
         // no icon.
@@ -32,5 +33,13 @@ public class GitflowArgumentsAction implements Action {
 
     public void setReleaseVersion(String releaseVersion) {
         this.releaseVersion = releaseVersion;
+    }
+
+    public String getNextDevelopmentVersion() {
+        return nextDevelopmentVersion;
+    }
+
+    public void setNextDevelopmentVersion(final String nextDevelopmentVersion) {
+        this.nextDevelopmentVersion = nextDevelopmentVersion;
     }
 }

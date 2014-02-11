@@ -67,6 +67,7 @@ public class GitflowReleaseAction implements PermalinkProjectAction {
         // Record the settings for the action to be executed.
         final GitflowArgumentsAction gitflowArgumentsAction = new GitflowArgumentsAction();
         gitflowArgumentsAction.setReleaseVersion(request.getParameter("startRelease_releaseVersion"));
+        gitflowArgumentsAction.setNextDevelopmentVersion(request.getParameter("startRelease_nextDevelopmentVersion"));
 
         // Start a build.
         this.job.scheduleBuild(0, new Cause.UserIdCause(), gitflowArgumentsAction);
