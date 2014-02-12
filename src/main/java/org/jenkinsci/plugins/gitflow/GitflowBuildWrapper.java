@@ -8,8 +8,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitclient.GitClient;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import net.sf.json.JSONObject;
 
@@ -61,6 +59,8 @@ public class GitflowBuildWrapper extends BuildWrapper {
             };
         } else {
 
+            final GitClient git = createGitClient(build, listener);
+
             // Read the settings for the action to be executed.
             final String releaseVersion = gitflowArgumentsAction.getReleaseVersion();
             final String releaseBranch = "release/" + releaseVersion;
@@ -68,11 +68,11 @@ public class GitflowBuildWrapper extends BuildWrapper {
 
             // Ensure that there are no modified files in the working directory.
             listener.getLogger().println("Gitflow: Ensuring clean working/checkout directory");
-            createGitClient(build, listener).clean();
+            git.clean();
 
             // Create a new release branch based on the develop branch.
             listener.getLogger().println("Gitflow - Start Release: Creating release branch " + releaseBranch);
-            createGitClient(build, listener).checkoutBranch(releaseBranch, "origin/" + DEVELOP_BRANCH);
+            git.checkoutBranch(releaseBranch, "origin/" + DEVELOP_BRANCH);
 
             // Set the release version numbers in the project files and commit them.
             final boolean isVersionUpdateSuccess;
@@ -91,7 +91,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
                     for (final MavenModule module : mavenBuild.getProject().getModules()) {
                         final String moduleRelativePath = module.getRelativePath();
                         final String modulePomFile = (StringUtils.isBlank(moduleRelativePath) ? "." : moduleRelativePath) + "/pom.xml";
-                        createGitClient(build, listener).add(modulePomFile);
+                        git.add(modulePomFile);
                     }
                 }
 
@@ -99,7 +99,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
                 listener.getLogger().println("[WARNING] Gitflow - Start Release: Unsupported project type. Cannot change release number in project files.");
                 isVersionUpdateSuccess = true;
             }
-            createGitClient(build, listener).commit("Gitflow: Start release " + releaseVersion);
+            git.commit("Gitflow: Start release " + releaseVersion);
 
             if (isVersionUpdateSuccess) {
                 buildEnvironment = new Environment() {
@@ -111,15 +111,17 @@ public class GitflowBuildWrapper extends BuildWrapper {
                         // Only run the Gitflow post build actions if the main build was successful.
                         if (build.getResult() == Result.SUCCESS) {
 
+                            final GitClient git = createGitClient(build, listener);
+
                             // Push the new release branch to the remote repo.
                             listener.getLogger().println("Gitflow - Start Release: Pushing new release branch " + releaseBranch);
-                            createGitClient(build, listener).push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
+                            git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
 
                             // Create and push a tag for the new release version.
                             final String tagName = "version/" + releaseVersion;
                             listener.getLogger().println("Gitflow - Start Release: Creating tag " + tagName);
-                            createGitClient(build, listener).tag(tagName, "Gitflow: Start release tag " + tagName);
-                            createGitClient(build, listener).push("origin", "refs/tags/" + tagName + ":refs/tags/" + tagName);
+                            git.tag(tagName, "Gitflow: Start release tag " + tagName);
+                            git.push("origin", "refs/tags/" + tagName + ":refs/tags/" + tagName);
 
                             // Set the devlopment version numbers for the next release fix in the project files and commit them.
                             final String releaseNextDevelopmentVersion = releaseVersion + ".1-SNAPSHOT";
@@ -139,7 +141,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
                                     for (final MavenModule module : mavenBuild.getProject().getModules()) {
                                         final String moduleRelativePath = module.getRelativePath();
                                         final String modulePomFile = (StringUtils.isBlank(moduleRelativePath) ? "." : moduleRelativePath) + "/pom.xml";
-                                        createGitClient(build, listener).add(modulePomFile);
+                                        git.add(modulePomFile);
                                     }
                                 }
 
@@ -147,13 +149,13 @@ public class GitflowBuildWrapper extends BuildWrapper {
                                 listener.getLogger().println("[WARNING] Gitflow - Start Release: Unsupported project type. Cannot change release number in project files.");
                                 isVersionUpdateSuccess = true;
                             }
-                            createGitClient(build, listener).commit("Gitflow: Start release - next release fix version " + releaseNextDevelopmentVersion);
-                            createGitClient(build, listener).push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
+                            git.commit("Gitflow: Start release - next release fix version " + releaseNextDevelopmentVersion);
+                            git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
 
                             if (isVersionUpdateSuccess) {
 
                                 listener.getLogger().println("Gitflow - Start Release: Merging release branch to branch " + DEVELOP_BRANCH);
-                                createGitClient(build, listener).checkoutBranch(DEVELOP_BRANCH, "origin/" + DEVELOP_BRANCH);
+                                git.checkoutBranch(DEVELOP_BRANCH, "origin/" + DEVELOP_BRANCH);
 
                                 if (build instanceof MavenModuleSetBuild) {
                                     final MavenModuleSetBuild mavenBuild = (MavenModuleSetBuild) build;
@@ -170,7 +172,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
                                         for (final MavenModule module : mavenBuild.getProject().getModules()) {
                                             final String moduleRelativePath = module.getRelativePath();
                                             final String modulePomFile = (StringUtils.isBlank(moduleRelativePath) ? "." : moduleRelativePath) + "/pom.xml";
-                                            createGitClient(build, listener).add(modulePomFile);
+                                            git.add(modulePomFile);
                                         }
                                     }
                                 } else {
@@ -178,8 +180,8 @@ public class GitflowBuildWrapper extends BuildWrapper {
                                             + "in project files.");
                                     isVersionUpdateSuccess = true;
                                 }
-                                createGitClient(build, listener).commit("Gitflow: Start release - next development version " + nextDevelopmentVersion);
-                                createGitClient(build, listener).push("origin", "refs/heads/" + DEVELOP_BRANCH + ":refs/heads/" + DEVELOP_BRANCH);
+                                git.commit("Gitflow: Start release - next development version " + nextDevelopmentVersion);
+                                git.push("origin", "refs/heads/" + DEVELOP_BRANCH + ":refs/heads/" + DEVELOP_BRANCH);
 
                                 // TODO Might configure further branches to merge to.
 
@@ -224,13 +226,11 @@ public class GitflowBuildWrapper extends BuildWrapper {
 
     @Override
     public Collection<? extends Action> getProjectActions(@SuppressWarnings("rawtypes") final AbstractProject job) {
-        return Collections.singletonList(new GitflowReleaseAction(job));
+        return Collections.singletonList(new GitflowAction(job));
     }
 
     @Extension
     public static class DescriptorImpl extends BuildWrapperDescriptor {
-
-        private transient Logger log = LoggerFactory.getLogger(GitflowBuildWrapper.class);
 
         public static final Permission EXECUTE_GITFLOW =
                 new Permission(Item.PERMISSIONS, "Gitflow", new NonLocalizable("Gitflow"), Hudson.ADMINISTER, PermissionScope.ITEM);

@@ -18,17 +18,17 @@ import hudson.model.Cause;
 import hudson.model.PermalinkProjectAction;
 
 /**
- * The action appears as the link in the side bar that users will click on in order to create a Git release.
+ * The action appears as the link in the side bar that users will click on in order to execute a Gitflow action.
  *
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
-public class GitflowReleaseAction implements PermalinkProjectAction {
+public class GitflowAction implements PermalinkProjectAction {
 
-    private transient Logger log = LoggerFactory.getLogger(GitflowReleaseAction.class);
+    private transient Logger log = LoggerFactory.getLogger(GitflowAction.class);
 
     private AbstractProject<?, ?> job;
 
-    public GitflowReleaseAction(final AbstractProject<?, ?> job) {
+    public GitflowAction(final AbstractProject<?, ?> job) {
         this.job = job;
     }
 
