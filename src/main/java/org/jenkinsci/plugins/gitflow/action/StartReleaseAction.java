@@ -24,6 +24,7 @@ public class StartReleaseAction extends AbstractGitflowAction {
     private final String releaseVersion;
     private final String nextDevelopmentVersion;
     private final String releaseBranch;
+    private final String releaseNextDevelopmentVersion;
 
     public StartReleaseAction(final Map<String, String> gitflowActionParams, final AbstractBuild build, final Launcher launcher,
                               final BuildListener listener) throws IOException, InterruptedException {
@@ -31,6 +32,8 @@ public class StartReleaseAction extends AbstractGitflowAction {
 
         this.releaseVersion = gitflowActionParams.get("releaseVersion");
         this.nextDevelopmentVersion = gitflowActionParams.get("nextDevelopmentVersion");
+        this.releaseNextDevelopmentVersion = gitflowActionParams.get("releaseNextDevelopmentVersion");
+
         this.releaseBranch = "release/" + this.releaseVersion;
     }
 
@@ -85,14 +88,13 @@ public class StartReleaseAction extends AbstractGitflowAction {
             this.git.push("origin", "refs/tags/" + tagName + ":refs/tags/" + tagName);
 
             // Set the devlopment version numbers for the next release fix in the project files and commit them.
-            final String releaseNextDevelopmentVersion = releaseVersion + ".1-SNAPSHOT";
             if (this.build instanceof MavenModuleSetBuild) {
                 final MavenModuleSetBuild mavenBuild = (MavenModuleSetBuild) this.build;
 
-                this.consoleLogger.println("Gitflow - Start Release: Setting Maven POM(s) to version " + releaseNextDevelopmentVersion);
+                this.consoleLogger.println("Gitflow - Start Release: Setting Maven POM(s) to version " + this.releaseNextDevelopmentVersion);
 
                 // Set the version numbers in the Maven POM(s).
-                executeMaven("org.codehaus.mojo:versions-maven-plugin:2.1:set -DnewVersion=" + releaseNextDevelopmentVersion + " -DgenerateBackupPoms=false");
+                executeMaven("org.codehaus.mojo:versions-maven-plugin:2.1:set -DnewVersion=" + this.releaseNextDevelopmentVersion + " -DgenerateBackupPoms=false");
 
                 // Add the project files with the changed numbers to the Git stage.
                 // TODO Would be nicer if the GitSCM offered something like 'git ls-files -m'.
@@ -105,7 +107,7 @@ public class StartReleaseAction extends AbstractGitflowAction {
             } else {
                 this.consoleLogger.println("[WARNING] Gitflow - Start Release: Unsupported project type. Cannot change release number in project files.");
             }
-            this.git.commit("Gitflow: Start release - next release fix version " + releaseNextDevelopmentVersion);
+            this.git.commit("Gitflow: Start release - next release fix version " + this.releaseNextDevelopmentVersion);
             this.git.push("origin", "refs/heads/" + this.releaseBranch + ":refs/heads/" + this.releaseBranch);
 
             this.consoleLogger.println("Gitflow - Start Release: Merging release branch to branch " + DEVELOP_BRANCH);

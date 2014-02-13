@@ -5,6 +5,7 @@
 .classpath
 .project
 .settings
-work
+bin
 target
 temp
+work

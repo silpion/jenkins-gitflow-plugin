@@ -18,7 +18,10 @@
                         <f:entry title="Release Version">
                             <f:textbox name="startRelease_releaseVersion" />
                         </f:entry>
-                        <f:entry title="Next Development Version">
+                        <f:entry title="Release Fixes Development Version">
+                            <f:textbox name="startRelease_releaseNextDevelopmentVersion" />
+                        </f:entry>
+                        <f:entry title="Next Release Development Version">
                             <f:textbox name="startRelease_nextDevelopmentVersion" />
                         </f:entry>
                     </f:radioBlock>
