@@ -19,17 +19,17 @@ import hudson.model.AbstractProject;
 import hudson.model.PermalinkProjectAction;
 
 /**
- * The action appears as the link in the side bar that users will click on in order to execute a Gitflow action.
+ * The action that appears as link in the side bar of a project. Users will click on it in order to execute a Gitflow action.
  *
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
-public class GitflowAction implements PermalinkProjectAction {
+public class GitflowProjectAction implements PermalinkProjectAction {
 
-    private transient Logger log = LoggerFactory.getLogger(GitflowAction.class);
+    private transient Logger log = LoggerFactory.getLogger(GitflowProjectAction.class);
 
     private AbstractProject<?, ?> job;
 
-    public GitflowAction(final AbstractProject<?, ?> job) {
+    public GitflowProjectAction(final AbstractProject<?, ?> job) {
         this.job = job;
     }
 
@@ -63,6 +63,7 @@ public class GitflowAction implements PermalinkProjectAction {
         // Record the settings for the action to be executed.
         final Map<String, String> actionParams = new HashMap<String, String>();
         for (final Object actionParamEntryObject : request.getParameterMap().entrySet()) {
+            @SuppressWarnings("unchecked")
             final Map.Entry<String, String[]> actionParamEntry = (Map.Entry<String, String[]>) actionParamEntryObject;
             final String actionParamCombinedKey = actionParamEntry.getKey();
             if (action.equals(StringUtils.substringBefore(actionParamCombinedKey, "_"))) {

@@ -90,7 +90,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
 
     @Override
     public Collection<? extends Action> getProjectActions(@SuppressWarnings("rawtypes") final AbstractProject job) {
-        return Collections.singletonList(new GitflowAction(job));
+        return Collections.singletonList(new GitflowProjectAction(job));
     }
 
     @Extension
@@ -108,7 +108,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
 
         public DescriptorImpl() {
             super(GitflowBuildWrapper.class);
-            load();
+            this.load();
         }
 
         @Override
@@ -125,7 +125,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
             this.versionTagPrefix = json.getString("versionTagPrefix");
             this.featureBranchPrefix = json.getString("featureBranchPrefix");
 
-            save();
+            this.save();
             return true; // everything is allright so far
         }
 
@@ -135,7 +135,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
         }
 
         public String getMasterBranch() {
-            return masterBranch;
+            return this.masterBranch;
         }
 
         public void setMasterBranch(String masterBranch) {
@@ -143,7 +143,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
         }
 
         public String getDevelopBranch() {
-            return developBranch;
+            return this.developBranch;
         }
 
         public void setDevelopBranch(String developBranch) {
@@ -151,7 +151,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
         }
 
         public String getFeatureBranchPrefix() {
-            return featureBranchPrefix;
+            return this.featureBranchPrefix;
         }
 
         public void setFeatureBranchPrefix(String featureBranchPrefix) {
@@ -159,7 +159,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
         }
 
         public String getReleaseBranchPrefix() {
-            return releaseBranchPrefix;
+            return this.releaseBranchPrefix;
         }
 
         public void setReleaseBranchPrefix(String releaseBranchPrefix) {
@@ -167,7 +167,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
         }
 
         public String getHotfixBranchPrefix() {
-            return hotfixBranchPrefix;
+            return this.hotfixBranchPrefix;
         }
 
         public void setHotfixBranchPrefix(String hotfixBranchPrefix) {
@@ -175,7 +175,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
         }
 
         public String getVersionTagPrefix() {
-            return versionTagPrefix;
+            return this.versionTagPrefix;
         }
 
         public void setVersionTagPrefix(String versionTagPrefix) {
