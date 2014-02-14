@@ -60,7 +60,8 @@ public class GitflowBuildWrapper extends BuildWrapper {
             if ("startRelease".equals(action)) {
                 gitflowAction = new StartReleaseAction(gitflowCause.getActionParams(), build, launcher, listener);
             } else {
-                throw new IllegalArgumentException("Unknown Gitflow action " + action);
+                // Only an IOException causes the build to fail properly.
+                throw new IOException("Unknown Gitflow action " + action);
             }
 
             gitflowAction.beforeMainBuild();
