@@ -17,7 +17,6 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.BuildListener;
-import hudson.model.Hudson;
 import hudson.model.Item;
 import hudson.model.Result;
 import hudson.plugins.git.GitSCM;
@@ -26,12 +25,13 @@ import hudson.security.PermissionScope;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
 
+import jenkins.model.Jenkins;
 import jenkins.util.NonLocalizable;
 
 /**
- * Wraps a build that works on a Git repository. It enables the creation of Git releases, respecting the <a
- * href="http://nvie.com/posts/a-successful-git-branching-model/">Git Flow</a>.
- * 
+ * Wraps a build that works on a Git repository. It enables the creation of Git releases, respecting the
+ * <a href="http://nvie.com/posts/a-successful-git-branching-model/">Git Flow</a>.
+ *
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
 public class GitflowBuildWrapper extends BuildWrapper {
@@ -46,7 +46,6 @@ public class GitflowBuildWrapper extends BuildWrapper {
         final Environment buildEnvironment;
 
         // Non-Gitflow builds don't contain the Gitflow cause.
-        @SuppressWarnings("unchecked")
         final GitflowCause gitflowCause = (GitflowCause) build.getCause(GitflowCause.class);
         if (gitflowCause == null) {
             buildEnvironment = new Environment() {
@@ -69,7 +68,8 @@ public class GitflowBuildWrapper extends BuildWrapper {
             buildEnvironment = new Environment() {
 
                 @Override
-                public boolean tearDown(final AbstractBuild build, final BuildListener listener) throws IOException, InterruptedException {
+                public boolean tearDown(@SuppressWarnings("hiding") final AbstractBuild build, @SuppressWarnings("hiding") final BuildListener listener)
+                        throws IOException, InterruptedException {
 
                     // Only run the Gitflow post build actions if the main build was successful.
                     if (build.getResult() == Result.SUCCESS) {
@@ -89,15 +89,21 @@ public class GitflowBuildWrapper extends BuildWrapper {
     }
 
     @Override
-    public Collection<? extends Action> getProjectActions(@SuppressWarnings("rawtypes") final AbstractProject job) {
+    public Collection<? extends Action> getProjectActions(final AbstractProject job) {
         return Collections.singletonList(new GitflowProjectAction(job));
     }
 
+    /**
+     * The descriptor for the <i>Jenkins Gitflow Plugin</i>.
+     *
+     * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
+     */
     @Extension
     public static class DescriptorImpl extends BuildWrapperDescriptor {
 
-        public static final Permission EXECUTE_GITFLOW = new Permission(Item.PERMISSIONS, "Gitflow", new NonLocalizable("Gitflow"), Hudson.ADMINISTER,
-                PermissionScope.ITEM);
+        /** The configurable usage permission for the <i>Jenkins Gitflow Plugin</i>. */
+        public static final Permission EXECUTE_GITFLOW = new Permission(Item.PERMISSIONS, "Gitflow", new NonLocalizable("Gitflow"), Jenkins.ADMINISTER,
+                                                                        PermissionScope.ITEM);
 
         private String masterBranch = "master";
         private String developBranch = "develop";

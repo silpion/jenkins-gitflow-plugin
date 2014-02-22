@@ -15,13 +15,13 @@ public class BuildTypeActionFactory {
     /**
      * Creates an instance for the build-type-specific actions regarding to the type of the build in progress.
      *
-     * @param build    the <i>Gitflow</i> build that is in progress.
+     * @param build the <i>Gitflow</i> build that is in progress.
      * @param launcher can be used to launch processes for this build - even if the build runs remotely.
      * @param listener can be used to send any message.
      * @return a new instance of the build-type-specific action class.
      */
-    public static AbstractBuildTypeAction newInstance(final AbstractBuild build, final Launcher launcher, final BuildListener listener) {
-        final AbstractBuildTypeAction abstractBuildTypeAction;
+    public static AbstractBuildTypeAction<?> newInstance(final AbstractBuild<?, ?> build, final Launcher launcher, final BuildListener listener) {
+        final AbstractBuildTypeAction<?> abstractBuildTypeAction;
 
         if (build instanceof MavenModuleSetBuild) {
             final MavenModuleSetBuild mavenModuleSetBuild = (MavenModuleSetBuild) build;

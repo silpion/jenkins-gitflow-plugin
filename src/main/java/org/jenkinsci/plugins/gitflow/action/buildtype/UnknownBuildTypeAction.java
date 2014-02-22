@@ -14,18 +14,16 @@ import hudson.model.BuildListener;
  *
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
-public class UnknownBuildTypeAction extends AbstractBuildTypeAction<AbstractBuild> {
+public class UnknownBuildTypeAction extends AbstractBuildTypeAction<AbstractBuild<?, ?>> {
 
     /**
      * Initialises a new action for an unknown build type.
      *
-     * @param build    the <i>Gitflow</i> build that is in progress.
+     * @param build the <i>Gitflow</i> build that is in progress.
      * @param launcher can be used to launch processes for this build - even if the build runs remotely.
      * @param listener can be used to send any message.
-     * @throws IOException          if an error occurs that causes/should cause the build to fail.
-     * @throws InterruptedException if the build is interrupted during execution.
      */
-    public UnknownBuildTypeAction(final AbstractBuild build, final Launcher launcher, final BuildListener listener) {
+    public UnknownBuildTypeAction(final AbstractBuild<?, ?> build, final Launcher launcher, final BuildListener listener) {
         super(build, launcher, listener);
     }
 

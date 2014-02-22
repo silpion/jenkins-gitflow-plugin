@@ -28,14 +28,14 @@ public class StartReleaseAction extends AbstractGitflowAction {
     /**
      * Initialises a new <i>Start Release</i> action.
      *
-     * @param params   the required parameters for the <i>Start Release</i> action.
-     * @param build    the <i>Start Release</i> build that is in progress.
+     * @param params the required parameters for the <i>Start Release</i> action.
+     * @param build the <i>Start Release</i> build that is in progress.
      * @param launcher can be used to launch processes for this build - even if the build runs remotely.
      * @param listener can be used to send any message.
-     * @throws IOException          if an error occurs that causes/should cause the build to fail.
+     * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    public StartReleaseAction(final Map<String, String> params, final AbstractBuild build, final Launcher launcher, final BuildListener listener)
+    public StartReleaseAction(final Map<String, String> params, final AbstractBuild<?, ?> build, final Launcher launcher, final BuildListener listener)
             throws IOException, InterruptedException {
         super(build, launcher, listener);
 
@@ -90,16 +90,16 @@ public class StartReleaseAction extends AbstractGitflowAction {
         this.git.push("origin", "refs/heads/" + this.releaseBranch + ":refs/heads/" + this.releaseBranch);
 
         // Update the project files in the develop branch to the development version for the next release.
-        this.consoleLogger.println("Gitflow - Start Release: Updating project files on " + DEVELOP_BRANCH +
-                " branch to next development version " + this.nextDevelopmentVersion);
+        this.consoleLogger.println("Gitflow - Start Release: Updating project files on " + DEVELOP_BRANCH + " branch to next development version "
+                                   + this.nextDevelopmentVersion);
         this.git.checkoutBranch(DEVELOP_BRANCH, "origin/" + DEVELOP_BRANCH);
         this.addFilesToGitStage(this.buildTypeAction.updateVersion(this.nextDevelopmentVersion));
-        this.git.commit("Gitflow - Start Release: Updated project files on " + DEVELOP_BRANCH +
-                " branch to next development version " + this.nextDevelopmentVersion);
+        this.git.commit("Gitflow - Start Release: Updated project files on " + DEVELOP_BRANCH + " branch to next development version "
+                        + this.nextDevelopmentVersion);
 
         // Push the project files in the develop branch with the development version for the next release.
-        this.consoleLogger.println("Gitflow - Start Release: Pushing project files on " + DEVELOP_BRANCH +
-                " branch with next development version " + this.nextDevelopmentVersion);
+        this.consoleLogger.println("Gitflow - Start Release: Pushing project files on " + DEVELOP_BRANCH + " branch with next development version "
+                                   + this.nextDevelopmentVersion);
         this.git.push("origin", "refs/heads/" + DEVELOP_BRANCH + ":refs/heads/" + DEVELOP_BRANCH);
 
         // TODO Might configure further branches to merge to.

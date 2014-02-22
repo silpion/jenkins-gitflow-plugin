@@ -6,14 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.ServletException;
-
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import hudson.model.AbstractProject;
 import hudson.model.PermalinkProjectAction;
@@ -24,8 +20,6 @@ import hudson.model.PermalinkProjectAction;
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
 public class GitflowProjectAction implements PermalinkProjectAction {
-
-    private transient Logger log = LoggerFactory.getLogger(GitflowProjectAction.class);
 
     private AbstractProject<?, ?> job;
 
@@ -53,8 +47,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         return "gitflow";
     }
 
-    @SuppressWarnings("UnusedDeclaration")
-    public void doSubmit(final StaplerRequest request, final StaplerResponse response) throws IOException, ServletException {
+    public void doSubmit(final StaplerRequest request, final StaplerResponse response) throws IOException {
 
         // TODO Validate that the releaseVersion is not empty.
 

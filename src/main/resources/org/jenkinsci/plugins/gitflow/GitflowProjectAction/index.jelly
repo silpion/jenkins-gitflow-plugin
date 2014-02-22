@@ -6,12 +6,16 @@
                 <f:section title="Gitflow">
                     <f:radioBlock name="action" value="startFeature" title="Start Feature" checked="false">
                         <f:entry>
-                            TODO Add form field entries to configure the <i>Start Feature</i> action.
+                            TODO Add form field entries to configure the
+                            <i>Start Feature</i>
+                            action.
                         </f:entry>
                     </f:radioBlock>
                     <f:radioBlock name="action" value="finishFeature" title="Finish Feature" checked="false">
                         <f:entry>
-                            TODO Add form field entries to configure the <i>Finish Feature</i> action.
+                            TODO Add form field entries to configure the
+                            <i>Finish Feature</i>
+                            action.
                         </f:entry>
                     </f:radioBlock>
                     <f:radioBlock name="action" value="startRelease" title="Start Release" checked="false">
@@ -27,17 +31,23 @@
                     </f:radioBlock>
                     <f:radioBlock name="action" value="finishRelease" title="Finish Release" checked="false">
                         <f:entry>
-                            TODO Add form field entries to configure the <i>Finish Release</i> action.
+                            TODO Add form field entries to configure the
+                            <i>Finish Release</i>
+                            action.
                         </f:entry>
                     </f:radioBlock>
                     <f:radioBlock name="action" value="startHotfix" title="Start Hotfix" checked="false">
                         <f:entry>
-                            TODO Add form field entries to configure the <i>Start Hotfix</i> action.
+                            TODO Add form field entries to configure the
+                            <i>Start Hotfix</i>
+                            action.
                         </f:entry>
                     </f:radioBlock>
                     <f:radioBlock name="action" value="finishHotfix" title="Finish Hotfix" checked="false">
                         <f:entry>
-                            TODO Add form field entries to configure the <i>Finish Hotfix</i> action.
+                            TODO Add form field entries to configure the
+                            <i>Finish Hotfix</i>
+                            action.
                         </f:entry>
                     </f:radioBlock>
                 </f:section>

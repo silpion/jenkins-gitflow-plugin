@@ -1,42 +1,36 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-	<!--
-		This Jelly script is used to produce the global configuration option.
+    <!--
+        This Jelly script is used to produce the global configuration option.
 
-		Hudson uses a set of tag libraries to provide uniformity in forms.
-		To determine where this tag is defined, first check the namespace URI,
-		and then look under $HUDSON/views/. For example, <f:section> is defined
-		in $HUDSON/views/lib/form/section.jelly.
+        Hudson uses a set of tag libraries to provide uniformity in forms.
+        To determine where this tag is defined, first check the namespace URI,
+        and then look under $HUDSON/views/. For example, <f:section> is defined
+        in $HUDSON/views/lib/form/section.jelly.
 
-		It's also often useful to just check other similar scripts to see what
-		tags they use. Views are always organised according to its owner class,
-		so it should be straightforward to find them.
-	-->
-	<f:section title="Gitflow Plugin">
-		
-		<!--  any global configurations for the gitflow plugin will go here. -->
-				<f:entry title="Master Branch">
-					<f:textbox name="masterBranch"  value="${descriptor.masterBranch}" 
-                    onchange="Form.findMatchingInput(this,'gitflow.masterBranch').onchange()" />
-				</f:entry>
-                <f:entry title="Develop Branch">
-                    <f:textbox name="developBranch"  value="${descriptor.developBranch}" 
-                    onchange="Form.findMatchingInput(this,'gitflow.developBranch').onchange()" />
-                </f:entry>
-                <f:entry title="Release Branch Prefix">
-                    <f:textbox name="releaseBranchPrefix"  value="${descriptor.releaseBranchPrefix}" 
-                    onchange="Form.findMatchingInput(this,'gitflow.releaseBranchPrefix').onchange()" />
-                </f:entry>
-                <f:entry title="Hotfix Branch Prefix">
-                    <f:textbox name="hotfixBranchPrefix"  value="${descriptor.hotfixBranchPrefix}" 
-                    onchange="Form.findMatchingInput(this,'gitflow.hotfixBranchPrefix').onchange()" />
-                </f:entry>
-                <f:entry title="Version Tag Prefix">
-                    <f:textbox name="versionTagPrefix"  value="${descriptor.versionTagPrefix}" 
-                    onchange="Form.findMatchingInput(this,'gitflow.versionTagPrefix').onchange()" />
-                </f:entry>
-                <f:entry title="Feature Branch Prefix">
-                    <f:textbox name="featureBranchPrefix"  value="${descriptor.featureBranchPrefix}" 
-                    onchange="Form.findMatchingInput(this,'gitflow.featureBranchPrefix').onchange()" />
-                </f:entry>
-	</f:section>
+        It's also often useful to just check other similar scripts to see what
+        tags they use. Views are always organised according to its owner class,
+        so it should be straightforward to find them.
+    -->
+    <f:section title="Gitflow Plugin">
+
+        <!-- any global configurations for the gitflow plugin will go here. -->
+        <f:entry title="Master Branch">
+            <f:textbox name="masterBranch" value="${descriptor.masterBranch}" onchange="Form.findMatchingInput(this,'gitflow.masterBranch').onchange()" />
+        </f:entry>
+        <f:entry title="Develop Branch">
+            <f:textbox name="developBranch" value="${descriptor.developBranch}" onchange="Form.findMatchingInput(this,'gitflow.developBranch').onchange()" />
+        </f:entry>
+        <f:entry title="Release Branch Prefix">
+            <f:textbox name="releaseBranchPrefix" value="${descriptor.releaseBranchPrefix}" onchange="Form.findMatchingInput(this,'gitflow.releaseBranchPrefix').onchange()" />
+        </f:entry>
+        <f:entry title="Hotfix Branch Prefix">
+            <f:textbox name="hotfixBranchPrefix" value="${descriptor.hotfixBranchPrefix}" onchange="Form.findMatchingInput(this,'gitflow.hotfixBranchPrefix').onchange()" />
+        </f:entry>
+        <f:entry title="Version Tag Prefix">
+            <f:textbox name="versionTagPrefix" value="${descriptor.versionTagPrefix}" onchange="Form.findMatchingInput(this,'gitflow.versionTagPrefix').onchange()" />
+        </f:entry>
+        <f:entry title="Feature Branch Prefix">
+            <f:textbox name="featureBranchPrefix" value="${descriptor.featureBranchPrefix}" onchange="Form.findMatchingInput(this,'gitflow.featureBranchPrefix').onchange()" />
+        </f:entry>
+    </f:section>
 </j:jelly>

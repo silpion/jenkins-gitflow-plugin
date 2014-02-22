@@ -26,11 +26,9 @@ public class MavenBuildTypeAction extends AbstractBuildTypeAction<MavenModuleSet
     /**
      * Initialises a new Maven build type action.
      *
-     * @param build    the <i>Gitflow</i> build that is in progress.
+     * @param build the <i>Gitflow</i> build that is in progress.
      * @param launcher can be used to launch processes for this build - even if the build runs remotely.
      * @param listener can be used to send any message.
-     * @throws IOException          if an error occurs that causes/should cause the build to fail.
-     * @throws InterruptedException if the build is interrupted during execution.
      */
     public MavenBuildTypeAction(final MavenModuleSetBuild build, final Launcher launcher, final BuildListener listener) {
         super(build, launcher, listener);
