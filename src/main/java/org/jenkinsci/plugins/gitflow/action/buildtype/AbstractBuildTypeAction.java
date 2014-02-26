@@ -36,6 +36,13 @@ public abstract class AbstractBuildTypeAction<T extends AbstractBuild<?, ?>> {
     }
 
     /**
+     * Returns the current version number of the project files.
+     *
+     * @return the current version number of the project files.
+     */
+    public abstract String getCurrentVersion();
+
+    /**
      * Update the version numbers in the project files to the provided version.
      *
      * @param version the version to be set in the project files.

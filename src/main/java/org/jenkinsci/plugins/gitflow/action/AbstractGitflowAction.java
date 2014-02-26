@@ -23,6 +23,7 @@ import hudson.plugins.git.GitSCM;
  */
 public abstract class AbstractGitflowAction {
 
+    protected final AbstractBuild<?, ?> build;
     protected final PrintStream consoleLogger;
     protected final AbstractBuildTypeAction<?> buildTypeAction;
     protected final GitClient git;
@@ -38,6 +39,7 @@ public abstract class AbstractGitflowAction {
      */
     protected AbstractGitflowAction(final AbstractBuild<?, ?> build, final Launcher launcher, final BuildListener listener)
             throws IOException, InterruptedException {
+        this.build = build;
         this.consoleLogger = listener.getLogger();
         this.buildTypeAction = BuildTypeActionFactory.newInstance(build, launcher, listener);
 
@@ -83,8 +85,8 @@ public abstract class AbstractGitflowAction {
      * Adds the provided files to the Git stages - executing {@code git add [file1] [file2] ...}.
      * <p/>
      * TODO Instead of adding the modified files manually, it would be more reliable to ask the Git client for the files that have been mofified and add those.
-     * Unfortunately the {@link hudson.plugins.git.GitSCM GitSCM} class doesn't offer a method to get the modified files. We might file a feature request
-     * and/or implement it ourselves and then do a pull request on GitHub. The method to be implemented should execute something like {@code git ls-files -m}).
+     * Unfortunately the {@link hudson.plugins.git.GitSCM GitSCM} class doesn't offer a method to get the modified files. We might file a feature request and/or
+     * implement it ourselves and then do a pull request on GitHub. The method to be implemented should execute something like {@code git ls-files -m}).
      *
      * @param files the files to be staged.
      * @throws InterruptedException if the build is interrupted during execution.

@@ -28,6 +28,11 @@ public class UnknownBuildTypeAction extends AbstractBuildTypeAction<AbstractBuil
     }
 
     @Override
+    public String getCurrentVersion() {
+        return "unknown";
+    }
+
+    @Override
     public List<String> updateVersion(final String version) throws IOException, InterruptedException {
         this.consoleLogger.println("[WARNING] Unsupported project type. Cannot change release number in project files.");
         return Collections.emptyList();

@@ -21,10 +21,19 @@ import hudson.model.PermalinkProjectAction;
  */
 public class GitflowProjectAction implements PermalinkProjectAction {
 
-    private AbstractProject<?, ?> job;
+    private static final String DEFAULT_STRING = "Please enter a valid version number...";
 
+    private final AbstractProject<?, ?> job;
+    private final GitflowPluginProperties gitflowPluginProperties;
+
+    /**
+     * Initialises a new {@link GitflowProjectAction}.
+     *
+     * @param job the job/project that the Gitflow actions can be applied to.
+     */
     public GitflowProjectAction(final AbstractProject<?, ?> job) {
         this.job = job;
+        this.gitflowPluginProperties = new GitflowPluginProperties(job);
     }
 
     public List<Permalink> getPermalinks() {
@@ -47,11 +56,42 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         return "gitflow";
     }
 
+    public String computeReleaseVersion() throws IOException {
+        final String developVersion = this.gitflowPluginProperties.loadVersionForBranch("origin/develop");
+        if (StringUtils.isBlank(developVersion)) {
+            return DEFAULT_STRING;
+        } else {
+            return StringUtils.removeEnd(developVersion, "-SNAPSHOT");
+        }
+    }
+
+    public String computeReleaseNextDevelopmentVersion() throws IOException {
+        final String releaseVersion = this.computeReleaseVersion();
+        if (StringUtils.equals(releaseVersion, DEFAULT_STRING)) {
+            return DEFAULT_STRING;
+        } else {
+            return releaseVersion + ".1-SNAPSHOT";
+        }
+    }
+
+    public String computeNextDevelopmentVersion() throws IOException {
+        final String releaseVersion = this.computeReleaseVersion();
+        if (StringUtils.equals(releaseVersion, DEFAULT_STRING)) {
+            return DEFAULT_STRING;
+        } else {
+            final String latestMinorVersion = StringUtils.substringAfterLast(releaseVersion, ".");
+            final int nextMinorVersion = Integer.valueOf(latestMinorVersion).intValue() + 1;
+
+            final String baseVersion = StringUtils.substringBeforeLast(releaseVersion, ".");
+            return baseVersion + "." + nextMinorVersion + "-SNAPSHOT";
+        }
+    }
+
     public void doSubmit(final StaplerRequest request, final StaplerResponse response) throws IOException {
 
-        // TODO Validate that the releaseVersion is not empty.
-
         final String action = request.getParameter("action");
+
+        // TODO Validate that the versions for the selected action are not empty and don't equal DEFAULT_STRING.
 
         // Record the settings for the action to be executed.
         final Map<String, String> actionParams = new HashMap<String, String>();

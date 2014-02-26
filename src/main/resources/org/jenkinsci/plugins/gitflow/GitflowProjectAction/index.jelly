@@ -20,13 +20,13 @@
                     </f:radioBlock>
                     <f:radioBlock name="action" value="startRelease" title="Start Release" checked="false">
                         <f:entry title="Release Version">
-                            <f:textbox name="startRelease_releaseVersion" />
+                            <f:textbox name="startRelease_releaseVersion" value="${it.computeReleaseVersion()}" />
                         </f:entry>
                         <f:entry title="Release Fixes Development Version">
-                            <f:textbox name="startRelease_releaseNextDevelopmentVersion" />
+                            <f:textbox name="startRelease_releaseNextDevelopmentVersion" value="${it.computeReleaseNextDevelopmentVersion()}" />
                         </f:entry>
                         <f:entry title="Next Release Development Version">
-                            <f:textbox name="startRelease_nextDevelopmentVersion" />
+                            <f:textbox name="startRelease_nextDevelopmentVersion" value="${it.computeNextDevelopmentVersion()}" />
                         </f:entry>
                     </f:radioBlock>
                     <f:radioBlock name="action" value="finishRelease" title="Finish Release" checked="false">

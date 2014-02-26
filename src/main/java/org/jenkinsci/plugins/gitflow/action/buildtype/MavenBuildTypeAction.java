@@ -35,6 +35,11 @@ public class MavenBuildTypeAction extends AbstractBuildTypeAction<MavenModuleSet
     }
 
     @Override
+    public String getCurrentVersion() {
+        return this.build.getProject().getRootModule().getVersion();
+    }
+
+    @Override
     public List<String> updateVersion(final String version) throws IOException, InterruptedException {
         final List<String> modifiedFiles;
 

@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.jenkinsci.plugins.gitflow.action.AbstractGitflowAction;
+import org.jenkinsci.plugins.gitflow.action.NoGitflowAction;
 import org.jenkinsci.plugins.gitflow.action.StartReleaseAction;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
@@ -46,40 +47,37 @@ public class GitflowBuildWrapper extends BuildWrapper {
         final Environment buildEnvironment;
 
         // Non-Gitflow builds don't contain the Gitflow cause.
+        // TODO Implement factory class.
+        final AbstractGitflowAction gitflowAction;
         final GitflowCause gitflowCause = (GitflowCause) build.getCause(GitflowCause.class);
         if (gitflowCause == null) {
-            buildEnvironment = new Environment() {
-                // There's nothing to be overwritten for a non-Gitflow build.
-            };
+            gitflowAction = new NoGitflowAction(build, launcher, listener);
         } else {
-
-            // TODO Implement factory class.
             final String action = gitflowCause.getAction();
-            final AbstractGitflowAction gitflowAction;
             if ("startRelease".equals(action)) {
                 gitflowAction = new StartReleaseAction(gitflowCause.getActionParams(), build, launcher, listener);
             } else {
                 // Only an IOException causes the build to fail properly.
                 throw new IOException("Unknown Gitflow action " + action);
             }
-
-            gitflowAction.beforeMainBuild();
-
-            buildEnvironment = new Environment() {
-
-                @Override
-                public boolean tearDown(@SuppressWarnings("hiding") final AbstractBuild build, @SuppressWarnings("hiding") final BuildListener listener)
-                        throws IOException, InterruptedException {
-
-                    // Only run the Gitflow post build actions if the main build was successful.
-                    if (build.getResult() == Result.SUCCESS) {
-                        gitflowAction.afterMainBuild();
-                    }
-
-                    return true;
-                }
-            };
         }
+
+        gitflowAction.beforeMainBuild();
+
+        buildEnvironment = new Environment() {
+
+            @Override
+            public boolean tearDown(@SuppressWarnings("hiding") final AbstractBuild build, @SuppressWarnings("hiding") final BuildListener listener)
+                    throws IOException, InterruptedException {
+
+                // Only run the Gitflow post build actions if the main build was successful.
+                if (build.getResult() == Result.SUCCESS) {
+                    gitflowAction.afterMainBuild();
+                }
+
+                return true;
+            }
+        };
 
         return buildEnvironment;
     }
