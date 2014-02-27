@@ -45,7 +45,7 @@ public class GitflowPluginProperties {
      */
     public String loadVersionForBranch(final String branch) throws IOException {
         this.loadProperties();
-        return this.properties.getProperty(branch);
+        return this.properties.getProperty("branchVersion." + branch);
     }
 
     /**
@@ -57,7 +57,7 @@ public class GitflowPluginProperties {
      */
     public void saveVersionForBranch(final String branch, final String version) throws IOException {
         this.loadProperties();
-        this.properties.setProperty(branch, version);
+        this.properties.setProperty("branchVersion." + branch, version);
         this.saveProperties();
     }
 
@@ -71,7 +71,7 @@ public class GitflowPluginProperties {
     public void saveVersionForBranches(final Collection<String> branches, final String version) throws IOException {
         this.loadProperties();
         for (final String branch : branches) {
-            this.properties.setProperty(branch, version);
+            this.properties.setProperty("branchVersion." + branch, version);
         }
         this.saveProperties();
     }

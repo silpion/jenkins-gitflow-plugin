@@ -57,7 +57,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
     }
 
     public String computeReleaseVersion() throws IOException {
-        final String developVersion = this.gitflowPluginProperties.loadVersionForBranch("origin/develop");
+        final String developVersion = this.gitflowPluginProperties.loadVersionForBranch("develop");
         if (StringUtils.isBlank(developVersion)) {
             return DEFAULT_STRING;
         } else {
