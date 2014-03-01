@@ -9,6 +9,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitclient.GitClient;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
+import org.jenkinsci.plugins.gitflow.GitflowPluginProperties;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
 import org.jenkinsci.plugins.gitflow.action.buildtype.BuildTypeActionFactory;
 
@@ -31,6 +32,8 @@ public abstract class AbstractGitflowAction {
     protected final AbstractBuildTypeAction<?> buildTypeAction;
     protected final GitClient git;
 
+    protected final GitflowPluginProperties gitflowPluginProperties;
+
     /**
      * Initialises a new Gitflow action.
      *
@@ -48,6 +51,8 @@ public abstract class AbstractGitflowAction {
 
         final GitSCM gitSCM = (GitSCM) build.getProject().getScm();
         this.git = gitSCM.createClient(listener, build.getEnvironment(listener), build);
+
+        this.gitflowPluginProperties = new GitflowPluginProperties(build.getProject());
     }
 
     /**
@@ -83,7 +88,10 @@ public abstract class AbstractGitflowAction {
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    public abstract void beforeMainBuild() throws IOException, InterruptedException;
+    public final void beforeMainBuild() throws IOException, InterruptedException {
+        this.cleanCheckout();
+        this.beforeMainBuildInternal();
+    }
 
     /**
      * Runs the Gitflow actions that must be executed after the main build.
@@ -91,7 +99,25 @@ public abstract class AbstractGitflowAction {
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    public abstract void afterMainBuild() throws IOException, InterruptedException;
+    public final void afterMainBuild() throws IOException, InterruptedException {
+        this.afterMainBuildInternal();
+    }
+
+    /**
+     * Runs the Gitflow actions that must be executed before the main build.
+     *
+     * @throws IOException if an error occurs that causes/should cause the build to fail.
+     * @throws InterruptedException if the build is interrupted during execution.
+     */
+    protected abstract void beforeMainBuildInternal() throws IOException, InterruptedException;
+
+    /**
+     * Runs the Gitflow actions that must be executed after the main build.
+     *
+     * @throws IOException if an error occurs that causes/should cause the build to fail.
+     * @throws InterruptedException if the build is interrupted during execution.
+     */
+    protected abstract void afterMainBuildInternal() throws IOException, InterruptedException;
 
     /**
      * Adds the provided files to the Git stages - executing {@code git add [file1] [file2] ...}.
@@ -107,5 +133,15 @@ public abstract class AbstractGitflowAction {
         for (final String file : files) {
             this.git.add(file);
         }
+    }
+
+    /**
+     * Before entering the {@link #beforeMainBuildInternal()}, the checkout directory is cleaned up so that there a no modified files.
+     *
+     * @throws InterruptedException if the build is interrupted during execution.
+     */
+    protected void cleanCheckout() throws InterruptedException {
+        this.consoleLogger.println("Gitflow: Ensuring clean working/checkout directory");
+        this.git.clean();
     }
 }

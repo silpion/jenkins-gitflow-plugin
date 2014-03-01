@@ -45,12 +45,7 @@ public class StartReleaseAction extends AbstractGitflowAction {
     }
 
     @Override
-    public void beforeMainBuild() throws IOException, InterruptedException {
-
-        // Ensure that there are no modified files in the working directory.
-        // TODO Move to base class.
-        this.consoleLogger.println("Gitflow: Ensuring clean working/checkout directory");
-        this.git.clean();
+    public void beforeMainBuildInternal() throws IOException, InterruptedException {
 
         // Create a new release branch based on the develop branch.
         this.consoleLogger.println("Gitflow - Start Release: Creating release branch " + this.releaseBranch);
@@ -63,7 +58,7 @@ public class StartReleaseAction extends AbstractGitflowAction {
     }
 
     @Override
-    public void afterMainBuild() throws IOException, InterruptedException {
+    public void afterMainBuildInternal() throws IOException, InterruptedException {
 
         // Push the new release branch to the remote repo.
         this.consoleLogger.println("Gitflow - Start Release: Pushing release branch " + this.releaseBranch);
@@ -87,6 +82,9 @@ public class StartReleaseAction extends AbstractGitflowAction {
         this.consoleLogger.println("Gitflow - Start Release: Pushing project files with fixes development version " + this.releaseNextDevelopmentVersion);
         this.git.push("origin", "refs/heads/" + this.releaseBranch + ":refs/heads/" + this.releaseBranch);
 
+        // Record the fixes development version on the release branch.
+        this.gitflowPluginProperties.saveVersionForBranch(this.releaseBranch, this.releaseNextDevelopmentVersion);
+
         // Update the project files in the develop branch to the development version for the next release.
         final String developBranch = getBuildWrapperDescriptor().getDevelopBranch();
         this.consoleLogger.println("Gitflow - Start Release: Updating project files on " + developBranch + " branch to next development version "
@@ -100,6 +98,9 @@ public class StartReleaseAction extends AbstractGitflowAction {
         this.consoleLogger.println("Gitflow - Start Release: Pushing project files on " + developBranch + " branch with next development version "
                                    + this.nextDevelopmentVersion);
         this.git.push("origin", "refs/heads/" + developBranch + ":refs/heads/" + developBranch);
+
+        // Record the next development version on the develop branch.
+        this.gitflowPluginProperties.saveVersionForBranch(developBranch, this.nextDevelopmentVersion);
 
         // TODO Might configure further branches to merge to.
     }
