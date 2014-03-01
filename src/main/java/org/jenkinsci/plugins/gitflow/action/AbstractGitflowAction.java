@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitclient.GitClient;
+import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
 import org.jenkinsci.plugins.gitflow.action.buildtype.BuildTypeActionFactory;
 
@@ -15,6 +16,8 @@ import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.plugins.git.GitSCM;
+
+import jenkins.model.Jenkins;
 
 /**
  * Abstract base class for the different Gitflow actions to be executed - before and after the main build.
@@ -63,6 +66,15 @@ public abstract class AbstractGitflowAction {
         } else {
             return value;
         }
+    }
+
+    /**
+     * Returns the build wrapper descriptor.
+     *
+     * @return the build wrapper descriptor.
+     */
+    protected static GitflowBuildWrapper.DescriptorImpl getBuildWrapperDescriptor() {
+        return (GitflowBuildWrapper.DescriptorImpl) Jenkins.getInstance().getDescriptor(GitflowBuildWrapper.class);
     }
 
     /**

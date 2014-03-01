@@ -14,6 +14,8 @@ import org.kohsuke.stapler.StaplerResponse;
 import hudson.model.AbstractProject;
 import hudson.model.PermalinkProjectAction;
 
+import jenkins.model.Jenkins;
+
 /**
  * The action that appears as link in the side bar of a project. Users will click on it in order to execute a Gitflow action.
  *
@@ -56,8 +58,12 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         return "gitflow";
     }
 
+    private static GitflowBuildWrapper.DescriptorImpl getBuildWrapperDescriptor() {
+        return (GitflowBuildWrapper.DescriptorImpl) Jenkins.getInstance().getDescriptor(GitflowBuildWrapper.class);
+    }
+
     public String computeReleaseVersion() throws IOException {
-        final String developVersion = this.gitflowPluginProperties.loadVersionForBranch("develop");
+        final String developVersion = this.gitflowPluginProperties.loadVersionForBranch(getBuildWrapperDescriptor().getDevelopBranch());
         if (StringUtils.isBlank(developVersion)) {
             return DEFAULT_STRING;
         } else {

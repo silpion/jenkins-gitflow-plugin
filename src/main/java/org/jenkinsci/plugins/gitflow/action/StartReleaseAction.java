@@ -14,8 +14,6 @@ import hudson.model.BuildListener;
  */
 public class StartReleaseAction extends AbstractGitflowAction {
 
-    private static final String DEVELOP_BRANCH = "develop";
-
     private static final String PARAM_RELEASE_VERSION = "releaseVersion";
     private static final String PARAM_NEXT_DEVELOPMENT_VERSION = "nextDevelopmentVersion";
     private static final String PARAM_RELEASE_NEXT_DEVELOPMENT_VERSION = "releaseNextDevelopmentVersion";
@@ -43,7 +41,7 @@ public class StartReleaseAction extends AbstractGitflowAction {
         this.releaseNextDevelopmentVersion = getParameterValueAssertNotBlank(params, PARAM_RELEASE_NEXT_DEVELOPMENT_VERSION);
         this.nextDevelopmentVersion = getParameterValueAssertNotBlank(params, PARAM_NEXT_DEVELOPMENT_VERSION);
 
-        this.releaseBranch = "release/" + this.releaseVersion;
+        this.releaseBranch = getBuildWrapperDescriptor().getReleaseBranchPrefix() + this.releaseVersion;
     }
 
     @Override
@@ -56,7 +54,7 @@ public class StartReleaseAction extends AbstractGitflowAction {
 
         // Create a new release branch based on the develop branch.
         this.consoleLogger.println("Gitflow - Start Release: Creating release branch " + this.releaseBranch);
-        this.git.checkoutBranch(this.releaseBranch, "origin/" + DEVELOP_BRANCH);
+        this.git.checkoutBranch(this.releaseBranch, "origin/" + getBuildWrapperDescriptor().getDevelopBranch());
 
         // Update the version numbers in the project files to the release version.
         this.consoleLogger.println("Gitflow - Start Release: Updating project files to release version " + this.releaseVersion);
@@ -72,7 +70,7 @@ public class StartReleaseAction extends AbstractGitflowAction {
         this.git.push("origin", "refs/heads/" + this.releaseBranch + ":refs/heads/" + this.releaseBranch);
 
         // Create a tag for the release version.
-        final String tagName = "version/" + this.releaseVersion;
+        final String tagName = getBuildWrapperDescriptor().getVersionTagPrefix() + this.releaseVersion;
         this.consoleLogger.println("Gitflow - Start Release: Creating release version tag " + tagName);
         this.git.tag(tagName, "Gitflow - Start Release: Created release version tag " + tagName);
 
@@ -90,17 +88,18 @@ public class StartReleaseAction extends AbstractGitflowAction {
         this.git.push("origin", "refs/heads/" + this.releaseBranch + ":refs/heads/" + this.releaseBranch);
 
         // Update the project files in the develop branch to the development version for the next release.
-        this.consoleLogger.println("Gitflow - Start Release: Updating project files on " + DEVELOP_BRANCH + " branch to next development version "
+        final String developBranch = getBuildWrapperDescriptor().getDevelopBranch();
+        this.consoleLogger.println("Gitflow - Start Release: Updating project files on " + developBranch + " branch to next development version "
                                    + this.nextDevelopmentVersion);
-        this.git.checkoutBranch(DEVELOP_BRANCH, "origin/" + DEVELOP_BRANCH);
+        this.git.checkoutBranch(developBranch, "origin/" + developBranch);
         this.addFilesToGitStage(this.buildTypeAction.updateVersion(this.nextDevelopmentVersion));
-        this.git.commit("Gitflow - Start Release: Updated project files on " + DEVELOP_BRANCH + " branch to next development version "
+        this.git.commit("Gitflow - Start Release: Updated project files on " + developBranch + " branch to next development version "
                         + this.nextDevelopmentVersion);
 
         // Push the project files in the develop branch with the development version for the next release.
-        this.consoleLogger.println("Gitflow - Start Release: Pushing project files on " + DEVELOP_BRANCH + " branch with next development version "
+        this.consoleLogger.println("Gitflow - Start Release: Pushing project files on " + developBranch + " branch with next development version "
                                    + this.nextDevelopmentVersion);
-        this.git.push("origin", "refs/heads/" + DEVELOP_BRANCH + ":refs/heads/" + DEVELOP_BRANCH);
+        this.git.push("origin", "refs/heads/" + developBranch + ":refs/heads/" + developBranch);
 
         // TODO Might configure further branches to merge to.
     }
