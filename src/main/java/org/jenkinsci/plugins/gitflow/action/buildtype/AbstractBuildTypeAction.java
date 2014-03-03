@@ -1,8 +1,9 @@
 package org.jenkinsci.plugins.gitflow.action.buildtype;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.List;
+
+import org.jenkinsci.plugins.gitflow.action.AbstractActionBase;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -11,15 +12,11 @@ import hudson.model.BuildListener;
 /**
  * Abstract base class for the different build-type-specific actions.
  *
- * @param <T> the build type
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
-public abstract class AbstractBuildTypeAction<T extends AbstractBuild<?, ?>> {
+public abstract class AbstractBuildTypeAction<T extends AbstractBuild<?, ?>> extends AbstractActionBase<T> {
 
-    protected final T build;
     protected final Launcher launcher;
-    protected final BuildListener listener;
-    protected final PrintStream consoleLogger;
 
     /**
      * Initialises a new build-type-specific action.
@@ -29,10 +26,8 @@ public abstract class AbstractBuildTypeAction<T extends AbstractBuild<?, ?>> {
      * @param listener can be used to send any message.
      */
     protected AbstractBuildTypeAction(final T build, final Launcher launcher, final BuildListener listener) {
-        this.build = build;
+        super(build, listener);
         this.launcher = launcher;
-        this.listener = listener;
-        this.consoleLogger = listener.getLogger();
     }
 
     /**

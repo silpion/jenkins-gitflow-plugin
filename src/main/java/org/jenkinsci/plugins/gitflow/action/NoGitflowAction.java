@@ -19,6 +19,8 @@ import hudson.plugins.git.GitTagAction;
  */
 public class NoGitflowAction extends AbstractGitflowAction {
 
+    private static final String CONSOLE_MESSAGE_PREFIX = "Gitflow: ";
+
     private static final Transformer REMOVE_ORIGIN_PREFIX_TRANSFORMER = new Transformer() {
 
         public Object transform(final Object input) {
@@ -31,22 +33,27 @@ public class NoGitflowAction extends AbstractGitflowAction {
     }
 
     @Override
-    public void beforeMainBuildInternal() throws IOException, InterruptedException {
-        // Nothing to do.
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public void afterMainBuildInternal() throws IOException, InterruptedException {
-
-        // Record the version for the Gitflow branches that have been built.
-        final Collection<String> remoteBranchNames = this.build.getAction(GitTagAction.class).getTags().keySet();
-        final Collection<String> simpleBranchNames = CollectionUtils.collect(remoteBranchNames, REMOVE_ORIGIN_PREFIX_TRANSFORMER);
-        this.gitflowPluginProperties.saveVersionForBranches(simpleBranchNames, this.buildTypeAction.getCurrentVersion());
+    protected String getConsoleMessagePrefix() {
+        return CONSOLE_MESSAGE_PREFIX;
     }
 
     @Override
     protected void cleanCheckout() throws InterruptedException {
         // Override without actually cleaning up, because standard builds should folllow the cleanup configuration of the Git plugin.
+    }
+
+    @Override
+    protected void beforeMainBuildInternal() throws IOException, InterruptedException {
+        // Nothing to do.
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected void afterMainBuildInternal() throws IOException, InterruptedException {
+
+        // Record the version for the Gitflow branches that have been built.
+        final Collection<String> remoteBranchNames = this.build.getAction(GitTagAction.class).getTags().keySet();
+        final Collection<String> simpleBranchNames = CollectionUtils.collect(remoteBranchNames, REMOVE_ORIGIN_PREFIX_TRANSFORMER);
+        this.gitflowPluginProperties.saveVersionForBranches(simpleBranchNames, this.buildTypeAction.getCurrentVersion());
     }
 }

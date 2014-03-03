@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.gitflow.action.buildtype;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -21,7 +22,10 @@ import hudson.tasks.Maven;
  */
 public class MavenBuildTypeAction extends AbstractBuildTypeAction<MavenModuleSetBuild> {
 
-    public static final String SLASH_POM_XML = "/pom.xml";
+    private static final MessageFormat CMD_PATTERN_SET_POM_VERSION = new MessageFormat("org.codehaus.mojo:versions-maven-plugin:2.1:set"
+                                                                                       + " -DnewVersion={0} -DgenerateBackupPoms=false");
+
+    private static final String SLASH_POM_XML = "/pom.xml";
 
     /**
      * Initialises a new Maven build type action.
@@ -44,8 +48,7 @@ public class MavenBuildTypeAction extends AbstractBuildTypeAction<MavenModuleSet
         final List<String> modifiedFiles;
 
         // Run a Maven build that updates the project versions in the POMs.
-        this.consoleLogger.println("    -> Updating Maven POM(s) to version " + version);
-        this.executeMaven("org.codehaus.mojo:versions-maven-plugin:2.1:set -DnewVersion=" + version + " -DgenerateBackupPoms=false");
+        this.executeMaven(formatPattern(CMD_PATTERN_SET_POM_VERSION, version));
 
         // Each modules' POM should have been modified.
         final Collection<MavenModule> modules = this.build.getProject().getModules();

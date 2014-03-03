@@ -16,6 +16,8 @@ import hudson.model.BuildListener;
  */
 public class UnknownBuildTypeAction extends AbstractBuildTypeAction<AbstractBuild<?, ?>> {
 
+    private static final String MSG_CANNOT_CHANGE_VERSION = "[WARNING] Gitflow: Unsupported project type. Cannot change version number in project files.";
+
     /**
      * Initialises a new action for an unknown build type.
      *
@@ -34,7 +36,7 @@ public class UnknownBuildTypeAction extends AbstractBuildTypeAction<AbstractBuil
 
     @Override
     public List<String> updateVersion(final String version) throws IOException, InterruptedException {
-        this.consoleLogger.println("[WARNING] Unsupported project type. Cannot change release number in project files.");
+        this.consoleLogger.println(MSG_CANNOT_CHANGE_VERSION);
         return Collections.emptyList();
     }
 }

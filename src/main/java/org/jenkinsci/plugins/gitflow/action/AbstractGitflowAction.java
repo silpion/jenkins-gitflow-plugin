@@ -1,7 +1,6 @@
 package org.jenkinsci.plugins.gitflow.action;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
@@ -25,10 +24,10 @@ import jenkins.model.Jenkins;
  *
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
-public abstract class AbstractGitflowAction {
+public abstract class AbstractGitflowAction<T extends AbstractBuild<?, ?>> extends AbstractActionBase<T> {
 
-    protected final AbstractBuild<?, ?> build;
-    protected final PrintStream consoleLogger;
+    private static final String MSG_CLEAN_WORKING_DIRECTORY = "Ensuring clean working/checkout directory";
+
     protected final AbstractBuildTypeAction<?> buildTypeAction;
     protected final GitClient git;
 
@@ -43,21 +42,19 @@ public abstract class AbstractGitflowAction {
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    protected AbstractGitflowAction(final AbstractBuild<?, ?> build, final Launcher launcher, final BuildListener listener)
-            throws IOException, InterruptedException {
-        this.build = build;
-        this.consoleLogger = listener.getLogger();
-        this.buildTypeAction = BuildTypeActionFactory.newInstance(build, launcher, listener);
+    protected AbstractGitflowAction(final T build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
+        super(build, listener);
 
         final GitSCM gitSCM = (GitSCM) build.getProject().getScm();
         this.git = gitSCM.createClient(listener, build.getEnvironment(listener), build);
 
+        this.buildTypeAction = BuildTypeActionFactory.newInstance(build, launcher, listener);
         this.gitflowPluginProperties = new GitflowPluginProperties(build.getProject());
     }
 
     /**
-     * Returns the value for the specified parameter from the provided parameters. If the value is emtpy or contains only whitespaces, an {@link IOException}
-     * is thrown (note that only an @{@link IOException} prpoperly causes a build to fail).
+     * Returns the value for the specified parameter from the provided parameters. If the value is emtpy or contains only whitespaces,
+     * an {@link IOException} is thrown (note that only an @{@link IOException} prpoperly causes a build to fail).
      *
      * @param parameters the parameter map containing the entry with the requested value.
      * @param parameterName the name of the requested parameter.
@@ -141,7 +138,14 @@ public abstract class AbstractGitflowAction {
      * @throws InterruptedException if the build is interrupted during execution.
      */
     protected void cleanCheckout() throws InterruptedException {
-        this.consoleLogger.println("Gitflow: Ensuring clean working/checkout directory");
+        this.consoleLogger.println(this.getConsoleMessagePrefix() + MSG_CLEAN_WORKING_DIRECTORY);
         this.git.clean();
     }
+
+    /**
+     * Returns the action-specific prefix for console messages.
+     *
+     * @return the action-specific prefix for console messages.
+     */
+    protected abstract String getConsoleMessagePrefix();
 }
