@@ -73,6 +73,11 @@
                 <version>1.2.7</version>
                 <classifier>native</classifier>
             </dependency>
+            <dependency>
+                <groupId>com.github.jnr</groupId>
+                <artifactId>jnr-x86asm</artifactId>
+                <version>1.0.2</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
