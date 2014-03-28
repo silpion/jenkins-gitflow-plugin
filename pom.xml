@@ -54,6 +54,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <jenkinsHome>${project.basedir}/work</jenkinsHome>
     </properties>
 
     <!--
@@ -111,5 +112,78 @@
             <url>http://repo.jenkins-ci.org/public/</url>
         </pluginRepository>
     </pluginRepositories>
+
+    <profiles>
+
+        <!-- Automatically create the base configuration for the Jenkins development workspace when it doesn't exist. -->
+        <profile>
+            <id>prepare-developement-workspace</id>
+            <activation>
+                <file>
+                    <!-- NOTE: This must match ${jenkinsHome}. -->
+                    <missing>${basedir}/work</missing>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.7</version>
+                        <executions>
+                            <execution>
+                                <id>workspace-unpack-test-repo</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <untar src="${project.basedir}/src/dev/assets/work/git-remote/testrepo.git.tgz" compression="gzip"
+                                            dest="${jenkinsHome}/git-remote" />
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>2.6</version>
+                        <executions>
+                            <execution>
+                                <id>workspace-base-configuration</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <resources>
+                                        <resource>
+                                            <directory>${project.basedir}/src/dev/assets/work</directory>
+                                            <filtering>false</filtering>
+                                            <includes>
+                                                <include>config.xml</include>
+                                            </includes>
+                                        </resource>
+                                        <resource>
+                                            <directory>${project.basedir}/src/dev/assets/work</directory>
+                                            <filtering>true</filtering>
+                                            <includes>
+                                                <include>jobs/*/config.xml</include>
+                                                <include>hudson.tasks.Maven.xml</include>
+                                            </includes>
+                                        </resource>
+                                    </resources>
+                                    <outputDirectory>${jenkinsHome}</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+    </profiles>
 
 </project>
