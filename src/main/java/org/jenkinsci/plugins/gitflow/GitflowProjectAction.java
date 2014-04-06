@@ -2,12 +2,12 @@ package org.jenkinsci.plugins.gitflow;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
+import org.jenkinsci.plugins.gitflow.cause.GitflowCauseFactory;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
@@ -95,26 +95,15 @@ public class GitflowProjectAction implements PermalinkProjectAction {
 
     public void doSubmit(final StaplerRequest request, final StaplerResponse response) throws IOException {
 
-        final String action = request.getParameter("action");
-
         // TODO Validate that the versions for the selected action are not empty and don't equal DEFAULT_STRING.
 
-        // Record the settings for the action to be executed.
-        final Map<String, String> actionParams = new HashMap<String, String>();
-        for (final Object actionParamEntryObject : request.getParameterMap().entrySet()) {
-            @SuppressWarnings("unchecked")
-            final Map.Entry<String, String[]> actionParamEntry = (Map.Entry<String, String[]>) actionParamEntryObject;
-            final String actionParamCombinedKey = actionParamEntry.getKey();
-            if (action.equals(StringUtils.substringBefore(actionParamCombinedKey, "_"))) {
-                final String actionParamKey = StringUtils.substringAfter(actionParamCombinedKey, "_");
-                final String[] actionParamValues = actionParamEntry.getValue();
-                final String actionParamValue = ArrayUtils.isEmpty(actionParamValues) ? "" : actionParamValues[0];
-                actionParams.put(actionParamKey, actionParamValue);
-            }
-        }
+        // Create the cause object for the selected action.
+        @SuppressWarnings("unchecked")
+        final Map<String, String[]> formParams = request.getParameterMap();
+        final AbstractGitflowCause gitflowCause = GitflowCauseFactory.newInstance(formParams);
 
         // Start a build.
-        this.job.scheduleBuild(0, new GitflowCause(action, actionParams));
+        this.job.scheduleBuild(0, gitflowCause);
 
         // Return to the main page of the job.
         response.sendRedirect(request.getContextPath() + '/' + this.job.getUrl());

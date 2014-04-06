@@ -9,11 +9,12 @@ import hudson.model.BuildListener;
 /**
  * Abstract base class for the any kind of action.
  *
+ * @param <B> the build in progress.
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
-public abstract class AbstractActionBase<T extends AbstractBuild<?, ?>> {
+public abstract class AbstractActionBase<B extends AbstractBuild<?, ?>> {
 
-    protected final T build;
+    protected final B build;
     protected final BuildListener listener;
 
     protected final PrintStream consoleLogger;
@@ -21,10 +22,10 @@ public abstract class AbstractActionBase<T extends AbstractBuild<?, ?>> {
     /**
      * Initialises a new action.
      *
-     * @param build the <i>Start Release</i> build that is in progress.
+     * @param build the build that is in progress.
      * @param listener can be used to send any message.
      */
-    public AbstractActionBase(final T build, final BuildListener listener) {
+    public AbstractActionBase(final B build, final BuildListener listener) {
         this.build = build;
         this.listener = listener;
 

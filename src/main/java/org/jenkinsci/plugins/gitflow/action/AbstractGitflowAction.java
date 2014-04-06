@@ -1,16 +1,14 @@
 package org.jenkinsci.plugins.gitflow.action;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.List;
-import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitclient.GitClient;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.GitflowPluginProperties;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
 import org.jenkinsci.plugins.gitflow.action.buildtype.BuildTypeActionFactory;
+import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -22,11 +20,15 @@ import jenkins.model.Jenkins;
 /**
  * Abstract base class for the different Gitflow actions to be executed - before and after the main build.
  *
+ * @param <B> the build in progress.
+ * @param <C> the <i>Gitflow</i> cause for the build in progress.
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
-public abstract class AbstractGitflowAction<T extends AbstractBuild<?, ?>> extends AbstractActionBase<T> {
+public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C extends AbstractGitflowCause> extends AbstractActionBase<B> {
 
     private static final String MSG_CLEAN_WORKING_DIRECTORY = "Ensuring clean working/checkout directory";
+
+    protected final C gitflowCause;
 
     protected final AbstractBuildTypeAction<?> buildTypeAction;
     protected final GitClient git;
@@ -36,38 +38,24 @@ public abstract class AbstractGitflowAction<T extends AbstractBuild<?, ?>> exten
     /**
      * Initialises a new Gitflow action.
      *
-     * @param build the <i>Start Release</i> build that is in progress.
+     * @param build the build that is in progress.
      * @param launcher can be used to launch processes for this build - even if the build runs remotely.
      * @param listener can be used to send any message.
+     * @param gitflowCause the <i>Gitflow</i> cause for the build in progress.
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    protected AbstractGitflowAction(final T build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
+    protected AbstractGitflowAction(final B build, final Launcher launcher, final BuildListener listener, C gitflowCause)
+            throws IOException, InterruptedException {
         super(build, listener);
+
+        this.gitflowCause = gitflowCause;
 
         final GitSCM gitSCM = (GitSCM) build.getProject().getScm();
         this.git = gitSCM.createClient(listener, build.getEnvironment(listener), build);
 
         this.buildTypeAction = BuildTypeActionFactory.newInstance(build, launcher, listener);
         this.gitflowPluginProperties = new GitflowPluginProperties(build.getProject());
-    }
-
-    /**
-     * Returns the value for the specified parameter from the provided parameters. If the value is emtpy or contains only whitespaces,
-     * an {@link IOException} is thrown (note that only an @{@link IOException} prpoperly causes a build to fail).
-     *
-     * @param parameters the parameter map containing the entry with the requested value.
-     * @param parameterName the name of the requested parameter.
-     * @return the requested parameter value - if not blank.
-     * @throws IOException if the requested parameter value is blank.
-     */
-    protected static String getParameterValueAssertNotBlank(final Map<String, String> parameters, final String parameterName) throws IOException {
-        final String value = parameters.get(parameterName).trim();
-        if (StringUtils.isBlank(value)) {
-            throw new IOException(MessageFormat.format("{0} must be set with a non-empty value", parameterName));
-        } else {
-            return value;
-        }
     }
 
     /**

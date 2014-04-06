@@ -5,8 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.jenkinsci.plugins.gitflow.action.AbstractGitflowAction;
-import org.jenkinsci.plugins.gitflow.action.NoGitflowAction;
-import org.jenkinsci.plugins.gitflow.action.StartReleaseAction;
+import org.jenkinsci.plugins.gitflow.action.GitflowActionFactory;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -43,31 +42,19 @@ public class GitflowBuildWrapper extends BuildWrapper {
     }
 
     @Override
-    public Environment setUp(final AbstractBuild build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
+    public Environment setUp(@SuppressWarnings("rawtypes") final AbstractBuild build, final Launcher launcher, final BuildListener listener)
+            throws IOException, InterruptedException {
         final Environment buildEnvironment;
 
-        // Non-Gitflow builds don't contain the Gitflow cause.
-        // TODO Implement factory class.
-        final AbstractGitflowAction gitflowAction;
-        final GitflowCause gitflowCause = (GitflowCause) build.getCause(GitflowCause.class);
-        if (gitflowCause == null) {
-            gitflowAction = new NoGitflowAction(build, launcher, listener);
-        } else {
-            final String action = gitflowCause.getAction();
-            if ("startRelease".equals(action)) {
-                gitflowAction = new StartReleaseAction(gitflowCause.getActionParams(), build, launcher, listener);
-            } else {
-                // Only an IOException causes the build to fail properly.
-                throw new IOException("Unknown Gitflow action " + action);
-            }
-        }
+        final AbstractGitflowAction<?, ?> gitflowAction = GitflowActionFactory.newInstance(build, launcher, listener);
 
         gitflowAction.beforeMainBuild();
 
         buildEnvironment = new Environment() {
 
             @Override
-            public boolean tearDown(@SuppressWarnings("hiding") final AbstractBuild build, @SuppressWarnings("hiding") final BuildListener listener)
+            public boolean tearDown(@SuppressWarnings({ "hiding", "rawtypes" }) final AbstractBuild build,
+                                    @SuppressWarnings("hiding") final BuildListener listener)
                     throws IOException, InterruptedException {
 
                 // Only run the Gitflow post build actions if the main build was successful.
@@ -87,7 +74,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
     }
 
     @Override
-    public Collection<? extends Action> getProjectActions(final AbstractProject job) {
+    public Collection<? extends Action> getProjectActions(@SuppressWarnings("rawtypes") final AbstractProject job) {
         return Collections.singletonList(new GitflowProjectAction(job));
     }
 

@@ -6,6 +6,7 @@ import java.util.Collection;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -15,9 +16,10 @@ import hudson.plugins.git.GitTagAction;
 /**
  * This class executes some actions that are required when the <i>Gitflow</i> plugin is configured for a project and the standard (non-Gitflow) job is started.
  *
+ * @param <B> the build in progress.
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
-public class NoGitflowAction extends AbstractGitflowAction {
+public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitflowAction<B, AbstractGitflowCause> {
 
     private static final String CONSOLE_MESSAGE_PREFIX = "Gitflow: ";
 
@@ -28,8 +30,8 @@ public class NoGitflowAction extends AbstractGitflowAction {
         }
     };
 
-    public NoGitflowAction(final AbstractBuild<?, ?> build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
-        super(build, launcher, listener);
+    public <BC extends B> NoGitflowAction(final BC build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
+        super(build, launcher, listener, null);
     }
 
     @Override
