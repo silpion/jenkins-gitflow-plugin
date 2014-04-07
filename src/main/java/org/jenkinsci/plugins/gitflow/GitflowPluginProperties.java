@@ -6,9 +6,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 
 import hudson.model.AbstractProject;
 
@@ -34,6 +37,27 @@ public class GitflowPluginProperties {
      */
     public GitflowPluginProperties(final AbstractProject<?, ?> project) {
         this.propertiesFile = new File(project.getRootDir(), GITFLOW_PROPERTIES_FILE);
+    }
+
+    /**
+     * Loads and returns the Git branches.
+     *
+     * @return the list of Git branches.
+     * @throws IOException if the Gitflow plugin properties file cannot be loaded.
+     */
+    public Collection<String> loadBranches() throws IOException {
+        final Collection<String> branches = new HashSet<String>();
+
+        this.loadProperties();
+
+        for (final String propertyName : this.properties.stringPropertyNames()) {
+            final String[] propertyNameTokens = StringUtils.split(propertyName, ".", 2);
+            if (ArrayUtils.getLength(propertyNameTokens) == 2 && "branchVersion".equals(propertyNameTokens[0])) {
+                branches.add(propertyNameTokens[1]);
+            }
+        }
+
+        return branches;
     }
 
     /**

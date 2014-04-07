@@ -20,13 +20,37 @@
                     </f:radioBlock>
                     <f:radioBlock name="action" value="startRelease" title="Start Release" checked="false">
                         <f:entry title="Release Version">
-                            <f:textbox name="startRelease_releaseVersion" value="${it.computeReleaseVersion()}" />
+                            <f:textbox name="releaseVersion" value="${it.computeReleaseVersion()}" />
                         </f:entry>
                         <f:entry title="Release Fixes Development Version">
-                            <f:textbox name="startRelease_releaseNextDevelopmentVersion" value="${it.computeReleaseNextDevelopmentVersion()}" />
+                            <f:textbox name="releaseNextDevelopmentVersion" value="${it.computeReleaseNextDevelopmentVersion()}" />
                         </f:entry>
                         <f:entry title="Next Release Development Version">
-                            <f:textbox name="startRelease_nextDevelopmentVersion" value="${it.computeNextDevelopmentVersion()}" />
+                            <f:textbox name="nextDevelopmentVersion" value="${it.computeNextDevelopmentVersion()}" />
+                        </f:entry>
+                    </f:radioBlock>
+                    <f:radioBlock name="action" value="testRelease" title="Test Release" checked="false">
+                        <f:dropdownList name="release" title="Release">
+                            <j:forEach var="releaseBranch" items="${it.computeReleaseBranches()}">
+                                <f:dropdownListBlock value="${it.computeReleaseVersion(releaseBranch)}" title="${it.computeReleaseVersion(releaseBranch)}" selected="false">
+                                    <f:entry title="Release Branch">
+                                        <f:readOnlyTextbox name="releaseBranch" value="${releaseBranch}" />
+                                    </f:entry>
+                                    <f:entry title="Fixes Release Version">
+                                        <f:textbox name="fixesReleaseVersion" value="${it.computeFixesReleaseVersion(releaseBranch)}" />
+                                    </f:entry>
+                                    <f:entry title="Next Fixes Development Version">
+                                        <f:textbox name="nextFixesDevelopmentVersion" value="${it.computeNextFixesDevelopmentVersion(releaseBranch)}" />
+                                    </f:entry>
+                                </f:dropdownListBlock>
+                            </j:forEach>
+                        </f:dropdownList>
+                    </f:radioBlock>
+                    <f:radioBlock name="action" value="publishRelease" title="Publish Release" checked="false">
+                        <f:entry>
+                            TODO Add form field entries to configure the
+                            <i>Publish Release</i>
+                            action.
                         </f:entry>
                     </f:radioBlock>
                     <f:radioBlock name="action" value="finishRelease" title="Finish Release" checked="false">

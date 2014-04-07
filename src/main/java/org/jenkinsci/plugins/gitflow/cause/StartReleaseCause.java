@@ -1,7 +1,8 @@
 package org.jenkinsci.plugins.gitflow.cause;
 
 import java.io.IOException;
-import java.util.Map;
+
+import net.sf.json.JSONObject;
 
 /**
  * The {@link hudson.model.Cause} object for the <i>Start Release</i> action to be executed.
@@ -19,12 +20,18 @@ public class StartReleaseCause extends AbstractGitflowCause {
     private final String releaseNextDevelopmentVersion;
     private final String nextDevelopmentVersion;
 
-    public StartReleaseCause(final Map<String, String> params) throws IOException {
+    /**
+     * Creates a cause instance for the <i>Gitflow</i> build.
+     *
+     * @param structuredActionConent the structured content for the selected action to be instanciated.
+     * @return a new cause instance for the <i>Gitflow</i> build.
+     */
+    public StartReleaseCause(final JSONObject structuredActionConent) throws IOException {
         super();
 
-        this.releaseVersion = getParameterValueAssertNotBlank(params, PARAM_RELEASE_VERSION);
-        this.releaseNextDevelopmentVersion = getParameterValueAssertNotBlank(params, PARAM_RELEASE_NEXT_DEVELOPMENT_VERSION);
-        this.nextDevelopmentVersion = getParameterValueAssertNotBlank(params, PARAM_NEXT_DEVELOPMENT_VERSION);
+        this.releaseVersion = structuredActionConent.getString(PARAM_RELEASE_VERSION);
+        this.releaseNextDevelopmentVersion = structuredActionConent.getString(PARAM_RELEASE_NEXT_DEVELOPMENT_VERSION);
+        this.nextDevelopmentVersion = structuredActionConent.getString(PARAM_NEXT_DEVELOPMENT_VERSION);
 
         this.releaseBranch = getBuildWrapperDescriptor().getReleaseBranchPrefix() + this.releaseVersion;
     }

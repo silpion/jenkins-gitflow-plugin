@@ -3,7 +3,10 @@ package org.jenkinsci.plugins.gitflow;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+import javax.servlet.ServletException;
 
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
@@ -93,14 +96,49 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         }
     }
 
-    public void doSubmit(final StaplerRequest request, final StaplerResponse response) throws IOException {
+    public SortedSet<String> computeReleaseBranches() throws IOException {
+        final SortedSet<String> releaseBranches = new TreeSet<String>();
+
+        final String releaseBranchPrefix = getBuildWrapperDescriptor().getReleaseBranchPrefix();
+
+        for (final String branch : this.gitflowPluginProperties.loadBranches()) {
+            if (StringUtils.startsWith(branch, releaseBranchPrefix)) {
+                releaseBranches.add(branch);
+            }
+        }
+
+        return releaseBranches;
+    }
+
+    public String computeReleaseVersion(final String releaseBranch) throws IOException {
+        final String releaseBranchPrefix = getBuildWrapperDescriptor().getReleaseBranchPrefix();
+        return StringUtils.removeStart(releaseBranch, releaseBranchPrefix);
+    }
+
+    public String computeFixesReleaseVersion(final String releaseBranch) throws IOException {
+        final String versionForBranch = this.gitflowPluginProperties.loadVersionForBranch(releaseBranch);
+        return StringUtils.removeEnd(versionForBranch, "-SNAPSHOT");
+    }
+
+    public String computeNextFixesDevelopmentVersion(final String releaseBranch) throws IOException {
+        final StringBuilder nextFixesDevelopmentVersionBuilder = new StringBuilder();
+
+        final String fixesReleaseVersion = this.computeFixesReleaseVersion(releaseBranch);
+
+        nextFixesDevelopmentVersionBuilder.append(StringUtils.substringBeforeLast(fixesReleaseVersion, "."));
+        nextFixesDevelopmentVersionBuilder.append(".");
+        nextFixesDevelopmentVersionBuilder.append(Integer.valueOf(StringUtils.substringAfterLast(fixesReleaseVersion, ".")).intValue() + 1);
+        nextFixesDevelopmentVersionBuilder.append("-SNAPSHOT");
+
+        return nextFixesDevelopmentVersionBuilder.toString();
+    }
+
+    public void doSubmit(final StaplerRequest request, final StaplerResponse response) throws IOException, ServletException {
 
         // TODO Validate that the versions for the selected action are not empty and don't equal DEFAULT_STRING.
 
         // Create the cause object for the selected action.
-        @SuppressWarnings("unchecked")
-        final Map<String, String[]> formParams = request.getParameterMap();
-        final AbstractGitflowCause gitflowCause = GitflowCauseFactory.newInstance(formParams);
+        final AbstractGitflowCause gitflowCause = GitflowCauseFactory.newInstance(request.getSubmittedForm());
 
         // Start a build.
         this.job.scheduleBuild(0, gitflowCause);
