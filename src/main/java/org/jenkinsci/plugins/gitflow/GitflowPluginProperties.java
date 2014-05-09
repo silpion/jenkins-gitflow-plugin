@@ -14,6 +14,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
 import hudson.model.AbstractProject;
+import hudson.model.Result;
 
 /**
  * Handles the Gitflow plugin properties for a Jenkins job/project.
@@ -73,28 +74,32 @@ public class GitflowPluginProperties {
     }
 
     /**
-     * Sets the current version of the project files on a Git branch and saves it to the Gitflow plugin properties.
+     * Sets the current result and the version of the project files on a Git branch and saves it to the Gitflow plugin properties.
      *
      * @param branch the branch.
+     * @param result the result/state of the branch.
      * @param version the version.
      * @throws IOException if the file cannot be loaded or saved.
      */
-    public void saveVersionForBranch(final String branch, final String version) throws IOException {
+    public void saveResultAndVersionForBranch(final String branch, final Result result, final String version) throws IOException {
         this.loadProperties();
+        this.properties.setProperty("branchResult." + branch, result.toString());
         this.properties.setProperty("branchVersion." + branch, version);
         this.saveProperties();
     }
 
     /**
-     * Sets the current version of the project files on a collection of Git branch and saves it to the Gitflow plugin properties.
+     * Sets the current result and the version of the project files on a collection of Git branch and saves it to the Gitflow plugin properties.
      *
      * @param branches the branches.
+     * @param result the result/state of the branch.
      * @param version the version.
      * @throws IOException if the file cannot be loaded or saved.
      */
-    public void saveVersionForBranches(final Collection<String> branches, final String version) throws IOException {
+    public void saveResultAndVersionForBranches(final Collection<String> branches, final Result result, final String version) throws IOException {
         this.loadProperties();
         for (final String branch : branches) {
+            this.properties.setProperty("branchResult." + branch, result.toString());
             this.properties.setProperty("branchVersion." + branch, version);
         }
         this.saveProperties();

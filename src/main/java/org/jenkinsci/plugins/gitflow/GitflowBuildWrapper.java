@@ -18,7 +18,6 @@ import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.Item;
-import hudson.model.Result;
 import hudson.plugins.git.GitSCM;
 import hudson.security.Permission;
 import hudson.security.PermissionScope;
@@ -57,10 +56,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
                                     @SuppressWarnings("hiding") final BuildListener listener)
                     throws IOException, InterruptedException {
 
-                // Only run the Gitflow post build actions if the main build was successful.
-                if (build.getResult() == Result.SUCCESS) {
-                    gitflowAction.afterMainBuild();
-                }
+                gitflowAction.afterMainBuild();
 
                 return true;
             }

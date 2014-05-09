@@ -8,6 +8,7 @@ import org.jenkinsci.plugins.gitflow.cause.StartReleaseCause;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.model.Result;
 
 /**
  * This class executes the required steps for the Gitflow action <i>Start Release</i>.
@@ -71,6 +72,14 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
 
     @Override
     protected void afterMainBuildInternal() throws IOException, InterruptedException {
+        if (build.getResult() == Result.SUCCESS) {
+            this.afterSuccessfulMainBuild();
+        } else {
+            this.afterUnsuccessfulMainBuild();
+        }
+    }
+
+    private void afterSuccessfulMainBuild() throws IOException, InterruptedException {
 
         // Push the new release branch to the remote repo.
         final String releaseBranch = this.gitflowCause.getReleaseBranch();
@@ -99,7 +108,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         this.consoleLogger.println(formatPattern(MSG_PATTERN_PUSHED_FIXES_VERSION, releaseNextDevelopmentVersion));
 
         // Record the fixes development version on the release branch.
-        this.gitflowPluginProperties.saveVersionForBranch(releaseBranch, releaseNextDevelopmentVersion);
+        this.gitflowPluginProperties.saveResultAndVersionForBranch(releaseBranch, Result.SUCCESS, releaseNextDevelopmentVersion);
 
         // Update the project files in the develop branch to the development version for the next release.
         final String developBranch = getBuildWrapperDescriptor().getDevelopBranch();
@@ -115,8 +124,16 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         this.consoleLogger.println(formatPattern(MSG_PATTERN_PUSHED_NEXT_VERSION, developBranch, nextDevelopmentVersion));
 
         // Record the next development version on the develop branch.
-        this.gitflowPluginProperties.saveVersionForBranch(developBranch, nextDevelopmentVersion);
+        this.gitflowPluginProperties.saveResultAndVersionForBranch(developBranch, Result.SUCCESS, nextDevelopmentVersion);
 
         // TODO Might configure further branches to merge to.
+    }
+
+    private void afterUnsuccessfulMainBuild() throws IOException {
+
+        // Here we assume that there was an error on the develop branch right before we created the release branch.
+        final String developBranch = getBuildWrapperDescriptor().getDevelopBranch();
+        final String developBranchVersion = this.gitflowPluginProperties.loadVersionForBranch(developBranch);
+        this.gitflowPluginProperties.saveResultAndVersionForBranch(developBranch, this.build.getResult(), developBranchVersion);
     }
 }
