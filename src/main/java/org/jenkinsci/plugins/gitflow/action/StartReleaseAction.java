@@ -21,17 +21,11 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
 
     private static final MessageFormat MSG_PATTERN_CREATED_RELEASE_BRANCH = new MessageFormat(MSG_PREFIX + "Created release branch {0}");
     private static final MessageFormat MSG_PATTERN_UPDATED_RELEASE_VERSION = new MessageFormat(MSG_PREFIX + "Updated project files to release version {0}");
-    private static final MessageFormat MSG_PATTERN_PUSHED_RELEASE_BRANCH = new MessageFormat(MSG_PREFIX + "Pushed release branch {0}");
     private static final MessageFormat MSG_PATTERN_CREATED_RELEASE_TAG = new MessageFormat(MSG_PREFIX + "Created release version tag {0}");
-    private static final MessageFormat MSG_PATTERN_PUSHED_RELEASE_TAG = new MessageFormat(MSG_PREFIX + "Pushed release tag {0}");
     private static final MessageFormat MSG_PATTERN_UPDATED_FIXES_VERSION = new MessageFormat(MSG_PREFIX
                                                                                              + "Updated project files to fixes development version {0}");
-    private static final MessageFormat MSG_PATTERN_PUSHED_FIXES_VERSION = new MessageFormat(MSG_PREFIX
-                                                                                            + "Pushed project files with fixes development version {0}");
     private static final MessageFormat MSG_PATTERN_UPDATED_NEXT_VERSION = new MessageFormat(MSG_PREFIX + "Updated project files on {0} branch"
                                                                                             + " to next development version {1}");
-    private static final MessageFormat MSG_PATTERN_PUSHED_NEXT_VERSION = new MessageFormat(MSG_PREFIX + "Pushed project files on {0} branch"
-                                                                                           + " with next development version {1}");
 
     /**
      * Initialises a new <i>Start Release</i> action.
@@ -57,7 +51,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
     protected void beforeMainBuildInternal() throws IOException, InterruptedException {
 
         // Create a new release branch based on the develop branch.
-        final String releaseBranch = this.gitflowCause.getReleaseBranch();
+        final String releaseBranch = getBuildWrapperDescriptor().getReleaseBranchPrefix() + this.gitflowCause.getReleaseVersion();
         this.git.checkoutBranch(releaseBranch, "origin/" + getBuildWrapperDescriptor().getDevelopBranch());
         this.consoleLogger.println(formatPattern(MSG_PATTERN_CREATED_RELEASE_BRANCH, releaseBranch));
 
@@ -73,9 +67,8 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
     protected void afterMainBuildInternal() throws IOException, InterruptedException {
 
         // Push the new release branch to the remote repo.
-        final String releaseBranch = this.gitflowCause.getReleaseBranch();
+        final String releaseBranch = getBuildWrapperDescriptor().getReleaseBranchPrefix() + this.gitflowCause.getReleaseVersion();
         this.git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
-        this.consoleLogger.println(formatPattern(MSG_PATTERN_PUSHED_RELEASE_BRANCH, releaseBranch));
 
         // Create a tag for the release version.
         final String tagName = getBuildWrapperDescriptor().getVersionTagPrefix() + this.gitflowCause.getReleaseVersion();
@@ -85,7 +78,6 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
 
         // Push the tag for the release version.
         this.git.push("origin", "refs/tags/" + tagName + ":refs/tags/" + tagName);
-        this.consoleLogger.println(formatPattern(MSG_PATTERN_PUSHED_RELEASE_TAG, tagName));
 
         // Update the project files to the development version for the release fixes.
         final String releaseNextDevelopmentVersion = this.gitflowCause.getReleaseNextDevelopmentVersion();
@@ -96,7 +88,6 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
 
         // Push the project files with the development version for the release fixes.
         this.git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
-        this.consoleLogger.println(formatPattern(MSG_PATTERN_PUSHED_FIXES_VERSION, releaseNextDevelopmentVersion));
 
         // Record the fixes development version on the release branch.
         this.gitflowPluginProperties.saveVersionForBranch(releaseBranch, releaseNextDevelopmentVersion);
@@ -112,7 +103,6 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
 
         // Push the project files in the develop branch with the development version for the next release.
         this.git.push("origin", "refs/heads/" + developBranch + ":refs/heads/" + developBranch);
-        this.consoleLogger.println(formatPattern(MSG_PATTERN_PUSHED_NEXT_VERSION, developBranch, nextDevelopmentVersion));
 
         // Record the next development version on the develop branch.
         this.gitflowPluginProperties.saveVersionForBranch(developBranch, nextDevelopmentVersion);

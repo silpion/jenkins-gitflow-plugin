@@ -27,6 +27,7 @@ public class GitflowPluginProperties {
 
     private final Properties properties = new Properties();
     private final File propertiesFile;
+    private final boolean dryRun;
 
     private long nextModificationCheck;
 
@@ -36,7 +37,18 @@ public class GitflowPluginProperties {
      * @param project the job/project
      */
     public GitflowPluginProperties(final AbstractProject<?, ?> project) {
+        this(project, false);
+    }
+
+    /**
+     * Initialises a new {@link GitflowPluginProperties} object for a Jenkins job/project.
+     *
+     * @param project the job/project
+     * @param dryRun is the build dryRun or not
+     */
+    public GitflowPluginProperties(final AbstractProject<?, ?> project, final boolean dryRun) {
         this.propertiesFile = new File(project.getRootDir(), GITFLOW_PROPERTIES_FILE);
+        this.dryRun = dryRun;
     }
 
     /**
@@ -80,9 +92,11 @@ public class GitflowPluginProperties {
      * @throws IOException if the file cannot be loaded or saved.
      */
     public void saveVersionForBranch(final String branch, final String version) throws IOException {
-        this.loadProperties();
-        this.properties.setProperty("branchVersion." + branch, version);
-        this.saveProperties();
+        if (!this.dryRun) {
+            this.loadProperties();
+            this.properties.setProperty("branchVersion." + branch, version);
+            this.saveProperties();
+        }
     }
 
     /**
@@ -93,11 +107,13 @@ public class GitflowPluginProperties {
      * @throws IOException if the file cannot be loaded or saved.
      */
     public void saveVersionForBranches(final Collection<String> branches, final String version) throws IOException {
-        this.loadProperties();
-        for (final String branch : branches) {
-            this.properties.setProperty("branchVersion." + branch, version);
+        if (!this.dryRun) {
+            this.loadProperties();
+            for (final String branch : branches) {
+                this.properties.setProperty("branchVersion." + branch, version);
+            }
+            this.saveProperties();
         }
-        this.saveProperties();
     }
 
     private void loadProperties() throws IOException {

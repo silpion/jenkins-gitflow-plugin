@@ -24,11 +24,11 @@ public class GitflowActionFactory {
         // The action to be created depends on the cause.
         final AbstractGitflowCause gitflowCause = build.getCause(AbstractGitflowCause.class);
         if (gitflowCause == null) {
-            gitflowAction = new NoGitflowAction(build, launcher, listener);
+            gitflowAction = new NoGitflowAction<B>(build, launcher, listener);
         } else if (gitflowCause instanceof StartReleaseCause) {
-            gitflowAction = new StartReleaseAction(build, launcher, listener, (StartReleaseCause) gitflowCause);
+            gitflowAction = new StartReleaseAction<B>(build, launcher, listener, (StartReleaseCause) gitflowCause);
         } else if (gitflowCause instanceof TestReleaseCause) {
-            gitflowAction = new TestReleaseAction(build, launcher, listener, (TestReleaseCause) gitflowCause);
+            gitflowAction = new TestReleaseAction<B>(build, launcher, listener, (TestReleaseCause) gitflowCause);
         } else {
             // Only an IOException causes the build to fail properly.
             throw new IOException("Unknown Gitflow cause " + gitflowCause.getClass().getName());

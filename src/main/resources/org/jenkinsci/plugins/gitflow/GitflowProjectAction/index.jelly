@@ -74,6 +74,9 @@
                             action.
                         </f:entry>
                     </f:radioBlock>
+                    <f:entry>
+                        <f:checkbox name="dryRun" title="Dry Run" checked="false" />
+                    </f:entry>
                 </f:section>
                 <tr>
                     <td colspan="4" align="left">

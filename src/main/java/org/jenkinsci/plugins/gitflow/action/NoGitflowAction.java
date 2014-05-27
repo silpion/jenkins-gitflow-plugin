@@ -7,6 +7,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
+import org.jenkinsci.plugins.gitflow.cause.NoGitflowCause;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -31,7 +32,7 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
     };
 
     public <BC extends B> NoGitflowAction(final BC build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
-        super(build, launcher, listener, null);
+        super(build, launcher, listener, new NoGitflowCause());
     }
 
     @Override

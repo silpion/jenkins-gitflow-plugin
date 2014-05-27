@@ -11,24 +11,30 @@ import net.sf.json.JSONObject;
  */
 public class GitflowCauseFactory {
 
+    private static final String PARAM_DRY_RUN = "dryRun";
+    private static final String JSON_CONTENT_ACTION = "action";
+    private static final String JSON_CONTENT_VALUE = "value";
+
     /**
      * Creates a cause instance for the <i>Gitflow</i> build.
      *
      * @param submittedForm the structured content of the submitted action.
      * @return a new cause instance for the <i>Gitflow</i> build.
+     * @throws IOException if an error occurs that causes/should cause the build to fail.
      */
     public static AbstractGitflowCause newInstance(final JSONObject submittedForm) throws IOException {
         final AbstractGitflowCause gitflowCause;
 
         // The action denotes the cause to be created.
-        final JSONObject submittedActionConent = submittedForm.getJSONObject("action");
-        final String action = submittedActionConent.getString("value");
+        final JSONObject submittedActionConent = submittedForm.getJSONObject(JSON_CONTENT_ACTION);
+        final String action = submittedActionConent.getString(JSON_CONTENT_VALUE);
+        final boolean dryRun = submittedForm.getBoolean(PARAM_DRY_RUN);
 
         // Instanciate the cause object for the submitted action.
         if ("startRelease".equals(action)) {
-            gitflowCause = new StartReleaseCause(submittedActionConent);
+            gitflowCause = new StartReleaseCause(submittedActionConent, dryRun);
         } else if ("testRelease".equals(action)) {
-            gitflowCause = new TestReleaseCause(submittedActionConent);
+            gitflowCause = new TestReleaseCause(submittedActionConent, dryRun);
         } else {
             // Only an IOException causes the build to fail properly.
             throw new IOException("Unknown Gitflow action " + action);

@@ -36,7 +36,7 @@ public abstract class AbstractActionBase<B extends AbstractBuild<?, ?>> {
      * Formats a message pattern, substituting its placeholders with the provided arguments (see {@link java.text.MessageFormat}).
      * It may not only format messages, but any string pattern (like e.g. a command pattern).
      * <p/>
-     * This is a conventience method for the {@code format} methods of the {@link java.text.MessageFormat} class.
+     * This is a convenience method for the {@code format} methods of the {@link java.text.MessageFormat} class.
      *
      * @param messageFormat the string pattern to be formatted.
      * @param messageArguments the format arguments.

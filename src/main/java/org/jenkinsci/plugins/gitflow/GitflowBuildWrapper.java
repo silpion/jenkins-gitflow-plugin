@@ -54,8 +54,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
 
             @Override
             public boolean tearDown(@SuppressWarnings({ "hiding", "rawtypes" }) final AbstractBuild build,
-                                    @SuppressWarnings("hiding") final BuildListener listener)
-                    throws IOException, InterruptedException {
+                                    @SuppressWarnings("hiding") final BuildListener listener) throws IOException, InterruptedException {
 
                 // Only run the Gitflow post build actions if the main build was successful.
                 if (build.getResult() == Result.SUCCESS) {
@@ -117,7 +116,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
             this.featureBranchPrefix = json.getString("featureBranchPrefix");
 
             this.save();
-            return true; // everything is allright so far
+            return true; // everything is alright so far
         }
 
         @Override

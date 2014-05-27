@@ -110,7 +110,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         return releaseBranches;
     }
 
-    public String computeReleaseVersion(final String releaseBranch) throws IOException {
+    public String computeReleaseVersion(final String releaseBranch) {
         final String releaseBranchPrefix = getBuildWrapperDescriptor().getReleaseBranchPrefix();
         return StringUtils.removeStart(releaseBranch, releaseBranchPrefix);
     }

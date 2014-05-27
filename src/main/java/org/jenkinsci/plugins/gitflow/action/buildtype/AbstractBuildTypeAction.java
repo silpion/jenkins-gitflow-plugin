@@ -13,6 +13,7 @@ import hudson.model.BuildListener;
  * Abstract base class for the different build-type-specific actions.
  *
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
+ * @param <T> the build in progress.
  */
 public abstract class AbstractBuildTypeAction<T extends AbstractBuild<?, ?>> extends AbstractActionBase<T> {
 

@@ -35,7 +35,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
      * @param build the <i>Publish Release</i> build that is in progress.
      * @param launcher can be used to launch processes for this build - even if the build runs remotely.
      * @param listener can be used to send any message.
-     * @param gitflowCause
+     * @param gitflowCause the cause for the new action.
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */

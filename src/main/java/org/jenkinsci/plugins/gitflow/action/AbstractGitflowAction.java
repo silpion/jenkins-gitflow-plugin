@@ -9,11 +9,11 @@ import org.jenkinsci.plugins.gitflow.GitflowPluginProperties;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
 import org.jenkinsci.plugins.gitflow.action.buildtype.BuildTypeActionFactory;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
-import hudson.plugins.git.GitSCM;
+import hudson.model.AbstractBuild;
 
 import jenkins.model.Jenkins;
 
@@ -51,11 +51,11 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
 
         this.gitflowCause = gitflowCause;
 
-        final GitSCM gitSCM = (GitSCM) build.getProject().getScm();
-        this.git = gitSCM.createClient(listener, build.getEnvironment(listener), build);
+        final boolean dryRun = gitflowCause.isDryRun();
+        this.git = new GitClientDelegate(build, listener, dryRun);
 
         this.buildTypeAction = BuildTypeActionFactory.newInstance(build, launcher, listener);
-        this.gitflowPluginProperties = new GitflowPluginProperties(build.getProject());
+        this.gitflowPluginProperties = new GitflowPluginProperties(build.getProject(), dryRun);
     }
 
     /**

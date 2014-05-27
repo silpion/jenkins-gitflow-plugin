@@ -1,7 +1,5 @@
 package org.jenkinsci.plugins.gitflow.cause;
 
-import java.io.IOException;
-
 import net.sf.json.JSONObject;
 
 /**
@@ -15,7 +13,6 @@ public class StartReleaseCause extends AbstractGitflowCause {
     private static final String PARAM_NEXT_DEVELOPMENT_VERSION = "nextDevelopmentVersion";
     private static final String PARAM_RELEASE_NEXT_DEVELOPMENT_VERSION = "releaseNextDevelopmentVersion";
 
-    private final String releaseBranch;
     private final String releaseVersion;
     private final String releaseNextDevelopmentVersion;
     private final String nextDevelopmentVersion;
@@ -24,20 +21,14 @@ public class StartReleaseCause extends AbstractGitflowCause {
      * Creates a cause instance for the <i>Gitflow</i> build.
      *
      * @param structuredActionConent the structured content for the selected action to be instanciated.
-     * @return a new cause instance for the <i>Gitflow</i> build.
+     * @param dryRun is the build dryRun or not
      */
-    public StartReleaseCause(final JSONObject structuredActionConent) throws IOException {
-        super();
+    public StartReleaseCause(final JSONObject structuredActionConent, final boolean dryRun) {
+        super(dryRun);
 
         this.releaseVersion = structuredActionConent.getString(PARAM_RELEASE_VERSION);
         this.releaseNextDevelopmentVersion = structuredActionConent.getString(PARAM_RELEASE_NEXT_DEVELOPMENT_VERSION);
         this.nextDevelopmentVersion = structuredActionConent.getString(PARAM_NEXT_DEVELOPMENT_VERSION);
-
-        this.releaseBranch = getBuildWrapperDescriptor().getReleaseBranchPrefix() + this.releaseVersion;
-    }
-
-    public String getReleaseBranch() {
-        return this.releaseBranch;
     }
 
     public String getReleaseVersion() {

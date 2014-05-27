@@ -1,7 +1,5 @@
 package org.jenkinsci.plugins.gitflow.cause;
 
-import java.io.IOException;
-
 import net.sf.json.JSONObject;
 
 /**
@@ -24,10 +22,10 @@ public class TestReleaseCause extends AbstractGitflowCause {
      * Creates a cause instance for the <i>Gitflow</i> build.
      *
      * @param structuredActionConent the structured content for the selected action to be instanciated.
-     * @return a new cause instance for the <i>Gitflow</i> build.
+     * @param dryRun is the build dryRun or not
      */
-    public TestReleaseCause(final JSONObject structuredActionConent) throws IOException {
-        super();
+    public TestReleaseCause(final JSONObject structuredActionConent, final boolean dryRun) {
+        super(dryRun);
 
         final JSONObject releaseContent = structuredActionConent.getJSONObject(PARAM_RELEASE);
         this.releaseBranch = releaseContent.getString(PARAM_RELEASE_BRANCH);

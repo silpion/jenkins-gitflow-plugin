@@ -1,10 +1,6 @@
 package org.jenkinsci.plugins.gitflow.cause;
 
-import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
-
 import hudson.model.Cause;
-
-import jenkins.model.Jenkins;
 
 /**
  * The {@link Cause} object for the executed Gitflow actions.
@@ -13,12 +9,18 @@ import jenkins.model.Jenkins;
  */
 public class AbstractGitflowCause extends Cause {
 
-    protected static GitflowBuildWrapper.DescriptorImpl getBuildWrapperDescriptor() {
-        return (GitflowBuildWrapper.DescriptorImpl) Jenkins.getInstance().getDescriptor(GitflowBuildWrapper.class);
+    private final boolean dryRun;
+
+    public AbstractGitflowCause(final boolean dryRun) {
+        this.dryRun = dryRun;
     }
 
     @Override
     public String getShortDescription() {
         return "Triggered by Gitflow Plugin";
+    }
+
+    public boolean isDryRun() {
+        return this.dryRun;
     }
 }
