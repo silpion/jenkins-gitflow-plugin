@@ -6,12 +6,21 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
+import javax.annotation.Nullable;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.Maps;
 
 import hudson.model.AbstractProject;
 import hudson.model.Result;
@@ -25,6 +34,22 @@ public class GitflowPluginProperties {
 
     private static final String GITFLOW_PROPERTIES_FILE = "gitflow-plugin.properties";
     private static final int MODIFICATION_CHECK_INTERVALL_MILLISECONDS = 5000;
+
+    private static final Comparator<Result> RESULT_ORDER_BY_SEVERITY = new Comparator<Result>() {
+
+        /** {@inheritDoc} */
+        public int compare(final Result result1, final Result result2) {
+            return result1.ordinal - result2.ordinal;
+        }
+    };
+
+    private static final Predicate<Result> RESULT_UNSTABLE_OR_WORSE = new Predicate<Result>() {
+
+        /** {@inheritDoc} */
+        public boolean apply(@Nullable final Result result) {
+            return Result.UNSTABLE.isBetterOrEqualTo(result);
+        }
+    };
 
     private final Properties properties = new Properties();
     private final File propertiesFile;
@@ -71,6 +96,38 @@ public class GitflowPluginProperties {
     public String loadVersionForBranch(final String branch) throws IOException {
         this.loadProperties();
         return this.properties.getProperty("branchVersion." + branch);
+    }
+
+    /**
+     * Returns the simple/local names of all branches with <i>UNSTABLE</i> (or worse) results, grouped by result.
+     *
+     * @return a map containing the names of all branches with <i>UNSTABLE</i> (or worse) results, where each key is a {@link Result} and the regarding value
+     * is a collection with the names of the branches with that result.
+     * @throws IOException if the file with the Gitflow properties cannot be loaded or saved.
+     */
+    public Map<Result, Collection<String>> loadUnstableBranchesGroupedByResult() throws IOException {
+        return Maps.filterKeys(this.loadBranchesGroupedByResult(), RESULT_UNSTABLE_OR_WORSE);
+    }
+
+    private Map<Result, Collection<String>> loadBranchesGroupedByResult() throws IOException {
+        final Map<Result, Collection<String>> branchesGroupedByResult = new TreeMap<Result, Collection<String>>(RESULT_ORDER_BY_SEVERITY);
+
+        this.loadProperties();
+
+        for (final String propertyName : this.properties.stringPropertyNames()) {
+            final String[] propertyNameTokens = StringUtils.split(propertyName, ".", 2);
+            if (ArrayUtils.getLength(propertyNameTokens) == 2 && "branchResult".equals(propertyNameTokens[0])) {
+                final Result branchResult = Result.fromString(this.properties.getProperty(propertyName));
+                Collection<String> branchNamesWithResult = branchesGroupedByResult.get(branchResult);
+                if (branchNamesWithResult == null) {
+                    branchNamesWithResult = new TreeSet<String>();
+                    branchesGroupedByResult.put(branchResult, branchNamesWithResult);
+                }
+                branchNamesWithResult.add(propertyNameTokens[1]);
+            }
+        }
+
+        return branchesGroupedByResult;
     }
 
     /**
