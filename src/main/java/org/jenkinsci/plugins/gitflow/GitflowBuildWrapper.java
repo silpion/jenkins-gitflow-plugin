@@ -18,7 +18,6 @@ import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.Item;
-import hudson.model.Result;
 import hudson.plugins.git.GitSCM;
 import hudson.security.Permission;
 import hudson.security.PermissionScope;
@@ -56,10 +55,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
             public boolean tearDown(@SuppressWarnings({ "hiding", "rawtypes" }) final AbstractBuild build,
                                     @SuppressWarnings("hiding") final BuildListener listener) throws IOException, InterruptedException {
 
-                // Only run the Gitflow post build actions if the main build was successful.
-                if (build.getResult() == Result.SUCCESS) {
-                    gitflowAction.afterMainBuild();
-                }
+                gitflowAction.afterMainBuild();
 
                 return true;
             }
@@ -95,6 +91,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
         private String hotfixBranchPrefix = "hotfix/";
         private String featureBranchPrefix = "feature/";
         private String versionTagPrefix = "version/";
+        private boolean markSuccessfulBuildUnstableOnBrokenBranches = true;
 
         public DescriptorImpl() {
             super(GitflowBuildWrapper.class);
@@ -114,6 +111,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
             this.hotfixBranchPrefix = json.getString("hotfixBranchPrefix");
             this.versionTagPrefix = json.getString("versionTagPrefix");
             this.featureBranchPrefix = json.getString("featureBranchPrefix");
+            this.markSuccessfulBuildUnstableOnBrokenBranches = json.getBoolean("markSuccessfulBuildUnstableOnBrokenBranches");
 
             this.save();
             return true; // everything is alright so far
@@ -170,6 +168,14 @@ public class GitflowBuildWrapper extends BuildWrapper {
 
         public void setVersionTagPrefix(String versionTagPrefix) {
             this.versionTagPrefix = versionTagPrefix;
+        }
+
+        public boolean isMarkSuccessfulBuildUnstableOnBrokenBranches() {
+            return this.markSuccessfulBuildUnstableOnBrokenBranches;
+        }
+
+        public void setMarkSuccessfulBuildUnstableOnBrokenBranches(final boolean markSuccessfulBuildUnstableOnBrokenBranches) {
+            this.markSuccessfulBuildUnstableOnBrokenBranches = markSuccessfulBuildUnstableOnBrokenBranches;
         }
     }
 }

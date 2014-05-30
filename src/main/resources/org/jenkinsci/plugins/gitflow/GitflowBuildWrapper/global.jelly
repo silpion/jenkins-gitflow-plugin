@@ -32,5 +32,9 @@
         <f:entry title="Feature Branch Prefix">
             <f:textbox name="featureBranchPrefix" value="${descriptor.featureBranchPrefix}" onchange="Form.findMatchingInput(this,'gitflow.featureBranchPrefix').onchange()" />
         </f:entry>
+        <f:entry title="Build Status Policy">
+            <f:checkbox name="markSuccessfulBuildUnstableOnBrokenBranches" title="Mark successful builds unstable when failed or unstable branches exist"
+                checked="${descriptor.markSuccessfulBuildUnstableOnBrokenBranches}" />
+        </f:entry>
     </f:section>
 </j:jelly>

@@ -9,6 +9,7 @@ import org.jenkinsci.plugins.gitflow.cause.TestReleaseCause;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.model.Result;
 
 /**
  * This class executes the required steps for the Gitflow action <i>Test Release</i>.
@@ -68,6 +69,14 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
     @Override
     protected void afterMainBuildInternal() throws IOException, InterruptedException {
+        if (build.getResult() == Result.SUCCESS) {
+            this.afterSuccessfulMainBuild();
+        } else {
+            this.afterUnsuccessfulMainBuild();
+        }
+    }
+
+    private void afterSuccessfulMainBuild() throws IOException, InterruptedException {
 
         // Push the new minor release version to the remote repo.
         final String releaseBranch = this.gitflowCause.getReleaseBranch();
@@ -97,6 +106,14 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         this.consoleLogger.println(formatPattern(MSG_PATTERN_PUSHED_FIXES_VERSION, nextFixesDevelopmentVersion));
 
         // Record the fixes development version on the release branch.
-        this.gitflowPluginProperties.saveVersionForBranch(releaseBranch, nextFixesDevelopmentVersion);
+        this.gitflowPluginProperties.saveResultAndVersionForBranch(releaseBranch, Result.SUCCESS, nextFixesDevelopmentVersion);
+    }
+
+    private void afterUnsuccessfulMainBuild() throws IOException {
+
+        // Here we assume that there was an error on the release branch right before exetuted this action.
+        final String releaseBranch = this.gitflowCause.getReleaseBranch();
+        final String releaseBranchVersion = this.gitflowPluginProperties.loadVersionForBranch(releaseBranch);
+        this.gitflowPluginProperties.saveResultAndVersionForBranch(releaseBranch, this.build.getResult(), releaseBranchVersion);
     }
 }

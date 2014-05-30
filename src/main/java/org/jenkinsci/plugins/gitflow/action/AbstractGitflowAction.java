@@ -1,8 +1,12 @@
 package org.jenkinsci.plugins.gitflow.action;
 
 import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.collections.MapUtils;
 import org.jenkinsci.plugins.gitclient.GitClient;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.GitflowPluginProperties;
@@ -12,8 +16,9 @@ import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
 import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 
 import hudson.Launcher;
-import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
+import hudson.model.Result;
 
 import jenkins.model.Jenkins;
 
@@ -27,6 +32,9 @@ import jenkins.model.Jenkins;
 public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C extends AbstractGitflowCause> extends AbstractActionBase<B> {
 
     private static final String MSG_CLEAN_WORKING_DIRECTORY = "Ensuring clean working/checkout directory";
+
+    private static final MessageFormat MSG_PATTERN_RESULT_TO_UNSTABLE = new MessageFormat("Gitflow - Changing result of successful build to"
+                                                                                          + " unstable, because there are unstable branches: {0}");
 
     protected final C gitflowCause;
 
@@ -86,6 +94,16 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
      */
     public final void afterMainBuild() throws IOException, InterruptedException {
         this.afterMainBuildInternal();
+
+        // Mark successful build as unstable if there are unstable branches.
+        final Result buildResult = this.build.getResult();
+        if (buildResult.isBetterThan(Result.UNSTABLE) && getBuildWrapperDescriptor().isMarkSuccessfulBuildUnstableOnBrokenBranches()) {
+            final Map<Result, Collection<String>> unstableBranchesGroupedByResult = this.gitflowPluginProperties.loadUnstableBranchesGroupedByResult();
+            if (MapUtils.isNotEmpty(unstableBranchesGroupedByResult)) {
+                this.consoleLogger.println(formatPattern(MSG_PATTERN_RESULT_TO_UNSTABLE, unstableBranchesGroupedByResult.toString()));
+                this.build.setResult(Result.UNSTABLE);
+            }
+        }
     }
 
     /**
