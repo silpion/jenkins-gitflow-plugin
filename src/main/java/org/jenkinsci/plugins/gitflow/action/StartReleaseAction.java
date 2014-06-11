@@ -3,7 +3,6 @@ package org.jenkinsci.plugins.gitflow.action;
 import java.io.IOException;
 import java.text.MessageFormat;
 
-import org.jenkinsci.plugins.gitflow.GitflowBadgeAction;
 import org.jenkinsci.plugins.gitflow.cause.StartReleaseCause;
 
 import hudson.Launcher;
@@ -42,12 +41,17 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
      */
     public <BC extends B> StartReleaseAction(final BC build, final Launcher launcher, final BuildListener listener, final StartReleaseCause gitflowCause)
             throws IOException, InterruptedException {
-        super(build, launcher, listener, gitflowCause);
+        super(build, launcher, listener, gitflowCause, ACTION_NAME);
     }
 
     @Override
     protected String getConsoleMessagePrefix() {
         return MSG_PREFIX;
+    }
+
+    @Override
+    protected String getActionName() {
+        return ACTION_NAME;
     }
 
     @Override
@@ -76,8 +80,6 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
     }
 
     private void afterSuccessfulMainBuild() throws IOException, InterruptedException {
-        final boolean dryRun = this.gitflowCause.isDryRun();
-        build.getAction(GitflowBadgeAction.class).setDryRun(dryRun);
 
         // Push the new release branch to the remote repo.
         final String releaseBranch = getBuildWrapperDescriptor().getReleaseBranchPrefix() + this.gitflowCause.getReleaseVersion();
@@ -129,10 +131,5 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         final String developBranch = getBuildWrapperDescriptor().getDevelopBranch();
         final String developBranchVersion = this.gitflowPluginData.getRemoteBranch("origin", developBranch).getLastBuildVersion();
         this.gitflowPluginData.recordRemoteBranch("origin", developBranch, this.build.getResult(), developBranchVersion);
-    }
-
-    @Override
-    protected String getActionName() {
-        return this.ACTION_NAME;
     }
 }

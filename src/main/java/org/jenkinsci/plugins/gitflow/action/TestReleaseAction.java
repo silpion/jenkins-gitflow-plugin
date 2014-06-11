@@ -43,7 +43,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
      */
     public <BC extends B> TestReleaseAction(final BC build, final Launcher launcher, final BuildListener listener, final TestReleaseCause gitflowCause)
             throws IOException, InterruptedException {
-        super(build, launcher, listener, gitflowCause);
+        super(build, launcher, listener, gitflowCause, ACTION_NAME);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
     @Override
     protected String getActionName() {
-        return this.ACTION_NAME;
+        return ACTION_NAME;
     }
 
     @Override

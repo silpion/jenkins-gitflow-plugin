@@ -31,6 +31,11 @@ public class StartReleaseCause extends AbstractGitflowCause {
         this.nextDevelopmentVersion = structuredActionConent.getString(PARAM_NEXT_DEVELOPMENT_VERSION);
     }
 
+    @Override
+    public String getVersionForBadge() {
+        return this.releaseVersion;
+    }
+
     public String getReleaseVersion() {
         return this.releaseVersion;
     }

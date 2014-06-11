@@ -33,7 +33,7 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
     };
 
     public <BC extends B> NoGitflowAction(final BC build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
-        super(build, launcher, listener, new NoGitflowCause());
+        super(build, launcher, listener, new NoGitflowCause(), ACTION_NAME);
     }
 
     @Override
@@ -42,8 +42,8 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
     }
 
     @Override
-    protected String getActionName(){
-        return this.ACTION_NAME;
+    protected String getActionName() {
+        return ACTION_NAME;
     }
 
     @Override
@@ -65,5 +65,4 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
         final Collection<String> simpleBranchNames = CollectionUtils.collect(remoteBranchNames, REMOVE_ORIGIN_PREFIX_TRANSFORMER);
         this.gitflowPluginData.recordRemoteBranches("origin", simpleBranchNames, this.build.getResult(), this.buildTypeAction.getCurrentVersion());
     }
-
 }

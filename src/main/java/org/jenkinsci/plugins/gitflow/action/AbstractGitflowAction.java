@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.apache.commons.collections.MapUtils;
 import org.jenkinsci.plugins.gitclient.GitClient;
+import org.jenkinsci.plugins.gitflow.GitflowBadgeAction;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
 import org.jenkinsci.plugins.gitflow.action.buildtype.BuildTypeActionFactory;
@@ -51,10 +52,11 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
      * @param launcher can be used to launch processes for this build - even if the build runs remotely.
      * @param listener can be used to send any message.
      * @param gitflowCause the <i>Gitflow</i> cause for the build in progress.
+     * @param actionName the name of the new action.
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    protected AbstractGitflowAction(final B build, final Launcher launcher, final BuildListener listener, C gitflowCause)
+    protected AbstractGitflowAction(final B build, final Launcher launcher, final BuildListener listener, C gitflowCause, final String actionName)
             throws IOException, InterruptedException {
         super(build, listener);
 
@@ -91,6 +93,11 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
             build.addAction(this.gitflowPluginData);
         }
         this.gitflowPluginData.setDryRun(dryRun);
+
+        // Prepare the action object for the build badges to be displayed.
+        final GitflowBadgeAction gitflowBadgeAction = new GitflowBadgeAction();
+        gitflowBadgeAction.setGitflowActionName(actionName);
+        build.addAction(gitflowBadgeAction);
     }
 
     /**

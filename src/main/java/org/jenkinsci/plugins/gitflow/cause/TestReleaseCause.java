@@ -23,7 +23,6 @@ public class TestReleaseCause extends AbstractGitflowCause {
      *
      * @param structuredActionConent the structured content for the selected action to be instanciated.
      * @param dryRun is the build dryRun or not
-     * @return a new cause instance for the <i>Gitflow</i> build.
      */
     public TestReleaseCause(final JSONObject structuredActionConent, final boolean dryRun) {
         super(dryRun);
@@ -32,6 +31,11 @@ public class TestReleaseCause extends AbstractGitflowCause {
         this.releaseBranch = releaseContent.getString(PARAM_RELEASE_BRANCH);
         this.fixesReleaseVersion = releaseContent.getString(PARAM_FIXES_RELEASE_VERSION);
         this.nextFixesDevelopmentVersion = releaseContent.getString(PARAM_NEXT_FIXES_DEVELOPMENT_VERSION);
+    }
+
+    @Override
+    public String getVersionForBadge() {
+        return this.fixesReleaseVersion;
     }
 
     public String getReleaseBranch() {

@@ -7,7 +7,7 @@ import hudson.model.Cause;
  *
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
-public class AbstractGitflowCause extends Cause {
+public abstract class AbstractGitflowCause extends Cause {
 
     private final boolean dryRun;
 
@@ -23,4 +23,11 @@ public class AbstractGitflowCause extends Cause {
     public boolean isDryRun() {
         return this.dryRun;
     }
+
+    /**
+     * Returns the version number to be displayed as tool tip for the build badges.
+     *
+     * @return the version number to be displayed as tool tip for the build badges.
+     */
+    public abstract String getVersionForBadge();
 }
