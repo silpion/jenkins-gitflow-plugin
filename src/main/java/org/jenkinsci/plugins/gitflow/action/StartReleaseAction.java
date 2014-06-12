@@ -66,7 +66,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
 
     @Override
     protected void afterMainBuildInternal() throws IOException, InterruptedException {
-        if (build.getResult() == Result.SUCCESS) {
+        if (this.build.getResult() == Result.SUCCESS) {
             this.afterSuccessfulMainBuild();
         } else {
             this.afterUnsuccessfulMainBuild();
@@ -100,6 +100,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
 
         // Record the fixes development version on the release branch.
         this.gitflowPluginProperties.saveResultAndVersionForBranch(releaseBranch, Result.SUCCESS, releaseNextDevelopmentVersion);
+        this.gitflowPluginData.recordRemoteBranch("origin", releaseBranch, Result.SUCCESS, releaseNextDevelopmentVersion);
 
         // Update the project files in the develop branch to the development version for the next release.
         final String developBranch = getBuildWrapperDescriptor().getDevelopBranch();
@@ -115,6 +116,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
 
         // Record the next development version on the develop branch.
         this.gitflowPluginProperties.saveResultAndVersionForBranch(developBranch, Result.SUCCESS, nextDevelopmentVersion);
+        this.gitflowPluginData.recordRemoteBranch("origin", developBranch, Result.SUCCESS, nextDevelopmentVersion);
 
         // TODO Might configure further branches to merge to.
     }
@@ -125,5 +127,6 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         final String developBranch = getBuildWrapperDescriptor().getDevelopBranch();
         final String developBranchVersion = this.gitflowPluginProperties.loadVersionForBranch(developBranch);
         this.gitflowPluginProperties.saveResultAndVersionForBranch(developBranch, this.build.getResult(), developBranchVersion);
+        this.gitflowPluginData.recordRemoteBranch("origin", developBranch, this.build.getResult(), developBranchVersion);
     }
 }

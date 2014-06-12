@@ -69,7 +69,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
     @Override
     protected void afterMainBuildInternal() throws IOException, InterruptedException {
-        if (build.getResult() == Result.SUCCESS) {
+        if (this.build.getResult() == Result.SUCCESS) {
             this.afterSuccessfulMainBuild();
         } else {
             this.afterUnsuccessfulMainBuild();
@@ -107,6 +107,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
         // Record the fixes development version on the release branch.
         this.gitflowPluginProperties.saveResultAndVersionForBranch(releaseBranch, Result.SUCCESS, nextFixesDevelopmentVersion);
+        this.gitflowPluginData.recordRemoteBranch("origin", releaseBranch, Result.SUCCESS, nextFixesDevelopmentVersion);
     }
 
     private void afterUnsuccessfulMainBuild() throws IOException {
@@ -115,5 +116,6 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         final String releaseBranch = this.gitflowCause.getReleaseBranch();
         final String releaseBranchVersion = this.gitflowPluginProperties.loadVersionForBranch(releaseBranch);
         this.gitflowPluginProperties.saveResultAndVersionForBranch(releaseBranch, this.build.getResult(), releaseBranchVersion);
+        this.gitflowPluginData.recordRemoteBranch("origin", releaseBranch, this.build.getResult(), releaseBranchVersion);
     }
 }

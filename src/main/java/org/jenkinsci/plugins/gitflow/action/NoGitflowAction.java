@@ -58,5 +58,8 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
         final Collection<String> remoteBranchNames = this.build.getAction(GitTagAction.class).getTags().keySet();
         final Collection<String> simpleBranchNames = CollectionUtils.collect(remoteBranchNames, REMOVE_ORIGIN_PREFIX_TRANSFORMER);
         this.gitflowPluginProperties.saveResultAndVersionForBranches(simpleBranchNames, this.build.getResult(), this.buildTypeAction.getCurrentVersion());
+
+        // Record the data about the Gitflow branches that have been built.
+        this.gitflowPluginData.recordRemoteBranches("origin", simpleBranchNames, this.build.getResult(), this.buildTypeAction.getCurrentVersion());
     }
 }

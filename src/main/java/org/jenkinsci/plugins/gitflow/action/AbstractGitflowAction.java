@@ -13,6 +13,7 @@ import org.jenkinsci.plugins.gitflow.GitflowPluginProperties;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
 import org.jenkinsci.plugins.gitflow.action.buildtype.BuildTypeActionFactory;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
+import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
 import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 
 import hudson.Launcher;
@@ -42,6 +43,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
     protected final GitClient git;
 
     protected final GitflowPluginProperties gitflowPluginProperties;
+    protected GitflowPluginData gitflowPluginData;
 
     /**
      * Initialises a new Gitflow action.
@@ -64,6 +66,33 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
 
         this.buildTypeAction = BuildTypeActionFactory.newInstance(build, launcher, listener);
         this.gitflowPluginProperties = new GitflowPluginProperties(build.getProject(), dryRun);
+
+        // Prepare the action object that holds the data for the Gitflow plugin.
+        this.gitflowPluginData = build.getAction(GitflowPluginData.class);
+        if (this.gitflowPluginData == null) {
+
+            // Try to find the action object in the previous build
+            final AbstractBuild<?, ?> previousBuild = build.getPreviousBuild();
+            if (previousBuild != null) {
+                this.gitflowPluginData = previousBuild.getAction(GitflowPluginData.class);
+            }
+
+            if (this.gitflowPluginData == null) {
+                this.gitflowPluginData = new GitflowPluginData();
+            } else {
+
+                // Clone the action object if it was found in the previous build.
+                try {
+                    this.gitflowPluginData = this.gitflowPluginData.clone();
+                } catch (final CloneNotSupportedException cnse) {
+                    throw new IOException("Cloning of " + this.gitflowPluginData.getClass().getName() + " is not supported but should be.", cnse);
+                }
+
+            }
+
+            build.addAction(this.gitflowPluginData);
+        }
+        this.gitflowPluginData.setDryRun(dryRun);
     }
 
     /**
