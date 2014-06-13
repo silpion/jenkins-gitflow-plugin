@@ -9,7 +9,6 @@ import java.util.Map;
 import org.apache.commons.collections.MapUtils;
 import org.jenkinsci.plugins.gitclient.GitClient;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
-import org.jenkinsci.plugins.gitflow.GitflowPluginProperties;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
 import org.jenkinsci.plugins.gitflow.action.buildtype.BuildTypeActionFactory;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
@@ -43,7 +42,6 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
     protected final AbstractBuildTypeAction<?> buildTypeAction;
     protected final GitClient git;
 
-    protected final GitflowPluginProperties gitflowPluginProperties;
     protected GitflowPluginData gitflowPluginData;
 
     /**
@@ -66,7 +64,6 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
         this.git = new GitClientDelegate(build, listener, dryRun);
 
         this.buildTypeAction = BuildTypeActionFactory.newInstance(build, launcher, listener);
-        this.gitflowPluginProperties = new GitflowPluginProperties(build.getProject(), dryRun);
 
         // Prepare the action object that holds the data for the Gitflow plugin.
         this.gitflowPluginData = build.getAction(GitflowPluginData.class);

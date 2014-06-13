@@ -99,7 +99,6 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         this.git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
 
         // Record the fixes development version on the release branch.
-        this.gitflowPluginProperties.saveResultAndVersionForBranch(releaseBranch, Result.SUCCESS, releaseNextDevelopmentVersion);
         this.gitflowPluginData.recordRemoteBranch("origin", releaseBranch, Result.SUCCESS, releaseNextDevelopmentVersion);
 
         // Update the project files in the develop branch to the development version for the next release.
@@ -115,7 +114,6 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         this.git.push("origin", "refs/heads/" + developBranch + ":refs/heads/" + developBranch);
 
         // Record the next development version on the develop branch.
-        this.gitflowPluginProperties.saveResultAndVersionForBranch(developBranch, Result.SUCCESS, nextDevelopmentVersion);
         this.gitflowPluginData.recordRemoteBranch("origin", developBranch, Result.SUCCESS, nextDevelopmentVersion);
 
         // TODO Might configure further branches to merge to.
@@ -126,7 +124,6 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         // Here we assume that there was an error on the develop branch right before we created the release branch.
         final String developBranch = getBuildWrapperDescriptor().getDevelopBranch();
         final String developBranchVersion = this.gitflowPluginData.getRemoteBranch("origin", developBranch).getLastBuildVersion();
-        this.gitflowPluginProperties.saveResultAndVersionForBranch(developBranch, this.build.getResult(), developBranchVersion);
         this.gitflowPluginData.recordRemoteBranch("origin", developBranch, this.build.getResult(), developBranchVersion);
     }
 }
