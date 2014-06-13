@@ -14,6 +14,7 @@ import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
 import org.jenkinsci.plugins.gitflow.action.buildtype.BuildTypeActionFactory;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
 import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
+import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 
 import hudson.Launcher;
@@ -127,7 +128,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
         // Mark successful build as unstable if there are unstable branches.
         final Result buildResult = this.build.getResult();
         if (buildResult.isBetterThan(Result.UNSTABLE) && getBuildWrapperDescriptor().isMarkSuccessfulBuildUnstableOnBrokenBranches()) {
-            final Map<Result, Collection<String>> unstableBranchesGroupedByResult = this.gitflowPluginProperties.loadUnstableBranchesGroupedByResult();
+            final Map<Result, Collection<RemoteBranch>> unstableBranchesGroupedByResult = this.gitflowPluginData.getUnstableRemoteBranchesGroupedByResult();
             if (MapUtils.isNotEmpty(unstableBranchesGroupedByResult)) {
                 this.consoleLogger.println(formatPattern(MSG_PATTERN_RESULT_TO_UNSTABLE, unstableBranchesGroupedByResult.toString()));
                 this.build.setResult(Result.UNSTABLE);

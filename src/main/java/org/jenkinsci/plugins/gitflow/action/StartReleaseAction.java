@@ -125,7 +125,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
 
         // Here we assume that there was an error on the develop branch right before we created the release branch.
         final String developBranch = getBuildWrapperDescriptor().getDevelopBranch();
-        final String developBranchVersion = this.gitflowPluginProperties.loadVersionForBranch(developBranch);
+        final String developBranchVersion = this.gitflowPluginData.getRemoteBranch("origin", developBranch).getLastBuildVersion();
         this.gitflowPluginProperties.saveResultAndVersionForBranch(developBranch, this.build.getResult(), developBranchVersion);
         this.gitflowPluginData.recordRemoteBranch("origin", developBranch, this.build.getResult(), developBranchVersion);
     }

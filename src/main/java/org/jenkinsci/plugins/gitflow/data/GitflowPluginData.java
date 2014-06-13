@@ -6,6 +6,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.Maps;
 
 import hudson.model.Action;
 import hudson.model.Result;
@@ -17,16 +23,21 @@ import hudson.model.Result;
  */
 public class GitflowPluginData implements Action, Serializable, Cloneable {
 
-    private static final long serialVersionUID = -1766342980910311378L;
+    private static final long serialVersionUID = 6275696740225805349L;
 
-    private static final Comparator<RemoteBranch> ORDER_BY_REMOTE_ALIAS_AND_NAME = new Comparator<RemoteBranch>() {
+    private static final Comparator<Result> RESULT_SEVERITY_COMPARATOR = new Comparator<Result>() {
 
-        public int compare(final RemoteBranch branch1, final RemoteBranch branch2) {
-            int result = String.CASE_INSENSITIVE_ORDER.compare(branch1.getRemoteAlias(), branch2.getRemoteAlias());
-            if (result == 0) {
-                result = String.CASE_INSENSITIVE_ORDER.compare(branch1.getBranchName(), branch2.getBranchName());
-            }
-            return result;
+        /** {@inheritDoc} */
+        public int compare(final Result result1, final Result result2) {
+            return result1.ordinal - result2.ordinal;
+        }
+    };
+
+    private static final Predicate<Result> RESULT_UNSTABLE_OR_WORSE_PREDICATE = new Predicate<Result>() {
+
+        /** {@inheritDoc} */
+        public boolean apply(final Result result) {
+            return Result.UNSTABLE.isBetterOrEqualTo(result);
         }
     };
 
@@ -81,10 +92,36 @@ public class GitflowPluginData implements Action, Serializable, Cloneable {
      */
     public void recordRemoteBranch(final String remoteAlias, final String branchName, final Result buildResult, final String buildVersion) {
         if (!this.dryRun) {
-            final RemoteBranch branch = this.getRemoteBranch(remoteAlias, branchName, true);
-            branch.setLastBuildResult(buildResult);
-            branch.setLastBuildVersion(buildVersion);
+            final RemoteBranch remoteBranch = this.getRemoteBranch(remoteAlias, branchName, true);
+            remoteBranch.setLastBuildResult(buildResult);
+            remoteBranch.setLastBuildVersion(buildVersion);
         }
+    }
+
+    /**
+     * Returns the remote branches with <i>UNSTABLE</i> (or worse) results, grouped by result.
+     *
+     * @return a map containing all branches with <i>UNSTABLE</i> (or worse) results, where each key is a {@link Result} and the regarding value
+     * is a collection with the branches with that result.
+     */
+    public Map<Result, Collection<RemoteBranch>> getUnstableRemoteBranchesGroupedByResult() {
+        return Maps.filterKeys(this.getRemoteBranchesGroupedByResult(), RESULT_UNSTABLE_OR_WORSE_PREDICATE);
+    }
+
+    private Map<Result, Collection<RemoteBranch>> getRemoteBranchesGroupedByResult() {
+        final Map<Result, Collection<RemoteBranch>> remoteBranchesGroupedByResult = new TreeMap<Result, Collection<RemoteBranch>>(RESULT_SEVERITY_COMPARATOR);
+
+        for (final RemoteBranch remoteBranch : this.remoteBranches) {
+            final Result branchResult = remoteBranch.getLastBuildResult();
+            Collection<RemoteBranch> remoteBranchesWithResult = remoteBranchesGroupedByResult.get(branchResult);
+            if (remoteBranchesWithResult == null) {
+                remoteBranchesWithResult = new TreeSet<RemoteBranch>();
+                remoteBranchesGroupedByResult.put(branchResult, remoteBranchesWithResult);
+            }
+            remoteBranchesWithResult.add(remoteBranch);
+        }
+
+        return remoteBranchesGroupedByResult;
     }
 
     /**
@@ -102,7 +139,7 @@ public class GitflowPluginData implements Action, Serializable, Cloneable {
         if (remoteBranch == null && createNewIfMissing) {
             remoteBranch = new RemoteBranch(remoteAlias, branchName);
             this.remoteBranches.add(remoteBranch);
-            Collections.sort(this.remoteBranches, ORDER_BY_REMOTE_ALIAS_AND_NAME);
+            Collections.sort(this.remoteBranches);
         }
         return remoteBranch;
     }
@@ -114,13 +151,17 @@ public class GitflowPluginData implements Action, Serializable, Cloneable {
      * @param branchName the simple name of the branch.
      * @return the {@link RemoteBranch} with the given remote alias and name or {@code null}.
      */
-    private RemoteBranch getRemoteBranch(final String remoteAlias, final String branchName) {
-        for (final RemoteBranch branch : this.remoteBranches) {
-            if (branch.getRemoteAlias().equals(remoteAlias) && branch.getBranchName().equals(branchName)) {
-                return branch;
+    public RemoteBranch getRemoteBranch(final String remoteAlias, final String branchName) {
+        for (final RemoteBranch remoteBranch : this.remoteBranches) {
+            if (remoteBranch.getRemoteAlias().equals(remoteAlias) && remoteBranch.getBranchName().equals(branchName)) {
+                return remoteBranch;
             }
         }
         return null;
+    }
+
+    public List<RemoteBranch> getRemoteBranches() {
+        return this.remoteBranches;
     }
 
     public void setDryRun(final boolean dryRun) {

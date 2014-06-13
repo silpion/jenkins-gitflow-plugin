@@ -11,9 +11,9 @@ import hudson.model.Result;
  *
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
-public class RemoteBranch implements Serializable, Cloneable {
+public class RemoteBranch implements Serializable, Cloneable, Comparable<RemoteBranch> {
 
-    private static final long serialVersionUID = 432731634282740845L;
+    private static final long serialVersionUID = -8150066866844971130L;
 
     @XStreamAsAttribute
     private final String remoteAlias;
@@ -33,6 +33,21 @@ public class RemoteBranch implements Serializable, Cloneable {
     public RemoteBranch(final String remoteAlias, final String branchName) {
         this.remoteAlias = remoteAlias;
         this.branchName = branchName;
+    }
+
+    /** {@inheritDoc} */
+    public int compareTo(final RemoteBranch remoteBranch) {
+        int result = String.CASE_INSENSITIVE_ORDER.compare(this.getRemoteAlias(), remoteBranch.getRemoteAlias());
+        if (result == 0) {
+            result = String.CASE_INSENSITIVE_ORDER.compare(this.getBranchName(), remoteBranch.getBranchName());
+        }
+        return result;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        return this.remoteAlias + "/" + this.branchName;
     }
 
     public String getRemoteAlias() {
