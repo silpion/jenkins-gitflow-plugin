@@ -131,6 +131,9 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
                 this.build.setResult(Result.UNSTABLE);
             }
         }
+
+        // Remove the remote branches that don't exist anymore from the Gitflow plugin data.
+        this.gitflowPluginData.removeObsoleteRemoteBranches(this.git.getRemoteBranches());
     }
 
     /**
