@@ -11,9 +11,12 @@ import javax.servlet.ServletException;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
 import org.jenkinsci.plugins.gitflow.cause.GitflowCauseFactory;
+import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
+import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
+import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.PermalinkProjectAction;
 
@@ -29,7 +32,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
     private static final String DEFAULT_STRING = "Please enter a valid version number...";
 
     private final AbstractProject<?, ?> job;
-    private final GitflowPluginProperties gitflowPluginProperties;
+    private final GitflowPluginData gitflowPluginData;
 
     /**
      * Initialises a new {@link GitflowProjectAction}.
@@ -38,7 +41,14 @@ public class GitflowProjectAction implements PermalinkProjectAction {
      */
     public GitflowProjectAction(final AbstractProject<?, ?> job) {
         this.job = job;
-        this.gitflowPluginProperties = new GitflowPluginProperties(job);
+
+        // Try to get the action object that holds the data for the Gitflow plugin.
+        final AbstractBuild<?, ?> lastBuild = job.getLastBuild();
+        if (lastBuild == null) {
+            this.gitflowPluginData = null;
+        } else {
+            this.gitflowPluginData = lastBuild.getAction(GitflowPluginData.class);
+        }
     }
 
     public List<Permalink> getPermalinks() {
@@ -66,11 +76,11 @@ public class GitflowProjectAction implements PermalinkProjectAction {
     }
 
     public String computeReleaseVersion() throws IOException {
-        final String developVersion = this.gitflowPluginProperties.loadVersionForBranch(getBuildWrapperDescriptor().getDevelopBranch());
-        if (StringUtils.isBlank(developVersion)) {
+        final RemoteBranch developBranch = this.getBranchFromPluginData(getBuildWrapperDescriptor().getDevelopBranch());
+        if (developBranch == null) {
             return DEFAULT_STRING;
         } else {
-            return StringUtils.removeEnd(developVersion, "-SNAPSHOT");
+            return StringUtils.removeEnd(developBranch.getLastBuildVersion(), "-SNAPSHOT");
         }
     }
 
@@ -101,9 +111,11 @@ public class GitflowProjectAction implements PermalinkProjectAction {
 
         final String releaseBranchPrefix = getBuildWrapperDescriptor().getReleaseBranchPrefix();
 
-        for (final String branch : this.gitflowPluginProperties.loadBranches()) {
-            if (StringUtils.startsWith(branch, releaseBranchPrefix)) {
-                releaseBranches.add(branch);
+        for (final RemoteBranch remoteBranch : this.getBranchesFromPluginData()) {
+            final String branchName = remoteBranch.getBranchName();
+            //plus origin
+            if (StringUtils.startsWith(branchName, releaseBranchPrefix)) {
+                releaseBranches.add(branchName);
             }
         }
 
@@ -116,7 +128,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
     }
 
     public String computeFixesReleaseVersion(final String releaseBranch) throws IOException {
-        final String versionForBranch = this.gitflowPluginProperties.loadVersionForBranch(releaseBranch);
+        final String versionForBranch = this.getBranchFromPluginData(releaseBranch).getLastBuildVersion();
         return StringUtils.removeEnd(versionForBranch, "-SNAPSHOT");
     }
 
@@ -133,6 +145,23 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         return nextFixesDevelopmentVersionBuilder.toString();
     }
 
+    private RemoteBranch getBranchFromPluginData(final String branchName) {
+        if (this.gitflowPluginData == null) {
+            return null;
+        } else {
+            return this.gitflowPluginData.getRemoteBranch("origin", branchName);
+        }
+    }
+
+    private List<RemoteBranch> getBranchesFromPluginData() {
+        if (this.gitflowPluginData == null) {
+            return Collections.emptyList();
+        } else {
+            return this.gitflowPluginData.getRemoteBranches();
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
     public void doSubmit(final StaplerRequest request, final StaplerResponse response) throws IOException, ServletException {
 
         // TODO Validate that the versions for the selected action are not empty and don't equal DEFAULT_STRING.
