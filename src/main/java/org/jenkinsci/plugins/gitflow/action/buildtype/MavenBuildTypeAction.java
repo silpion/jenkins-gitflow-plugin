@@ -5,6 +5,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -26,6 +27,9 @@ public class MavenBuildTypeAction extends AbstractBuildTypeAction<MavenModuleSet
                                                                                        + " -DnewVersion={0} -DgenerateBackupPoms=false");
 
     private static final String SLASH_POM_XML = "/pom.xml";
+
+    private static final String MAVEN_PROPERTY_SKIP_DEPLOYMENT = "maven.deploy.skip";
+    private static final String PROPERTY_VALUE_TRUE = Boolean.TRUE.toString();
 
     /**
      * Initialises a new Maven build type action.
@@ -74,5 +78,10 @@ public class MavenBuildTypeAction extends AbstractBuildTypeAction<MavenModuleSet
         if (!success) {
             throw new IOException("Error while executing mvn " + argumentsString);
         }
+    }
+
+    @Override
+    public void preventArchivePublication(final Map<String, String> buildEnvVars) {
+        buildEnvVars.put(MAVEN_PROPERTY_SKIP_DEPLOYMENT, PROPERTY_VALUE_TRUE);
     }
 }

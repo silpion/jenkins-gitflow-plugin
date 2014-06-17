@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.gitflow.action.buildtype;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.jenkinsci.plugins.gitflow.action.AbstractActionBase;
 
@@ -47,4 +48,15 @@ public abstract class AbstractBuildTypeAction<T extends AbstractBuild<?, ?>> ext
      * @throws InterruptedException if the build is interrupted during execution.
      */
     public abstract List<String> updateVersion(final String version) throws IOException, InterruptedException;
+
+    /**
+     * Add environmental variables to the given map that change the behaviour of the build so that it doesn't publish the built archives.
+     * <p/>
+     * <b>Please note</b> that the default behaviour of the main build might depend on the actual build configuration in the source code that is checked out
+     * and built by the Jenkins jobs. E.g. if it overwrites the {@code skip} parameter of the Maven Deploy Plugin, it might also overwrite the configuration
+     * change that is intended by this method.
+     *
+     * @param buildEnvVars the map to add to environmental variables to.
+     */
+    public abstract void preventArchivePublication(final Map<String, String> buildEnvVars);
 }
