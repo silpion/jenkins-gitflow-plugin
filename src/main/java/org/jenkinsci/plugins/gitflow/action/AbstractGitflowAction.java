@@ -69,25 +69,26 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
         this.gitflowPluginData = build.getAction(GitflowPluginData.class);
         if (this.gitflowPluginData == null) {
 
-            // Try to find the action object in the previous build
-            final AbstractBuild<?, ?> previousBuild = build.getPreviousBuild();
-            if (previousBuild != null) {
-                this.gitflowPluginData = previousBuild.getAction(GitflowPluginData.class);
+            // Try to find the action object in one of the previous builds and clone it to a new one.
+            for (AbstractBuild<?, ?> previousBuild = build.getPreviousBuild();
+                 this.gitflowPluginData == null && previousBuild != null; previousBuild = previousBuild.getPreviousBuild()) {
+
+                final GitflowPluginData previousGitflowPluginData = previousBuild.getAction(GitflowPluginData.class);
+                if (previousGitflowPluginData != null) {
+                    try {
+                        this.gitflowPluginData = previousGitflowPluginData.clone();
+                    } catch (final CloneNotSupportedException cnse) {
+                        throw new IOException("Cloning of " + previousGitflowPluginData.getClass().getName() + " is not supported but should be.", cnse);
+                    }
+                }
             }
 
+            // Create a new action object if none was found in the previous builds.
             if (this.gitflowPluginData == null) {
                 this.gitflowPluginData = new GitflowPluginData();
-            } else {
-
-                // Clone the action object if it was found in the previous build.
-                try {
-                    this.gitflowPluginData = this.gitflowPluginData.clone();
-                } catch (final CloneNotSupportedException cnse) {
-                    throw new IOException("Cloning of " + this.gitflowPluginData.getClass().getName() + " is not supported but should be.", cnse);
-                }
-
             }
 
+            // Add the new action object to the build.
             build.addAction(this.gitflowPluginData);
         }
         this.gitflowPluginData.setDryRun(dryRun);
