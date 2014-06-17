@@ -57,6 +57,7 @@ public abstract class AbstractBuildTypeAction<T extends AbstractBuild<?, ?>> ext
      * change that is intended by this method.
      *
      * @param buildEnvVars the map to add to environmental variables to.
+     * @throws IOException if an error occurs that causes/should cause the build to fail.
      */
-    public abstract void preventArchivePublication(final Map<String, String> buildEnvVars);
+    public abstract void preventArchivePublication(final Map<String, String> buildEnvVars) throws IOException;
 }
