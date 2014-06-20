@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.gitflow;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 import org.jenkinsci.plugins.gitflow.action.AbstractGitflowAction;
 import org.jenkinsci.plugins.gitflow.action.GitflowActionFactory;
@@ -51,6 +52,13 @@ public class GitflowBuildWrapper extends BuildWrapper {
 
         buildEnvironment = new Environment() {
 
+            /** {@inheritDoc} */
+            @Override
+            public void buildEnvVars(final Map<String, String> env) {
+                env.putAll(gitflowAction.getAdditionalBuildEnvVars());
+            }
+
+            /** {@inheritDoc} */
             @Override
             public boolean tearDown(@SuppressWarnings({ "hiding", "rawtypes" }) final AbstractBuild build,
                                     @SuppressWarnings("hiding") final BuildListener listener) throws IOException, InterruptedException {

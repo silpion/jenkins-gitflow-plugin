@@ -5,6 +5,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -12,8 +13,10 @@ import hudson.Launcher;
 import hudson.maven.MavenModule;
 import hudson.maven.MavenModuleSet;
 import hudson.maven.MavenModuleSetBuild;
+import hudson.maven.RedeployPublisher;
 import hudson.model.BuildListener;
 import hudson.tasks.Maven;
+import hudson.tasks.Publisher;
 
 /**
  * This class implements the different actions, that are required to apply the <i>Gitflow</i> to Maven projects.
@@ -26,6 +29,9 @@ public class MavenBuildTypeAction extends AbstractBuildTypeAction<MavenModuleSet
                                                                                        + " -DnewVersion={0} -DgenerateBackupPoms=false");
 
     private static final String SLASH_POM_XML = "/pom.xml";
+
+    private static final String MAVEN_PROPERTY_SKIP_DEPLOYMENT = "maven.deploy.skip";
+    private static final String PROPERTY_VALUE_TRUE = Boolean.TRUE.toString();
 
     /**
      * Initialises a new Maven build type action.
@@ -74,5 +80,34 @@ public class MavenBuildTypeAction extends AbstractBuildTypeAction<MavenModuleSet
         if (!success) {
             throw new IOException("Error while executing mvn " + argumentsString);
         }
+    }
+
+    @Override
+    public void preventArchivePublication(final Map<String, String> buildEnvVars) throws IOException {
+
+        // Prevent artifact deployment if 'mvn deploy' is configured in the Jenkins job configuration.
+        buildEnvVars.put(MAVEN_PROPERTY_SKIP_DEPLOYMENT, PROPERTY_VALUE_TRUE);
+
+        // Prevent artifact deployment if the RedeployPublisher is configured in the Jenkins job configuration.
+        final RedeployPublisher redeployPublisher = this.getConfiguredRedeployPublisher();
+        if (redeployPublisher != null) {
+
+            // The publisher only skips the deployment, if any 'releaseEnvVar' is configured.
+            if (redeployPublisher.releaseEnvVar == null) {
+                throw new IOException("Cannot skip deploy step for post build action 'Deploy artifacts to Maven repository'."
+                                      + " Please define any 'Release environment variable' for that post build action in the job configuration.");
+            } else {
+                buildEnvVars.put(redeployPublisher.releaseEnvVar, PROPERTY_VALUE_TRUE);
+            }
+        }
+    }
+
+    private RedeployPublisher getConfiguredRedeployPublisher() {
+        for (final Publisher publisher : this.build.getProject().getPublishers()) {
+            if (publisher instanceof RedeployPublisher) {
+                return (RedeployPublisher) publisher;
+            }
+        }
+        return null;
     }
 }
