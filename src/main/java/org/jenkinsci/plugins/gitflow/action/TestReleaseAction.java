@@ -19,7 +19,8 @@ import hudson.model.Result;
  */
 public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGitflowAction<B, TestReleaseCause> {
 
-    private static final String MSG_PREFIX = "Gitflow - Test Release: ";
+    private static final String ACTION_NAME = "Test Release";
+    private static final String MSG_PREFIX = "Gitflow - " + ACTION_NAME + ": ";
     private static final MessageFormat MSG_PATTERN_CHECKOUT_RELEASE_BRANCH = new MessageFormat(MSG_PREFIX + "Checkout release branch {0}");
     private static final MessageFormat MSG_PATTERN_UPDATED_RELEASE_VERSION = new MessageFormat(MSG_PREFIX + "Updated project files to release version {0}");
     private static final MessageFormat MSG_PATTERN_PUSHED_RELEASE_BRANCH = new MessageFormat(MSG_PREFIX + "Pushed release branch {0}");
@@ -48,6 +49,11 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
     @Override
     protected String getConsoleMessagePrefix() {
         return MSG_PREFIX;
+    }
+
+    @Override
+    protected String getActionName() {
+        return this.ACTION_NAME;
     }
 
     @Override

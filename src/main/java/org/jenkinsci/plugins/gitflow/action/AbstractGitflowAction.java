@@ -184,4 +184,11 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
      * @return the action-specific prefix for console messages.
      */
     protected abstract String getConsoleMessagePrefix();
+
+    /**
+     * Returns the action-specific name for console messages.
+     *
+     * @return the action-specific name for console messages.
+     */
+    protected abstract String getActionName();
 }

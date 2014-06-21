@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.gitflow.action;
 
 import java.io.IOException;
 
+import org.jenkinsci.plugins.gitflow.GitflowBadgeAction;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
 import org.jenkinsci.plugins.gitflow.cause.StartReleaseCause;
 import org.jenkinsci.plugins.gitflow.cause.TestReleaseCause;
@@ -23,12 +24,26 @@ public class GitflowActionFactory {
 
         // The action to be created depends on the cause.
         final AbstractGitflowCause gitflowCause = build.getCause(AbstractGitflowCause.class);
+        GitflowBadgeAction gitflowBadgeAction = new GitflowBadgeAction();
+        build.addAction(gitflowBadgeAction);
         if (gitflowCause == null) {
             gitflowAction = new NoGitflowAction<B>(build, launcher, listener);
+
+            gitflowBadgeAction.setDryRun(false);
+            gitflowBadgeAction.setVersionNumber("");
+            gitflowBadgeAction.setGitflowAction(gitflowAction.getActionName());
         } else if (gitflowCause instanceof StartReleaseCause) {
             gitflowAction = new StartReleaseAction<B>(build, launcher, listener, (StartReleaseCause) gitflowCause);
+
+            gitflowBadgeAction.setDryRun(gitflowCause.isDryRun());
+            gitflowBadgeAction.setVersionNumber(((StartReleaseCause) gitflowCause).getReleaseVersion());
+            gitflowBadgeAction.setGitflowAction(gitflowAction.getActionName());
         } else if (gitflowCause instanceof TestReleaseCause) {
             gitflowAction = new TestReleaseAction<B>(build, launcher, listener, (TestReleaseCause) gitflowCause);
+
+            gitflowBadgeAction.setDryRun(gitflowCause.isDryRun());
+            gitflowBadgeAction.setVersionNumber(((TestReleaseCause) gitflowCause).getFixesReleaseVersion());
+            gitflowBadgeAction.setGitflowAction(gitflowAction.getActionName());
         } else {
             // Only an IOException causes the build to fail properly.
             throw new IOException("Unknown Gitflow cause " + gitflowCause.getClass().getName());

@@ -22,7 +22,8 @@ import hudson.plugins.git.GitTagAction;
  */
 public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitflowAction<B, AbstractGitflowCause> {
 
-    private static final String CONSOLE_MESSAGE_PREFIX = "Gitflow: ";
+    private static final String ACTION_NAME = "";
+    private static final String CONSOLE_MESSAGE_PREFIX = "Gitflow - " + ACTION_NAME + ": ";
 
     private static final Transformer REMOVE_ORIGIN_PREFIX_TRANSFORMER = new Transformer() {
 
@@ -38,6 +39,11 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
     @Override
     protected String getConsoleMessagePrefix() {
         return CONSOLE_MESSAGE_PREFIX;
+    }
+
+    @Override
+    protected String getActionName(){
+        return this.ACTION_NAME;
     }
 
     @Override
@@ -59,4 +65,5 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
         final Collection<String> simpleBranchNames = CollectionUtils.collect(remoteBranchNames, REMOVE_ORIGIN_PREFIX_TRANSFORMER);
         this.gitflowPluginData.recordRemoteBranches("origin", simpleBranchNames, this.build.getResult(), this.buildTypeAction.getCurrentVersion());
     }
+
 }

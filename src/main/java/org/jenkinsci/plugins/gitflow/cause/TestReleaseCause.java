@@ -23,6 +23,7 @@ public class TestReleaseCause extends AbstractGitflowCause {
      *
      * @param structuredActionConent the structured content for the selected action to be instanciated.
      * @param dryRun is the build dryRun or not
+     * @return a new cause instance for the <i>Gitflow</i> build.
      */
     public TestReleaseCause(final JSONObject structuredActionConent, final boolean dryRun) {
         super(dryRun);
