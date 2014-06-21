@@ -70,9 +70,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
         if (this.gitflowPluginData == null) {
 
             // Try to find the action object in one of the previous builds and clone it to a new one.
-            for (AbstractBuild<?, ?> previousBuild = build.getPreviousBuild();
-                 this.gitflowPluginData == null && previousBuild != null; previousBuild = previousBuild.getPreviousBuild()) {
-
+            for (AbstractBuild<?, ?> previousBuild = build.getPreviousBuild(); previousBuild != null; previousBuild = previousBuild.getPreviousBuild()) {
                 final GitflowPluginData previousGitflowPluginData = previousBuild.getAction(GitflowPluginData.class);
                 if (previousGitflowPluginData != null) {
                     try {
@@ -80,6 +78,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
                     } catch (final CloneNotSupportedException cnse) {
                         throw new IOException("Cloning of " + previousGitflowPluginData.getClass().getName() + " is not supported but should be.", cnse);
                     }
+                    break;
                 }
             }
 

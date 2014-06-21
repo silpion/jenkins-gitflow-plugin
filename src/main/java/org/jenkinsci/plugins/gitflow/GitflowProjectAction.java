@@ -47,9 +47,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         for (AbstractBuild<?, ?> lastBuild = job.getLastBuild();
              this.gitflowPluginData == null && lastBuild != null; lastBuild = lastBuild.getPreviousBuild()) {
 
-            if (lastBuild != null) {
-                this.gitflowPluginData = lastBuild.getAction(GitflowPluginData.class);
-            }
+            this.gitflowPluginData = lastBuild.getAction(GitflowPluginData.class);
         }
     }
 
