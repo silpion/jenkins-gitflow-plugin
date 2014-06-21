@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.gitflow.action;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +45,8 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
     protected final GitClient git;
 
     protected GitflowPluginData gitflowPluginData;
+
+    protected Map<String, String> additionalBuildEnvVars = new HashMap<String, String>();
 
     /**
      * Initialises a new Gitflow action.
@@ -118,6 +121,9 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
     public final void beforeMainBuild() throws IOException, InterruptedException {
         this.cleanCheckout();
         this.beforeMainBuildInternal();
+        if (this.gitflowCause.isDryRun()) {
+            this.buildTypeAction.preventArchivePublication(this.additionalBuildEnvVars);
+        }
     }
 
     /**
@@ -198,4 +204,8 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
      * @return the action-specific name for console messages.
      */
     protected abstract String getActionName();
+
+    public Map<String, String> getAdditionalBuildEnvVars() {
+        return this.additionalBuildEnvVars;
+    }
 }

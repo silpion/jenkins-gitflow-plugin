@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.gitflow.action.buildtype;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -38,5 +39,10 @@ public class UnknownBuildTypeAction extends AbstractBuildTypeAction<AbstractBuil
     public List<String> updateVersion(final String version) throws IOException, InterruptedException {
         this.consoleLogger.println(MSG_CANNOT_CHANGE_VERSION);
         return Collections.emptyList();
+    }
+
+    @Override
+    public void preventArchivePublication(final Map<String, String> buildEnvVars) {
+        // Nothing to do.
     }
 }
