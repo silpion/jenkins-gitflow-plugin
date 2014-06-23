@@ -32,7 +32,8 @@ public class GitflowProjectAction implements PermalinkProjectAction {
     private static final String DEFAULT_STRING = "Please enter a valid version number...";
 
     private final AbstractProject<?, ?> job;
-    private final GitflowPluginData gitflowPluginData;
+
+    private GitflowPluginData gitflowPluginData;
 
     /**
      * Initialises a new {@link GitflowProjectAction}.
@@ -43,10 +44,9 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         this.job = job;
 
         // Try to get the action object that holds the data for the Gitflow plugin.
-        final AbstractBuild<?, ?> lastBuild = job.getLastBuild();
-        if (lastBuild == null) {
-            this.gitflowPluginData = null;
-        } else {
+        for (AbstractBuild<?, ?> lastBuild = job.getLastBuild();
+             this.gitflowPluginData == null && lastBuild != null; lastBuild = lastBuild.getPreviousBuild()) {
+
             this.gitflowPluginData = lastBuild.getAction(GitflowPluginData.class);
         }
     }
