@@ -22,7 +22,8 @@ import hudson.plugins.git.GitTagAction;
  */
 public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitflowAction<B, AbstractGitflowCause> {
 
-    private static final String CONSOLE_MESSAGE_PREFIX = "Gitflow: ";
+    private static final String ACTION_NAME = "";
+    private static final String CONSOLE_MESSAGE_PREFIX = "Gitflow - " + ACTION_NAME + ": ";
 
     private static final Transformer REMOVE_ORIGIN_PREFIX_TRANSFORMER = new Transformer() {
 
@@ -32,12 +33,17 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
     };
 
     public <BC extends B> NoGitflowAction(final BC build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
-        super(build, launcher, listener, new NoGitflowCause());
+        super(build, launcher, listener, new NoGitflowCause(), ACTION_NAME);
     }
 
     @Override
     protected String getConsoleMessagePrefix() {
         return CONSOLE_MESSAGE_PREFIX;
+    }
+
+    @Override
+    protected String getActionName() {
+        return ACTION_NAME;
     }
 
     @Override

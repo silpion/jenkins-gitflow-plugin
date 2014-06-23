@@ -14,4 +14,8 @@ public class NoGitflowCause extends AbstractGitflowCause {
         super(false);
     }
 
+    @Override
+    public String getVersionForBadge() {
+        return "";
+    }
 }

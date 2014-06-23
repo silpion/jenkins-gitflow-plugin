@@ -33,6 +33,11 @@ public class TestReleaseCause extends AbstractGitflowCause {
         this.nextFixesDevelopmentVersion = releaseContent.getString(PARAM_NEXT_FIXES_DEVELOPMENT_VERSION);
     }
 
+    @Override
+    public String getVersionForBadge() {
+        return this.fixesReleaseVersion;
+    }
+
     public String getReleaseBranch() {
         return this.releaseBranch;
     }
