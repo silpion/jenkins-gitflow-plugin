@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.gitflow.action;
 import java.io.IOException;
 
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
+import org.jenkinsci.plugins.gitflow.cause.StartHotFixCause;
 import org.jenkinsci.plugins.gitflow.cause.StartReleaseCause;
 import org.jenkinsci.plugins.gitflow.cause.TestReleaseCause;
 
@@ -29,6 +30,8 @@ public class GitflowActionFactory {
             gitflowAction = new StartReleaseAction<B>(build, launcher, listener, (StartReleaseCause) gitflowCause);
         } else if (gitflowCause instanceof TestReleaseCause) {
             gitflowAction = new TestReleaseAction<B>(build, launcher, listener, (TestReleaseCause) gitflowCause);
+        } else if (gitflowCause instanceof StartHotFixCause) {
+            gitflowAction = new StartHotFixAction<B>(build, launcher, listener, (StartHotFixCause) gitflowCause);
         } else {
             // Only an IOException causes the build to fail properly.
             throw new IOException("Unknown Gitflow cause " + gitflowCause.getClass().getName());

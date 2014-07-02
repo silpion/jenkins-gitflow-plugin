@@ -61,11 +61,12 @@
                         </f:entry>
                     </f:radioBlock>
                     <f:radioBlock name="action" value="startHotfix" title="Start Hotfix" checked="false">
-                        <f:entry>
-                            TODO Add form field entries to configure the
-                            <i>Start Hotfix</i>
-                            action.
-                        </f:entry>
+                       <f:entry title="Release Version">
+                          <f:textbox name="hotfixName" value="hotfix/" />
+                       </f:entry>
+                       <f:entry title="Release Fixes Development Version">
+                          <f:textbox name="nextHotfixDevelopmentVersion" value="" />
+                       </f:entry>
                     </f:radioBlock>
                     <f:radioBlock name="action" value="finishHotfix" title="Finish Hotfix" checked="false">
                         <f:entry>
