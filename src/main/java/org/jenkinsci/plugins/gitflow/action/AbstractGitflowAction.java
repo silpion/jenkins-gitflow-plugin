@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -78,11 +79,27 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
             for (AbstractBuild<?, ?> previousBuild = build.getPreviousBuild(); previousBuild != null; previousBuild = previousBuild.getPreviousBuild()) {
                 final GitflowPluginData previousGitflowPluginData = previousBuild.getAction(GitflowPluginData.class);
                 if (previousGitflowPluginData != null) {
+
+                    // Clone the Gitflow plugin data from the previous build.
                     try {
                         this.gitflowPluginData = previousGitflowPluginData.clone();
                     } catch (final CloneNotSupportedException cnse) {
                         throw new IOException("Cloning of " + previousGitflowPluginData.getClass().getName() + " is not supported but should be.", cnse);
                     }
+
+                    // Collect remote branches that don't exist anymore.
+                    final List<RemoteBranch> removeRemoteBranches = new LinkedList<RemoteBranch>();
+                    for (final RemoteBranch remoteBranch : this.gitflowPluginData.getRemoteBranches()) {
+                        if (this.git.getHeadRev(this.git.getRemoteUrl(remoteBranch.getRemoteAlias()), remoteBranch.getBranchName()) == null) {
+                            removeRemoteBranches.add(remoteBranch);
+                        }
+                    }
+
+                    // Remove the obsolte remote branches from the Gitflow plugin data.
+                    if (!removeRemoteBranches.isEmpty()) {
+                        this.gitflowPluginData.removeRemoteBranches(removeRemoteBranches, true);
+                    }
+
                     break;
                 }
             }
@@ -144,9 +161,6 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
                 this.build.setResult(Result.UNSTABLE);
             }
         }
-
-        // Remove the remote branches that don't exist anymore from the Gitflow plugin data.
-        this.gitflowPluginData.removeObsoleteRemoteBranches(this.git.getRemoteBranches());
     }
 
     /**
