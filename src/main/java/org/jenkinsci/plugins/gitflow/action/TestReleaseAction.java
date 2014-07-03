@@ -90,8 +90,15 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         this.git.push("origin", "HEAD:refs/heads/" + releaseBranch);
         this.consoleLogger.println(formatPattern(MSG_PATTERN_PUSHED_RELEASE_BRANCH, releaseBranch));
 
-        // Create a tag for the release version.
+        // Record the information on the currently stable version on the release branch.
         final String fixesReleaseVersion = this.gitflowCause.getFixesReleaseVersion();
+        final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getRemoteBranch("origin", releaseBranch);
+        remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
+        remoteBranchRelease.setLastBuildVersion(fixesReleaseVersion);
+        remoteBranchRelease.setLastReleaseVersion(fixesReleaseVersion);
+        remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev(this.git.getRemoteUrl("origin"), releaseBranch));
+
+        // Create a tag for the release version.
         final String tagName = getBuildWrapperDescriptor().getVersionTagPrefix() + fixesReleaseVersion;
         final String msgCreatedReleaseTag = formatPattern(MSG_PATTERN_CREATED_RELEASE_TAG, tagName);
         this.git.tag(tagName, msgCreatedReleaseTag);
@@ -113,7 +120,6 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         this.consoleLogger.println(formatPattern(MSG_PATTERN_PUSHED_FIXES_VERSION, nextFixesDevelopmentVersion));
 
         // Record the fixes development version on the release branch.
-        final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getRemoteBranch("origin", releaseBranch);
         remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
         remoteBranchRelease.setLastBuildVersion(nextFixesDevelopmentVersion);
     }

@@ -83,11 +83,19 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
     private void afterSuccessfulMainBuild() throws IOException, InterruptedException {
 
         // Push the new release branch to the remote repo.
-        final String releaseBranch = getBuildWrapperDescriptor().getReleaseBranchPrefix() + this.gitflowCause.getReleaseVersion();
+        final String releaseVersion = this.gitflowCause.getReleaseVersion();
+        final String releaseBranch = getBuildWrapperDescriptor().getReleaseBranchPrefix() + releaseVersion;
         this.git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
 
+        // Record the information on the currently stable version on the release branch.
+        final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getOrAddRemoteBranch("origin", releaseBranch);
+        remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
+        remoteBranchRelease.setLastBuildVersion(releaseVersion);
+        remoteBranchRelease.setLastReleaseVersion(releaseVersion);
+        remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev(this.git.getRemoteUrl("origin"), releaseBranch));
+
         // Create a tag for the release version.
-        final String tagName = getBuildWrapperDescriptor().getVersionTagPrefix() + this.gitflowCause.getReleaseVersion();
+        final String tagName = getBuildWrapperDescriptor().getVersionTagPrefix() + releaseVersion;
         final String msgCreatedReleaseTag = formatPattern(MSG_PATTERN_CREATED_RELEASE_TAG, tagName);
         this.git.tag(tagName, msgCreatedReleaseTag);
         this.consoleLogger.println(msgCreatedReleaseTag);
@@ -106,7 +114,6 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         this.git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
 
         // Record the fixes development version on the release branch.
-        final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getOrAddRemoteBranch("origin", releaseBranch);
         remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
         remoteBranchRelease.setLastBuildVersion(releaseNextDevelopmentVersion);
 

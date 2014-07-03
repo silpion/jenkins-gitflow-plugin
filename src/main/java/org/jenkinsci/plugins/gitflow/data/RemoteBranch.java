@@ -2,6 +2,8 @@ package org.jenkinsci.plugins.gitflow.data;
 
 import java.io.Serializable;
 
+import org.eclipse.jgit.lib.ObjectId;
+
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 import hudson.model.Result;
@@ -13,7 +15,7 @@ import hudson.model.Result;
  */
 public class RemoteBranch implements Serializable, Cloneable, Comparable<RemoteBranch> {
 
-    private static final long serialVersionUID = -8150066866844971130L;
+    private static final long serialVersionUID = 3785850745825098245L;
 
     @XStreamAsAttribute
     private final String remoteAlias;
@@ -23,6 +25,9 @@ public class RemoteBranch implements Serializable, Cloneable, Comparable<RemoteB
 
     private Result lastBuildResult;
     private String lastBuildVersion;
+
+    private String lastReleaseVersion;
+    private ObjectId lastReleaseVersionCommit;
 
     /**
      * Constructor for a new {@link RemoteBranch} object.
@@ -78,5 +83,21 @@ public class RemoteBranch implements Serializable, Cloneable, Comparable<RemoteB
 
     public String getLastBuildVersion() {
         return this.lastBuildVersion;
+    }
+
+    public void setLastReleaseVersion(final String lastReleaseVersion) {
+        this.lastReleaseVersion = lastReleaseVersion;
+    }
+
+    public String getLastReleaseVersion() {
+        return this.lastReleaseVersion;
+    }
+
+    public void setLastReleaseVersionCommit(final ObjectId lastReleaseVersionCommit) {
+        this.lastReleaseVersionCommit = lastReleaseVersionCommit;
+    }
+
+    public ObjectId getLastReleaseVersionCommit() {
+        return this.lastReleaseVersionCommit;
     }
 }

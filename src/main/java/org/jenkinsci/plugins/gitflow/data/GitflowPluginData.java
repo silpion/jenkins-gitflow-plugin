@@ -24,7 +24,7 @@ import hudson.model.Result;
  */
 public class GitflowPluginData implements Action, Serializable, Cloneable {
 
-    private static final long serialVersionUID = 109223276757967160L;
+    private static final long serialVersionUID = 7613596093574533990L;
 
     private static final Comparator<Result> RESULT_SEVERITY_COMPARATOR = new Comparator<Result>() {
 
