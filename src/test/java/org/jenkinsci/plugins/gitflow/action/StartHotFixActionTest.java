@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -18,6 +17,7 @@ import org.jenkinsci.plugins.gitclient.GitClient;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
 import org.jenkinsci.plugins.gitflow.cause.StartHotFixCause;
+import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,18 +65,20 @@ public class StartHotFixActionTest {
         this.outputStream = new ByteArrayOutputStream();
         when(listener.getLogger()).thenReturn(new PrintStream(outputStream));
 
+        when(descriptor.getMasterBranch()).thenReturn("master");
+        when(descriptor.getHotfixBranchPrefix()).thenReturn("hotfix/");
     }
 
+    //TODO This Method only exist for make UnitTesting work, the AbstractGitflowAction needs some refactoring
     private StartHotFixAction createAction(StartHotFixCause cause) throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-
         StartHotFixAction action = new StartHotFixAction(build, launcher, listener, cause);
-
         setPrivateFinalField(action, "git", gitClient);
         setPrivateFinalField(action, "buildTypeAction", buildTypeAction);
         action.setDescriptor(descriptor);
         return action;
     }
 
+    //TODO This Method only exist for make UnitTesting work, the AbstractGitflowAction needs some refactoring
     private void setPrivateFinalField(Object obj, String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
         Field f = obj.getClass().getSuperclass().getDeclaredField(fieldName);
         f.setAccessible(true);
@@ -90,8 +92,6 @@ public class StartHotFixActionTest {
 
         List<String> changeFiles = Arrays.asList("pom.xml", "child1/pom.xml", "child2/pom.xml", "child3/pom.xml");
 
-        when(descriptor.getMasterBranch()).thenReturn("master");
-        when(descriptor.getHotfixBranchPrefix()).thenReturn("hotfix/");
         when(buildTypeAction.updateVersion("1.0.2-Snapshot")).thenReturn(changeFiles);
 
         action.beforeMainBuildInternal();
@@ -109,6 +109,21 @@ public class StartHotFixActionTest {
 
     @Test
     public void testAfterMainBuildInternal() throws Exception {
+        GitflowPluginData pluginData = mock(GitflowPluginData.class);
+
+        when(build.getAction(GitflowPluginData.class)).thenReturn(pluginData);
+
+        StartHotFixCause cause = new StartHotFixCause("VeryHotFix", "1.0.2-Snapshot", false);
+        StartHotFixAction action = createAction(cause);
+
+        action.afterMainBuildInternal();
+
+        verify(gitClient).push("origin","refs/heads/hotfix/VeryHotFix:refs/heads/hotfix/VeryHotFix");
+
+        verify(pluginData).setDryRun(false);
+        verify(pluginData).recordRemoteBranch("origin","hotfix/VeryHotFix", hudson.model.Result.SUCCESS, "1.0.2-Snapshot");
+
+        verifyNoMoreInteractions(gitClient, pluginData);
 
     }
 

@@ -4,13 +4,13 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.List;
 
-import org.jenkinsci.plugins.gitclient.GitClient;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.cause.StartHotFixCause;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.model.Result;
 
 /**
  * @author Hannes Osius, Silpion IT-Solutions GmbH
@@ -55,10 +55,9 @@ public class StartHotFixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
     @Override
     protected void beforeMainBuildInternal() throws IOException, InterruptedException {
         // Create a new hotfix branch based on the master branch.
-        String hotfixBranch = getDescriptor().getHotfixBranchPrefix() + gitflowCause.getName();
         String ref = "origin/" + getDescriptor().getMasterBranch();
-        getGitClient().checkoutBranch(hotfixBranch, ref);
-        consoleLogger.println(formatPattern(MSG_PATTERN_CREATED_HOTFIX_BRANCH, hotfixBranch));
+        git.checkoutBranch(getHotfixBranchName(), ref);
+        consoleLogger.println(formatPattern(MSG_PATTERN_CREATED_HOTFIX_BRANCH, getHotfixBranchName()));
 
         // Update the version numbers in the project files to the hotfix version.
         String hotfixVersion = gitflowCause.getNextHotfixDevelopmentVersion();
@@ -69,11 +68,19 @@ public class StartHotFixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         consoleLogger.println(msgUpadtedReleaseVersion);
     }
 
-    @Override
-    protected void afterMainBuildInternal() throws IOException, InterruptedException {
-
+    private String getHotfixBranchName() {
+        return getDescriptor().getHotfixBranchPrefix() + gitflowCause.getName();
     }
 
+    @Override
+    protected void afterMainBuildInternal() throws IOException, InterruptedException {
+        // Push the new hotfix branch to the remote repo.
+        this.git.push("origin", "refs/heads/" + getHotfixBranchName() + ":refs/heads/" + getHotfixBranchName());
+        //Record the build Data
+        gitflowPluginData.recordRemoteBranch("origin", getHotfixBranchName(), Result.SUCCESS, gitflowCause.getNextHotfixDevelopmentVersion());
+    }
+
+    //TODO This Method only exist for make UnitTesting work, the AbstractGitflowAction needs some refactoring
     public GitflowBuildWrapper.DescriptorImpl getDescriptor() {
         if (descriptor == null){
             return AbstractGitflowAction.getBuildWrapperDescriptor();
@@ -81,13 +88,11 @@ public class StartHotFixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         return descriptor;
     }
 
+    //TODO This Method only exist for make UnitTesting work, the AbstractGitflowAction needs some refactoring
     public void setDescriptor(final GitflowBuildWrapper.DescriptorImpl descriptor) {
         this.descriptor = descriptor;
     }
 
-    public GitClient getGitClient() {
-        return git;
-    }
 }
 
 
