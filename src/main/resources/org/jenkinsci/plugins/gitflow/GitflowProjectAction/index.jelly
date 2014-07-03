@@ -62,7 +62,7 @@
                     </f:radioBlock>
                     <f:radioBlock name="action" value="startHotfix" title="Start Hotfix" checked="false">
                        <f:entry title="Release Version">
-                          <f:textbox name="hotfixName" value="hotfix/" />
+                          <f:textbox name="hotfixName" value="" />
                        </f:entry>
                        <f:entry title="Release Fixes Development Version">
                           <f:textbox name="nextHotfixDevelopmentVersion" value="" />

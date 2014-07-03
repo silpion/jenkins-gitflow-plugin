@@ -81,11 +81,12 @@ public class StartHotFixTest {
         assertThat("more than on element found", page.getElementsByName("nextHotfixDevelopmentVersion").size(), is(1));
         HtmlTextInput versionElement = (HtmlTextInput) page.getElementsByName("nextHotfixDevelopmentVersion").get(0);
 
-        assertThat(nameElement.getText(), is("hotfix/"));
+        assertThat(nameElement.getText(), is(""));
         //TODO check the value of the version Element
         //assertThat(versionElement.getText(), is("1.0.1-SNAPSHOT"));
 
-        versionElement.setTextContent("1.0.2-SNAPSHOT");
+        nameElement.setAttribute("value", "superHotfix");
+        versionElement.setAttribute("value","1.0.2-SNAPSHOT");
 
         //submit the form
         HtmlForm form = page.getFormByName("performGitflowRelease");
@@ -97,8 +98,8 @@ public class StartHotFixTest {
             Thread.sleep(5000);
             lines = mavenProject.getLastBuild().getLogText().writeLogTo(lines, System.out);
         }
-        assertThat("StartHotFixAction failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
         mavenProject.getLastBuild().getLogText().writeLogTo(lines, System.out);
+        assertThat("StartHotFixAction failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
     }
 
     private File setUpGitRepo(final String path, File repro) throws IOException, URISyntaxException, InterruptedException {
