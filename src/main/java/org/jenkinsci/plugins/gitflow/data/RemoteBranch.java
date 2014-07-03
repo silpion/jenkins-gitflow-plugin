@@ -21,7 +21,7 @@ public class RemoteBranch implements Serializable, Cloneable, Comparable<RemoteB
     @XStreamAsAttribute
     private final String branchName;
 
-    private String lastBuildResult;
+    private Result lastBuildResult;
     private String lastBuildVersion;
 
     /**
@@ -33,6 +33,12 @@ public class RemoteBranch implements Serializable, Cloneable, Comparable<RemoteB
     public RemoteBranch(final String remoteAlias, final String branchName) {
         this.remoteAlias = remoteAlias;
         this.branchName = branchName;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public RemoteBranch clone() throws CloneNotSupportedException {
+        return (RemoteBranch) super.clone();
     }
 
     /** {@inheritDoc} */
@@ -59,11 +65,11 @@ public class RemoteBranch implements Serializable, Cloneable, Comparable<RemoteB
     }
 
     public void setLastBuildResult(final Result lastBuildResult) {
-        this.lastBuildResult = lastBuildResult.toString();
+        this.lastBuildResult = lastBuildResult;
     }
 
     public Result getLastBuildResult() {
-        return Result.fromString(this.lastBuildResult);
+        return this.lastBuildResult;
     }
 
     public void setLastBuildVersion(final String lastBuildVersion) {
