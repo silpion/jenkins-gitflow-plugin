@@ -65,7 +65,7 @@
                           <f:textbox name="hotfixName" value="" />
                        </f:entry>
                        <f:entry title="Release Fixes Development Version">
-                          <f:textbox name="nextHotfixDevelopmentVersion" value="" />
+                          <f:textbox name="nextHotfixDevelopmentVersion" value="${it.computeNextHotfixVersion()}" />
                        </f:entry>
                     </f:radioBlock>
                     <f:radioBlock name="action" value="finishHotfix" title="Finish Hotfix" checked="false">
