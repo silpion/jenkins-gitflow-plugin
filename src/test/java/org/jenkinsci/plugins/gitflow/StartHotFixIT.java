@@ -28,6 +28,7 @@ import org.junit.rules.TemporaryFolder;
 import org.jvnet.hudson.test.JenkinsRule;
 
 import com.gargoylesoftware.htmlunit.html.HtmlButton;
+import com.gargoylesoftware.htmlunit.html.HtmlCheckBoxInput;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
@@ -42,9 +43,10 @@ import hudson.plugins.git.Branch;
 import hudson.plugins.git.GitSCM;
 
 /**
+ * Interagtion Test for the StartHotfixAction.
+ *
  * @author Hannes Osius, Silpion IT-Solutions GmbH
  */
-
 public class StartHotFixIT {
 
     @Rule
@@ -74,20 +76,7 @@ public class StartHotFixIT {
         data.recordRemoteBranch("origin", "master", Result.SUCCESS, "1.2");
 
         JenkinsRule.WebClient webClient = j.createWebClient();
-
         HtmlPage page = webClient.goTo(mavenProject.getUrl() + "gitflow");
-
-        List<HtmlElement> elementList = page.getElementsByName("action");
-        for (HtmlElement htmlElement : elementList) {
-            if (htmlElement instanceof HtmlRadioButtonInput) {
-                HtmlRadioButtonInput element = (HtmlRadioButtonInput) htmlElement;
-                String value = element.getAttributesMap().get("value").getValue();
-                if ("startHotfix".equals(value)) {
-                    element.setChecked(true);
-                    break;
-                }
-            }
-        }
 
         assertThat("more than on element found", page.getElementsByName("hotfixName").size(), is(1));
         HtmlTextInput nameElement = (HtmlTextInput) page.getElementsByName("hotfixName").get(0);
@@ -95,22 +84,21 @@ public class StartHotFixIT {
         assertThat("more than on element found", page.getElementsByName("nextHotfixDevelopmentVersion").size(), is(1));
         HtmlTextInput versionElement = (HtmlTextInput) page.getElementsByName("nextHotfixDevelopmentVersion").get(0);
 
+        assertThat("more than on element found", page.getElementsByName("dryRun").size(), is(1));
+        HtmlCheckBoxInput dryRunElement = (HtmlCheckBoxInput) page.getElementsByName("dryRun").get(0);
+
         assertThat(nameElement.getText(), is(""));
         assertThat(versionElement.getText(), is("1.2.1-SNAPSHOT"));
+        assertThat(dryRunElement.isChecked(), is(false));
 
         //set values and submit the form
+        checkRadioButton("action", "startHotfix", page);
         nameElement.setAttribute("value", "superHotfix");
         versionElement.setAttribute("value","1.2.2-SNAPSHOT");
         HtmlForm form = page.getFormByName("performGitflowRelease");
         form.submit((HtmlButton) last(form.getHtmlElementsByTagName("button")));
 
-        //TODO find a better way to wait for the build success
-        long lines = 0;
-        while (mavenProject.getBuildByNumber(2).getResult() == null) {
-            Thread.sleep(5000);
-            lines = mavenProject.getLastBuild().getLogText().writeLogTo(lines, System.out);
-        }
-        mavenProject.getLastBuild().getLogText().writeLogTo(lines, System.out);
+        waitForBuildFinish(2);
         assertThat("StartHotFixAction failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         //check the Git-Repro
@@ -123,7 +111,117 @@ public class StartHotFixIT {
 
         gitClient.checkoutBranch("hotfix/superHotfix", branches.get("origin/hotfix/superHotfix").getSHA1String());
         checkMultiModulProject(repository, "1.2.2-SNAPSHOT", 4);
-   }
+    }
+
+    @Test
+    public void testStartHotfixDryRun() throws Exception {
+
+        File gitRepro = setUpGitRepo("/StartHotfixAction/testrepo.git.zip", folder.newFolder("testrepo.git"));
+
+        //make a build before
+        mavenProject.scheduleBuild2(0).get();
+        assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
+        GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
+        data.recordRemoteBranch("origin", "master", Result.SUCCESS, "1.2");
+
+        JenkinsRule.WebClient webClient = j.createWebClient();
+
+        HtmlPage page = webClient.goTo(mavenProject.getUrl() + "gitflow");
+        HtmlTextInput nameElement = (HtmlTextInput) page.getElementsByName("hotfixName").get(0);
+        HtmlTextInput versionElement = (HtmlTextInput) page.getElementsByName("nextHotfixDevelopmentVersion").get(0);
+        HtmlCheckBoxInput dryRunElement = (HtmlCheckBoxInput) page.getElementsByName("dryRun").get(0);
+
+        //set values and submit the form
+        checkRadioButton("action", "startHotfix", page);
+        nameElement.setAttribute("value", "superHotfix");
+        versionElement.setAttribute("value","1.2.2-SNAPSHOT");
+        dryRunElement.setChecked(true);
+        HtmlForm form = page.getFormByName("performGitflowRelease");
+        form.submit((HtmlButton) last(form.getHtmlElementsByTagName("button")));
+
+        waitForBuildFinish(2);
+        assertThat("StartHotFixAction failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
+
+        //check the Git-Repro
+        File repository = folder.newFolder();
+        GitClient gitClient = Git.with(j.createTaskListener(), new EnvVars()).in(repository).getClient();
+        gitClient.clone(gitRepro.getAbsolutePath(), "origin", false, null);
+        Map<String, Branch> branches = getAllBranches(gitClient);
+
+        assertThat(branches.keySet(), containsInAnyOrder("origin/master", "origin/develop", "master"));
+
+        gitClient.checkoutBranch("hotfix/master", branches.get("origin/master").getSHA1String());
+        checkMultiModulProject(repository, "1.0-SNAPSHOT", 4);
+    }
+
+    @Test
+    public void testStartHotfixFail() throws Exception {
+
+        File gitRepro = setUpGitRepo("/StartHotfixAction/testrepo.git.zip", folder.newFolder("testrepo.git"));
+
+        //make a build before
+        mavenProject.scheduleBuild2(0).get();
+        assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
+        GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
+        data.recordRemoteBranch("origin", "master", Result.SUCCESS, "1.2");
+
+        JenkinsRule.WebClient webClient = j.createWebClient();
+
+        HtmlPage page = webClient.goTo(mavenProject.getUrl() + "gitflow");
+        HtmlTextInput nameElement = (HtmlTextInput) page.getElementsByName("hotfixName").get(0);
+        HtmlTextInput versionElement = (HtmlTextInput) page.getElementsByName("nextHotfixDevelopmentVersion").get(0);
+
+        //this fails the build
+        mavenProject.setGoals("dummy");
+
+        //set values and submit the form
+        checkRadioButton("action", "startHotfix", page);
+        nameElement.setAttribute("value", "superHotfix");
+        versionElement.setAttribute("value","1.2.2-SNAPSHOT");
+        HtmlForm form = page.getFormByName("performGitflowRelease");
+        form.submit((HtmlButton) last(form.getHtmlElementsByTagName("button")));
+
+        waitForBuildFinish(2);
+        assertThat("StartHotFixAction failed", mavenProject.getLastBuild().getResult(), is(Result.FAILURE));
+
+        //check the Git-Repro
+        File repository = folder.newFolder();
+        GitClient gitClient = Git.with(j.createTaskListener(), new EnvVars()).in(repository).getClient();
+        gitClient.clone(gitRepro.getAbsolutePath(), "origin", false, null);
+        Map<String, Branch> branches = getAllBranches(gitClient);
+
+        assertThat(branches.keySet(), containsInAnyOrder("origin/master", "origin/develop", "master"));
+
+        gitClient.checkoutBranch("hotfix/master", branches.get("origin/master").getSHA1String());
+        checkMultiModulProject(repository, "1.0-SNAPSHOT", 4);
+
+    }
+
+    private long waitForBuildFinish(int buildNr) throws InterruptedException, IOException {
+        //TODO find a better way to wait for the build success
+        long lines = 0;
+        while (mavenProject.getBuildByNumber(buildNr).getResult() == null) {
+            Thread.sleep(5000);
+            lines = mavenProject.getLastBuild().getLogText().writeLogTo(lines, System.out);
+        }
+        lines = mavenProject.getLastBuild().getLogText().writeLogTo(lines, System.out);
+        return lines;
+    }
+
+    private void checkRadioButton(String action, String startHotfix, HtmlPage page) {
+        List<HtmlElement> elementList = page.getElementsByName(action);
+        for (HtmlElement htmlElement : elementList) {
+            if (htmlElement instanceof HtmlRadioButtonInput) {
+                HtmlRadioButtonInput radioButtonInput = (HtmlRadioButtonInput) htmlElement;
+                String value = radioButtonInput.getAttributesMap().get("value").getValue();
+                if (startHotfix.equals(value)) {
+                    radioButtonInput.setChecked(true);
+                    break;
+                }
+            }
+        }
+
+    }
 
     private Map<String, Branch> getAllBranches(GitClient gitClient) throws InterruptedException {
         Map<String, Branch> map = new HashMap<String, Branch>();

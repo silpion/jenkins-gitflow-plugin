@@ -28,6 +28,7 @@ import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
+import hudson.model.Result;
 import hudson.plugins.git.GitSCM;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -108,10 +109,11 @@ public class StartHotFixActionTest {
     }
 
     @Test
-    public void testAfterMainBuildInternal() throws Exception {
+    public void testAfterMainBuildInternalSuccess() throws Exception {
         GitflowPluginData pluginData = mock(GitflowPluginData.class);
 
         when(build.getAction(GitflowPluginData.class)).thenReturn(pluginData);
+        when(build.getResult()).thenReturn(Result.SUCCESS);
 
         StartHotFixCause cause = new StartHotFixCause("VeryHotFix", "1.0.2-Snapshot", false);
         StartHotFixAction action = createAction(cause);
@@ -121,10 +123,28 @@ public class StartHotFixActionTest {
         verify(gitClient).push("origin","refs/heads/hotfix/VeryHotFix:refs/heads/hotfix/VeryHotFix");
 
         verify(pluginData).setDryRun(false);
-        verify(pluginData).recordRemoteBranch("origin","hotfix/VeryHotFix", hudson.model.Result.SUCCESS, "1.0.2-Snapshot");
+        verify(pluginData).recordRemoteBranch("origin","hotfix/VeryHotFix", Result.SUCCESS, "1.0.2-Snapshot");
 
         verifyNoMoreInteractions(gitClient, pluginData);
 
+    }
+
+    @Test
+    public void testAfterMainBuildInternalFail() throws Exception {
+        GitflowPluginData pluginData = mock(GitflowPluginData.class);
+
+        when(build.getAction(GitflowPluginData.class)).thenReturn(pluginData);
+        when(build.getResult()).thenReturn(Result.FAILURE);
+
+        StartHotFixCause cause = new StartHotFixCause("VeryHotFix", "1.0.2-Snapshot", false);
+        StartHotFixAction action = createAction(cause);
+
+        action.afterMainBuildInternal();
+
+        verify(pluginData).setDryRun(false);
+        verify(pluginData).recordRemoteBranch("origin","hotfix/VeryHotFix", Result.FAILURE, "1.0.2-Snapshot");
+
+        verifyNoMoreInteractions(gitClient, pluginData);
     }
 
 }

@@ -68,16 +68,18 @@ public class StartHotFixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         consoleLogger.println(msgUpadtedReleaseVersion);
     }
 
-    private String getHotfixBranchName() {
-        return getDescriptor().getHotfixBranchPrefix() + gitflowCause.getName();
-    }
-
     @Override
     protected void afterMainBuildInternal() throws IOException, InterruptedException {
-        // Push the new hotfix branch to the remote repo.
-        this.git.push("origin", "refs/heads/" + getHotfixBranchName() + ":refs/heads/" + getHotfixBranchName());
+        if (build.getResult()== Result.SUCCESS) {
+            // Push the new hotfix branch to the remote repo.
+            this.git.push("origin", "refs/heads/" + getHotfixBranchName() + ":refs/heads/" + getHotfixBranchName());
+        }
         //Record the build Data
-        gitflowPluginData.recordRemoteBranch("origin", getHotfixBranchName(), Result.SUCCESS, gitflowCause.getNextHotfixDevelopmentVersion());
+        gitflowPluginData.recordRemoteBranch("origin", getHotfixBranchName(), build.getResult(), gitflowCause.getNextHotfixDevelopmentVersion());
+    }
+
+    private String getHotfixBranchName() {
+        return getDescriptor().getHotfixBranchPrefix() + gitflowCause.getName();
     }
 
     //TODO This Method only exist for make UnitTesting work, the AbstractGitflowAction needs some refactoring
