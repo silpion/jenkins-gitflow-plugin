@@ -70,6 +70,12 @@ public class StartHotFixActionTest {
         when(descriptor.getHotfixBranchPrefix()).thenReturn("hotfix/");
     }
 
+    //**********************************************************************************************************************************************************
+    //
+    // Helper
+    //
+    //**********************************************************************************************************************************************************
+
     //TODO This Method only exist for make UnitTesting work, the AbstractGitflowAction needs some refactoring
     private StartHotFixAction createAction(StartHotFixCause cause) throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
         StartHotFixAction action = new StartHotFixAction(build, launcher, listener, cause);
@@ -86,23 +92,30 @@ public class StartHotFixActionTest {
         f.set(obj, value);
     }
 
+    //**********************************************************************************************************************************************************
+    //
+    // Tests
+    //
+    //**********************************************************************************************************************************************************
+
     @Test
     public void testBeforeMainBuildInternal() throws Exception {
+        //Setup
         StartHotFixCause cause = new StartHotFixCause("VeryHotFix", "1.0.2-Snapshot", false);
         StartHotFixAction action = createAction(cause);
 
         List<String> changeFiles = Arrays.asList("pom.xml", "child1/pom.xml", "child2/pom.xml", "child3/pom.xml");
-
         when(buildTypeAction.updateVersion("1.0.2-Snapshot")).thenReturn(changeFiles);
 
+        //Run
         action.beforeMainBuildInternal();
 
+        //Check
         verify(gitClient).checkoutBranch("hotfix/VeryHotFix","origin/master");
         verify(gitClient).add("pom.xml");
         verify(gitClient).add("child1/pom.xml");
         verify(gitClient).add("child2/pom.xml");
         verify(gitClient).add("child3/pom.xml");
-
         verify(gitClient).commit(any(String.class));
 
         verifyNoMoreInteractions(gitClient);
@@ -110,37 +123,39 @@ public class StartHotFixActionTest {
 
     @Test
     public void testAfterMainBuildInternalSuccess() throws Exception {
-        GitflowPluginData pluginData = mock(GitflowPluginData.class);
-
-        when(build.getAction(GitflowPluginData.class)).thenReturn(pluginData);
-        when(build.getResult()).thenReturn(Result.SUCCESS);
-
+        //Setup
         StartHotFixCause cause = new StartHotFixCause("VeryHotFix", "1.0.2-Snapshot", false);
         StartHotFixAction action = createAction(cause);
 
+        GitflowPluginData pluginData = mock(GitflowPluginData.class);
+        when(build.getAction(GitflowPluginData.class)).thenReturn(pluginData);
+        when(build.getResult()).thenReturn(Result.SUCCESS);
+
+        //Run
         action.afterMainBuildInternal();
 
+        //Check
         verify(gitClient).push("origin","refs/heads/hotfix/VeryHotFix:refs/heads/hotfix/VeryHotFix");
-
         verify(pluginData).setDryRun(false);
         verify(pluginData).recordRemoteBranch("origin","hotfix/VeryHotFix", Result.SUCCESS, "1.0.2-Snapshot");
 
         verifyNoMoreInteractions(gitClient, pluginData);
-
     }
 
     @Test
     public void testAfterMainBuildInternalFail() throws Exception {
-        GitflowPluginData pluginData = mock(GitflowPluginData.class);
-
-        when(build.getAction(GitflowPluginData.class)).thenReturn(pluginData);
-        when(build.getResult()).thenReturn(Result.FAILURE);
-
+        //Setup
         StartHotFixCause cause = new StartHotFixCause("VeryHotFix", "1.0.2-Snapshot", false);
         StartHotFixAction action = createAction(cause);
 
+        GitflowPluginData pluginData = mock(GitflowPluginData.class);
+        when(build.getAction(GitflowPluginData.class)).thenReturn(pluginData);
+        when(build.getResult()).thenReturn(Result.FAILURE);
+
+        //Run
         action.afterMainBuildInternal();
 
+        //Check
         verify(pluginData).setDryRun(false);
         verify(pluginData).recordRemoteBranch("origin","hotfix/VeryHotFix", Result.FAILURE, "1.0.2-Snapshot");
 

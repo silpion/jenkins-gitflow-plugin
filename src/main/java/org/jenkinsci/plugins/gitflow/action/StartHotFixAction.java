@@ -13,9 +13,12 @@ import hudson.model.BuildListener;
 import hudson.model.Result;
 
 /**
- * @author Hannes Osius, Silpion IT-Solutions GmbH
+ *
+ * This class executes the required steps for the Gitflow action <i>Start Hotfix</i>.
+ *
+ * @param <B> the build in progress.
+ * @author Hannes Osius, Silpion IT-Solutions GmbH - osius@silpion.de
  */
-
 public class StartHotFixAction<B extends AbstractBuild<?, ?>> extends AbstractGitflowAction<B, StartHotFixCause> {
 
     private static final String ACTION_NAME = "Start HotFix";
@@ -36,7 +39,6 @@ public class StartHotFixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-
     public <BC extends B> StartHotFixAction(BC build, Launcher launcher, BuildListener listener, StartHotFixCause startHotFixCause)
             throws IOException, InterruptedException {
         super(build, launcher, listener, startHotFixCause, ACTION_NAME);

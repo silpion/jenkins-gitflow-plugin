@@ -3,9 +3,10 @@ package org.jenkinsci.plugins.gitflow.cause;
 import net.sf.json.JSONObject;
 
 /**
- * @author Hannes Osius, Silpion IT-Solutions GmbH
+ * The {@link hudson.model.Cause} object for the <i>Start Hotfix</i> action to be executed.
+ *
+ * @author Hannes Osius, Silpion IT-Solutions GmbH - osius@silpion.de
  */
-
 public class StartHotFixCause extends AbstractGitflowCause {
 
     public static final String PARAM_HOTFIX_NAME = "hotfixName";
@@ -24,6 +25,13 @@ public class StartHotFixCause extends AbstractGitflowCause {
         this(structuredActionConent.getString(PARAM_HOTFIX_NAME), structuredActionConent.getString(PARAM_NEXT_HOTFIX_DEVELOPMENT_VERSION), dryRun);
     }
 
+    /**
+     * Creates a cause instance for the <i>Gitflow</i> build.
+     *
+     * @param name the name of the Hotfix.
+     * @param nextHotfixDevelopmentVersion the suggestion for the next hotfix development version.
+     * @param dryRun is the build dryRun or not
+     */
     public StartHotFixCause(String name, String nextHotfixDevelopmentVersion, boolean dryRun) {
         super(dryRun);
 

@@ -43,7 +43,7 @@ import hudson.plugins.git.Branch;
 import hudson.plugins.git.GitSCM;
 
 /**
- * Interagtion Test for the StartHotfixAction.
+ * Integration Test for the Gitflow action <i>Start Hotfix</i>.
  *
  * @author Hannes Osius, Silpion IT-Solutions GmbH
  */
@@ -64,10 +64,16 @@ public class StartHotFixIT {
         mavenProject.getBuildWrappersList().add(new GitflowBuildWrapper());
     }
 
+    /**
+     * Run the <i>Start Hotfix</i> Gitflow action via a webclient.
+     *
+     * @throws Exception
+     */
     @Test
     public void testStartHotfix() throws Exception {
 
-        File gitRepro = setUpGitRepo("/StartHotfixAction/testrepo.git.zip", folder.newFolder("testrepo.git"));
+        File gitRepro = folder.newFolder("testrepo.git");
+        setUpGitRepo("/StartHotfixAction/testrepo.git.zip", gitRepro);
 
         //make a build before
         mavenProject.scheduleBuild2(0).get();
@@ -110,13 +116,19 @@ public class StartHotFixIT {
         assertThat(branches.keySet(), containsInAnyOrder("origin/hotfix/superHotfix", "origin/master", "origin/develop", "master"));
 
         gitClient.checkoutBranch("hotfix/superHotfix", branches.get("origin/hotfix/superHotfix").getSHA1String());
-        checkMultiModulProject(repository, "1.2.2-SNAPSHOT", 4);
+        checkMultiModuleProject(repository, "1.2.2-SNAPSHOT", 4);
     }
 
+    /**
+     * Run the <i>Start Hotfix</i> Gitflow action in <i>dryRun</i> via a webclient.
+     *
+     * @throws Exception
+     */
     @Test
     public void testStartHotfixDryRun() throws Exception {
 
-        File gitRepro = setUpGitRepo("/StartHotfixAction/testrepo.git.zip", folder.newFolder("testrepo.git"));
+        File gitRepro = folder.newFolder("testrepo.git");
+        setUpGitRepo("/StartHotfixAction/testrepo.git.zip", gitRepro);
 
         //make a build before
         mavenProject.scheduleBuild2(0).get();
@@ -151,13 +163,19 @@ public class StartHotFixIT {
         assertThat(branches.keySet(), containsInAnyOrder("origin/master", "origin/develop", "master"));
 
         gitClient.checkoutBranch("hotfix/master", branches.get("origin/master").getSHA1String());
-        checkMultiModulProject(repository, "1.0-SNAPSHOT", 4);
+        checkMultiModuleProject(repository, "1.0-SNAPSHOT", 4);
     }
 
+    /**
+     * Run the <i>Start Hotfix</i> Gitflow action in via a webclient that fials.
+     *
+     * @throws Exception
+     */
     @Test
     public void testStartHotfixFail() throws Exception {
 
-        File gitRepro = setUpGitRepo("/StartHotfixAction/testrepo.git.zip", folder.newFolder("testrepo.git"));
+        File gitRepro = folder.newFolder("testrepo.git");
+        setUpGitRepo("/StartHotfixAction/testrepo.git.zip", gitRepro);
 
         //make a build before
         mavenProject.scheduleBuild2(0).get();
@@ -193,9 +211,15 @@ public class StartHotFixIT {
         assertThat(branches.keySet(), containsInAnyOrder("origin/master", "origin/develop", "master"));
 
         gitClient.checkoutBranch("hotfix/master", branches.get("origin/master").getSHA1String());
-        checkMultiModulProject(repository, "1.0-SNAPSHOT", 4);
+        checkMultiModuleProject(repository, "1.0-SNAPSHOT", 4);
 
     }
+
+    //**********************************************************************************************************************************************************
+    //
+    // Helper
+    //
+    //**********************************************************************************************************************************************************
 
     private long waitForBuildFinish(int buildNr) throws InterruptedException, IOException {
         //TODO find a better way to wait for the build success
@@ -208,13 +232,20 @@ public class StartHotFixIT {
         return lines;
     }
 
-    private void checkRadioButton(String action, String startHotfix, HtmlPage page) {
-        List<HtmlElement> elementList = page.getElementsByName(action);
+    /**
+     * Find a RadionButton an set it to checked.
+     *
+     * @param radioButtonGroup the name of the RadioButton Groupe.
+     * @param buttonName the name of the button to Check
+     * @param page the Page with the Button on it
+     */
+    private void checkRadioButton(String radioButtonGroup, String buttonName, HtmlPage page) {
+        List<HtmlElement> elementList = page.getElementsByName(radioButtonGroup);
         for (HtmlElement htmlElement : elementList) {
             if (htmlElement instanceof HtmlRadioButtonInput) {
                 HtmlRadioButtonInput radioButtonInput = (HtmlRadioButtonInput) htmlElement;
                 String value = radioButtonInput.getAttributesMap().get("value").getValue();
-                if (startHotfix.equals(value)) {
+                if (buttonName.equals(value)) {
                     radioButtonInput.setChecked(true);
                     break;
                 }
@@ -223,6 +254,15 @@ public class StartHotFixIT {
 
     }
 
+    /**
+     * get all Branches for the Repo as Map.
+     *
+     * the key is the branchname and the value is the branch.
+     *
+     * @param gitClient the gitClient
+     * @return the Map of Branches.
+     * @throws InterruptedException
+     */
     private Map<String, Branch> getAllBranches(GitClient gitClient) throws InterruptedException {
         Map<String, Branch> map = new HashMap<String, Branch>();
         for (Branch branch : gitClient.getBranches()) {
@@ -231,30 +271,47 @@ public class StartHotFixIT {
         return map;
     }
 
-    private void checkMultiModulProject(File baseDir, final String nextDevelopmentVersion, int pomCount) throws IOException, InterruptedException,
+    /**
+     * Check the Version of a multi module Maven Project.
+     *
+     * @param rootDir the root of the Maven Project.
+     * @param version the version to check.
+     * @param pomCount the number of poms to check.
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws XmlPullParserException
+     */
+    private void checkMultiModuleProject(File rootDir, final String version, int pomCount) throws IOException, InterruptedException,
                                                                                                                         XmlPullParserException {
         MavenXpp3Reader mavenreader = new MavenXpp3Reader();
-        Iterator iterator = FileUtils.iterateFiles(baseDir, new String[] { "xml" }, true);
+        Iterator iterator = FileUtils.iterateFiles(rootDir, new String[] { "xml" }, true);
         int count = 0;
         while (iterator.hasNext()) {
             File next =  (File) iterator.next();
             if ("pom.xml".compareTo(next.getName())==0){
                 count++;
-                assertThat("Development Version was not set", mavenreader.read(new FileReader(next)).getVersion(), is(nextDevelopmentVersion));
+                assertThat("Development Version was not set", mavenreader.read(new FileReader(next)).getVersion(), is(version));
             }
         }
         assertThat("not all Modules was checked",count, is(pomCount));
     }
 
-    private File setUpGitRepo(final String path, File repro) throws IOException, URISyntaxException, InterruptedException {
-        URL resource = getClass().getResource(path);
+    /**
+     * unzip the give zipFile to the given temp-Folder
+     *
+     * @param pathToGitZip
+     * @param pathToUnpack
+     * @throws IOException
+     * @throws URISyntaxException
+     * @throws InterruptedException
+     */
+    private void setUpGitRepo(final String pathToGitZip, File pathToUnpack) throws IOException, URISyntaxException, InterruptedException {
+        URL resource = getClass().getResource(pathToGitZip);
         FilePath filePath = new FilePath(new File(resource.toURI()));
-        filePath.unzip(new FilePath(repro));
+        filePath.unzip(new FilePath(pathToUnpack));
 
-        GitSCM gitSCM = new GitSCM(repro.getAbsolutePath());
+        GitSCM gitSCM = new GitSCM(pathToUnpack.getAbsolutePath());
         mavenProject.setScm(gitSCM);
-
-        return repro;
     }
 }
 
