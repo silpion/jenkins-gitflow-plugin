@@ -80,6 +80,9 @@ public class FinishHotfixIT {
         data.recordRemoteBranch("origin", "hotfix/foobar4", Result.SUCCESS, "1.1-SNAPSHOT");
         data.recordRemoteBranch("origin", "hotfix/foobar5", Result.SUCCESS, "1.1-SNAPSHOT");
 
+        mavenProject.scheduleBuild2(0).get();
+        assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
+
         JenkinsRule.WebClient webClient = j.createWebClient();
         HtmlPage page = webClient.goTo(mavenProject.getUrl() + "gitflow");
 
@@ -127,6 +130,8 @@ public class FinishHotfixIT {
 
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
         data.recordRemoteBranch("origin", "hotfix/foobar3", Result.SUCCESS, "1.1-SNAPSHOT");
+        mavenProject.scheduleBuild2(0).get();
+        assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         JenkinsRule.WebClient webClient = j.createWebClient();
         HtmlPage page = webClient.goTo(mavenProject.getUrl() + "gitflow");
@@ -169,6 +174,9 @@ public class FinishHotfixIT {
 
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
         data.recordRemoteBranch("origin", "hotfix/foobar3", Result.SUCCESS, "1.1-SNAPSHOT");
+
+        mavenProject.scheduleBuild2(0).get();
+        assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         JenkinsRule.WebClient webClient = j.createWebClient();
         HtmlPage page = webClient.goTo(mavenProject.getUrl() + "gitflow");
