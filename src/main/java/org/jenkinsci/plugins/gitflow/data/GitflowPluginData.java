@@ -11,14 +11,11 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
 
 import hudson.model.Action;
 import hudson.model.Result;
-import hudson.plugins.git.Branch;
 
 /**
  * The root (action) object holding the Gitflow plugin data of a Jenkins job/project.
@@ -28,14 +25,6 @@ import hudson.plugins.git.Branch;
 public class GitflowPluginData implements Action, Serializable, Cloneable {
 
     private static final long serialVersionUID = 109223276757967160L;
-
-    private static final Function<Branch, String> BRANCH_TO_NAME_FUNCTION = new Function<Branch, String>() {
-
-        /** {@inheritDoc} */
-        public String apply(final Branch input) {
-            return input != null ? input.getName() : null;
-        }
-    };
 
     private static final Comparator<Result> RESULT_SEVERITY_COMPARATOR = new Comparator<Result>() {
 
@@ -111,18 +100,20 @@ public class GitflowPluginData implements Action, Serializable, Cloneable {
     }
 
     /**
-     * Removes the remote branches from the Gitflow plugin data that are contained not in the provided collection of existing branches.
+     * Removes the given remote branches from the Gitflow plugin data.
      *
-     * @param existingRemoteBranches the collection of existing branches.
+     * @param removeRemoteBranches the collection of remote branches to be removed.
+     * @param evenOnDryRun remove the branches even when <i>Dry Run</i> mode is switched on.
      */
-    public void removeObsoleteRemoteBranches(final Collection<Branch> existingRemoteBranches) {
-
-        final Collection<String> existingBranchNames = Collections2.transform(existingRemoteBranches, BRANCH_TO_NAME_FUNCTION);
-
-        for (final Iterator<RemoteBranch> remoteBranchIterator = this.remoteBranches.iterator(); remoteBranchIterator.hasNext(); ) {
-            final RemoteBranch remoteBranch = remoteBranchIterator.next();
-            if (!existingBranchNames.contains(remoteBranch.getRemoteAlias() + "/" + remoteBranch.getBranchName())) {
-                remoteBranchIterator.remove();
+    public void removeRemoteBranches(final Collection<RemoteBranch> removeRemoteBranches, final boolean evenOnDryRun) {
+        if (evenOnDryRun || !this.dryRun) {
+            for (final Iterator<RemoteBranch> branchIterator = this.remoteBranches.iterator(); branchIterator.hasNext(); ) {
+                final RemoteBranch branch = branchIterator.next();
+                for (final RemoteBranch removeBranch : removeRemoteBranches) {
+                    if (branch.getRemoteAlias().equals(removeBranch.getRemoteAlias()) && branch.getBranchName().equals(removeBranch.getBranchName())) {
+                        branchIterator.remove();
+                    }
+                }
             }
         }
     }
