@@ -16,14 +16,14 @@ public class GitflowCauseFactoryTest {
         JSONObject action = new JSONObject();
         action.element(StartHotFixCause.PARAM_HOTFIX_NAME, "testName");
         action.element(StartHotFixCause.PARAM_NEXT_HOTFIX_DEVELOPMENT_VERSION, "1.1-SNAPSHOT");
+        action.element("value", "startHotfix");
 
         JSONObject jsonObject = new JSONObject();
 
         jsonObject.element("dryRun", true);
-        jsonObject.element("value", "startHotfix");
         jsonObject.element("action", action);
 
-        AbstractGitflowCause cause = GitflowCauseFactory.newInstance(action);
+        AbstractGitflowCause cause = GitflowCauseFactory.newInstance(jsonObject);
         assertThat(cause, is(instanceOf(StartHotFixCause.class)));
     }
 }

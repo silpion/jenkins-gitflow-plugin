@@ -162,7 +162,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
     }
 
     public String computeNextHotfixVersion() throws IOException {
-        final RemoteBranch masterBranch = this.getBranchFromPluginData(getBuildWrapperDescriptor().getMasterBranch());
+        final RemoteBranch masterBranch = this.remoteBranches.get("origin/" + getBuildWrapperDescriptor().getMasterBranch());
         if (masterBranch == null) {
             return DEFAULT_STRING;
         } else {

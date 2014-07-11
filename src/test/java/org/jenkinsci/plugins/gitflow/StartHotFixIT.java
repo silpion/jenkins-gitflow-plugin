@@ -1,6 +1,5 @@
 package org.jenkinsci.plugins.gitflow;
 
-import static org.codehaus.groovy.runtime.DefaultGroovyMethods.last;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
@@ -27,7 +26,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.jvnet.hudson.test.JenkinsRule;
 
-import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import com.gargoylesoftware.htmlunit.html.HtmlCheckBoxInput;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
@@ -80,6 +78,8 @@ public class StartHotFixIT {
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
         data.recordRemoteBranch("origin", "master", Result.SUCCESS, "1.2");
+        mavenProject.scheduleBuild2(0).get();
+        assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         JenkinsRule.WebClient webClient = j.createWebClient();
         HtmlPage page = webClient.goTo(mavenProject.getUrl() + "gitflow");
@@ -101,10 +101,9 @@ public class StartHotFixIT {
         checkRadioButton("action", "startHotfix", page);
         nameElement.setAttribute("value", "superHotfix");
         versionElement.setAttribute("value","1.2.2-SNAPSHOT");
-        HtmlForm form = page.getFormByName("performGitflowRelease");
-        form.submit((HtmlButton) last(form.getHtmlElementsByTagName("button")));
+        j.submit(page.getFormByName("performGitflowRelease"));
 
-        waitForBuildFinish(2);
+        j.waitUntilNoActivity();
         assertThat("StartHotFixAction failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         //check the Git-Repro
@@ -148,10 +147,9 @@ public class StartHotFixIT {
         nameElement.setAttribute("value", "superHotfix");
         versionElement.setAttribute("value","1.2.2-SNAPSHOT");
         dryRunElement.setChecked(true);
-        HtmlForm form = page.getFormByName("performGitflowRelease");
-        form.submit((HtmlButton) last(form.getHtmlElementsByTagName("button")));
+        j.submit(page.getFormByName("performGitflowRelease"));
 
-        waitForBuildFinish(2);
+        j.waitUntilNoActivity();
         assertThat("StartHotFixAction failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         //check the Git-Repro
@@ -196,10 +194,9 @@ public class StartHotFixIT {
         checkRadioButton("action", "startHotfix", page);
         nameElement.setAttribute("value", "superHotfix");
         versionElement.setAttribute("value","1.2.2-SNAPSHOT");
-        HtmlForm form = page.getFormByName("performGitflowRelease");
-        form.submit((HtmlButton) last(form.getHtmlElementsByTagName("button")));
+        j.submit(page.getFormByName("performGitflowRelease"));
 
-        waitForBuildFinish(2);
+        j.waitUntilNoActivity();
         assertThat("StartHotFixAction failed", mavenProject.getLastBuild().getResult(), is(Result.FAILURE));
 
         //check the Git-Repro
@@ -220,17 +217,6 @@ public class StartHotFixIT {
     // Helper
     //
     //**********************************************************************************************************************************************************
-
-    private long waitForBuildFinish(int buildNr) throws InterruptedException, IOException {
-        //TODO find a better way to wait for the build success
-        long lines = 0;
-        while (mavenProject.getBuildByNumber(buildNr).getResult() == null) {
-            Thread.sleep(5000);
-            lines = mavenProject.getLastBuild().getLogText().writeLogTo(lines, System.out);
-        }
-        lines = mavenProject.getLastBuild().getLogText().writeLogTo(lines, System.out);
-        return lines;
-    }
 
     /**
      * Find a RadionButton an set it to checked.

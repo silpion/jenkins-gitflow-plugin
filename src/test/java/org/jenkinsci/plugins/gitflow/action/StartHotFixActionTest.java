@@ -123,13 +123,14 @@ public class StartHotFixActionTest {
 
     @Test
     public void testAfterMainBuildInternalSuccess() throws Exception {
-        //Setup
-        StartHotFixCause cause = new StartHotFixCause("VeryHotFix", "1.0.2-Snapshot", false);
-        StartHotFixAction action = createAction(cause);
 
         GitflowPluginData pluginData = mock(GitflowPluginData.class);
         when(build.getAction(GitflowPluginData.class)).thenReturn(pluginData);
         when(build.getResult()).thenReturn(Result.SUCCESS);
+
+        //Setup
+        StartHotFixCause cause = new StartHotFixCause("VeryHotFix", "1.0.2-Snapshot", false);
+        StartHotFixAction action = createAction(cause);
 
         //Run
         action.afterMainBuildInternal();
@@ -145,12 +146,12 @@ public class StartHotFixActionTest {
     @Test
     public void testAfterMainBuildInternalFail() throws Exception {
         //Setup
-        StartHotFixCause cause = new StartHotFixCause("VeryHotFix", "1.0.2-Snapshot", false);
-        StartHotFixAction action = createAction(cause);
-
         GitflowPluginData pluginData = mock(GitflowPluginData.class);
         when(build.getAction(GitflowPluginData.class)).thenReturn(pluginData);
         when(build.getResult()).thenReturn(Result.FAILURE);
+
+        StartHotFixCause cause = new StartHotFixCause("VeryHotFix", "1.0.2-Snapshot", false);
+        StartHotFixAction action = createAction(cause);
 
         //Run
         action.afterMainBuildInternal();
