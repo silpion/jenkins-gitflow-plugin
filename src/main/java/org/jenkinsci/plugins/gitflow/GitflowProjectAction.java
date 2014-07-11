@@ -107,19 +107,31 @@ public class GitflowProjectAction implements PermalinkProjectAction {
     }
 
     public SortedSet<String> computeReleaseBranches() throws IOException {
-        final SortedSet<String> releaseBranches = new TreeSet<String>();
-
         final String releaseBranchPrefix = getBuildWrapperDescriptor().getReleaseBranchPrefix();
+        return filterBranches(releaseBranchPrefix, this.getBranchesFromPluginData());
+    }
 
-        for (final RemoteBranch remoteBranch : this.getBranchesFromPluginData()) {
+    public SortedSet<String> computeHotfixBranches() throws IOException {
+        final String hotfixBranchPrefix = getBuildWrapperDescriptor().getHotfixBranchPrefix();
+        return filterBranches(hotfixBranchPrefix, this.getBranchesFromPluginData());
+    }
+
+    public String computeHotfixVersion(final String hotfixBranch) {
+        final String hotfixPrefix = getBuildWrapperDescriptor().getHotfixBranchPrefix();
+        return StringUtils.removeStart(hotfixBranch, hotfixPrefix);
+    }
+
+    protected static SortedSet<String> filterBranches(final String branchPrefix, final List<RemoteBranch> branches) {
+        final SortedSet<String> filterBanches = new TreeSet<String>();
+
+        for (final RemoteBranch remoteBranch : branches) {
             final String branchName = remoteBranch.getBranchName();
             //plus origin
-            if (StringUtils.startsWith(branchName, releaseBranchPrefix)) {
-                releaseBranches.add(branchName);
+            if (StringUtils.startsWith(branchName, branchPrefix)) {
+                filterBanches.add(branchName);
             }
         }
-
-        return releaseBranches;
+        return filterBanches;
     }
 
     public String computeReleaseVersion(final String releaseBranch) {
