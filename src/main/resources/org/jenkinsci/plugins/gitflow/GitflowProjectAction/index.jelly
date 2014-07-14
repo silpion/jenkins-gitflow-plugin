@@ -67,6 +67,24 @@
                             action.
                         </f:entry>
                     </f:radioBlock>
+                    <f:radioBlock name="action" value="testHotfix" title="Test Hotfix" checked="false">
+                        <f:dropdownList name="testHotfix" title="Hotfix">
+                            <j:forEach var="hotfixBranch" items="${it.computeHotfixBranches()}">
+                                <f:dropdownListBlock value="${it.computeHotfixVersion(hotfixBranch)}" title="${it.computeHotfixVersion(hotfixBranch)}"
+                                    selected="false">
+                                    <f:entry title="Hotfix Branch">
+                                        <f:readOnlyTextbox name="hotfixBranch" value="${hotfixBranch}" />
+                                    </f:entry>
+                                    <f:entry title="Fixes Hotfix Release Version">
+                                        <f:textbox name="hotfixReleaseVersion" value="${it.computeFixesReleaseVersion(hotfixBranch)}" />
+                                    </f:entry>
+                                    <f:entry title="Next Hotfix development Version">
+                                        <f:textbox name="nextHotfixReleaseVersion" value="${it.computeNextFixesDevelopmentVersion(hotfixBranch)}" />
+                                    </f:entry>
+                               </f:dropdownListBlock>
+                            </j:forEach>
+                        </f:dropdownList>
+                    </f:radioBlock>
                     <f:radioBlock name="action" value="finishHotfix" title="Finish Hotfix" checked="false">
                         <f:entry>
                             TODO Add form field entries to configure the
