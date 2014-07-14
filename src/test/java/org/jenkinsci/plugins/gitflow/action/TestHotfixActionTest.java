@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.gitflow.action;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
@@ -90,22 +91,28 @@ public class TestHotfixActionTest {
         TestHotfixAction action = createAction(cause);
 
         ObjectId id = ObjectId.zeroId();
-        when(gitClient.getRemoteUrl("origin")).thenReturn("someOriginUrl");
-        when(gitClient.getHeadRev("someOriginUrl", "hotfixBranch")).thenReturn(id);
+        String remoteRepoUrl = "someOriginUrl";
+        when(gitClient.getRemoteUrl("origin")).thenReturn(remoteRepoUrl);
+        when(gitClient.getHeadRev(remoteRepoUrl, hotfixBranch)).thenReturn(id);
 
         List<String> changeFiles = Arrays.asList("pom.xml", "child1/pom.xml", "child2/pom.xml", "child3/pom.xml");
         when(buildTypeAction.updateVersion(hotfixReleaseVersion)).thenReturn(changeFiles);
 
+        //Run
+        action.beforeMainBuildInternal();
 
+        //Check
+        verify(gitClient).getRemoteUrl("origin");
+        verify(gitClient).getHeadRev(remoteRepoUrl, hotfixBranch);
         verify(gitClient).checkout(id.getName());
 
         verify(gitClient).add("pom.xml");
         verify(gitClient).add("child1/pom.xml");
         verify(gitClient).add("child2/pom.xml");
         verify(gitClient).add("child3/pom.xml");
-
-
         verify(gitClient).commit(any(String.class));
+
+        verifyNoMoreInteractions(gitClient);
 
     }
 

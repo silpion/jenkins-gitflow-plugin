@@ -9,6 +9,7 @@ import org.jenkinsci.plugins.gitflow.cause.TestHotfixCause;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.model.Result;
 
 /**
  * This class executes the required steps for the Gitflow action <i>Test Hotfix</i>.
