@@ -9,7 +9,7 @@ import net.sf.json.JSONObject;
  */
 public class TestHotfixCause extends AbstractGitflowCause {
 
-    public static final String PARAM_HOTFIX = "hotfix";
+    public static final String PARAM_HOTFIX = "testHotfix";
     public static final String PARAM_HOTFIX_BRANCH = "hotfixBranch";
     public static final String PARAM_HOTFIX_RELEASE_VERSION = "hotfixReleaseVersion";
     public static final String PARAM_NEXT_HOTFIX_RELEASE_VERSION = "nextHotfixReleaseVersion";
