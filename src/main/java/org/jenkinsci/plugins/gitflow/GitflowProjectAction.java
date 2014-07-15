@@ -184,6 +184,14 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         return nextFixesDevelopmentVersionBuilder.toString();
     }
 
+    public String computeLastFixesReleaseVersion(final String releaseBranch) throws IOException {
+        return this.remoteBranches.get("origin/" + releaseBranch).getLastReleaseVersion();
+    }
+
+    public String computeLastFixesReleaseCommit(final String releaseBranch) throws IOException {
+        return this.remoteBranches.get("origin/" + releaseBranch).getLastReleaseVersionCommit().getName();
+    }
+
     @SuppressWarnings("UnusedDeclaration")
     public void doSubmit(final StaplerRequest request, final StaplerResponse response) throws IOException, ServletException {
 
