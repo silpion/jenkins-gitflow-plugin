@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.MapUtils;
-import org.jenkinsci.plugins.gitclient.GitClient;
 import org.jenkinsci.plugins.gitflow.GitflowBadgeAction;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
@@ -43,7 +42,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
     protected final C gitflowCause;
 
     protected final AbstractBuildTypeAction<?> buildTypeAction;
-    protected final GitClient git;
+    protected final GitClientDelegate git;
 
     protected GitflowPluginData gitflowPluginData;
 
