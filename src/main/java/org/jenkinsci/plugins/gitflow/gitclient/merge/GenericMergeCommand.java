@@ -74,7 +74,6 @@ public class GenericMergeCommand<C extends GitClient> implements MergeCommand {
     public static enum StrategyOption {
 
         /** The merge strategy option {@code ours}. */
-        @SuppressWarnings("UnusedDeclaration")
         OURS,
 
         /** The merge strategy option {@code theirs}. */

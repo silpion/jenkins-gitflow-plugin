@@ -59,6 +59,10 @@
                                     <f:entry title="Last Fixes Release Commit">
                                         <f:readOnlyTextbox name="lastFixesReleaseCommit" value="${it.computeLastFixesReleaseCommit(releaseBranch)}" />
                                     </f:entry>
+                                    <f:entry title="Merge to develop">
+                                        <f:checkbox name="mergeToDevelop" checked="false"
+                                            title="(Using merge strategy 'recursive-ours' to prevent conflicts, but some conflicting changes may be lost.)" />
+                                    </f:entry>
                                 </f:dropdownListBlock>
                             </j:forEach>
                         </f:dropdownList>

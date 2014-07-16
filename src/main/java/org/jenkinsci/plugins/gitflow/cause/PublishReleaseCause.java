@@ -13,10 +13,12 @@ public class PublishReleaseCause extends AbstractGitflowCause {
     private static final String PARAM_RELEASE_BRANCH = "releaseBranch";
     private static final String PARAM_LAST_FIXES_RELEASE_VERSION = "lastFixesReleaseVersion";
     private static final String PARAM_LAST_FIXES_RELEASE_COMMIT = "lastFixesReleaseCommit";
+    private static final String PARAM_MERGE_TO_DEVELOP = "mergeToDevelop";
 
     private final String releaseBranch;
     private final String lastFixesReleaseVersion;
     private final String lastFixesReleaseCommit;
+    private final boolean mergeToDevelop;
 
     /**
      * Creates a cause instance for the <i>Gitflow</i> build.
@@ -31,6 +33,7 @@ public class PublishReleaseCause extends AbstractGitflowCause {
         this.releaseBranch = releaseContent.getString(PARAM_RELEASE_BRANCH);
         this.lastFixesReleaseVersion = releaseContent.getString(PARAM_LAST_FIXES_RELEASE_VERSION);
         this.lastFixesReleaseCommit = releaseContent.getString(PARAM_LAST_FIXES_RELEASE_COMMIT);
+        this.mergeToDevelop = releaseContent.getBoolean(PARAM_MERGE_TO_DEVELOP);
     }
 
     @Override
@@ -48,5 +51,9 @@ public class PublishReleaseCause extends AbstractGitflowCause {
 
     public String getLastFixesReleaseCommit() {
         return this.lastFixesReleaseCommit;
+    }
+
+    public boolean isMergeToDevelop() {
+        return this.mergeToDevelop;
     }
 }

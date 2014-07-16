@@ -1,7 +1,9 @@
 package org.jenkinsci.plugins.gitflow.action;
 
+import static hudson.model.Result.SUCCESS;
 import static org.eclipse.jgit.api.MergeCommand.FastForwardMode.NO_FF;
 import static org.jenkinsci.plugins.gitclient.MergeCommand.Strategy.RECURSIVE;
+import static org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand.StrategyOption.OURS;
 import static org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand.StrategyOption.THEIRS;
 
 import java.io.IOException;
@@ -12,11 +14,11 @@ import java.util.List;
 import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
+import org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand.StrategyOption;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
-import hudson.model.Result;
 import hudson.plugins.git.Branch;
 import hudson.plugins.git.Revision;
 import hudson.plugins.git.util.Build;
@@ -32,8 +34,8 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
 
     private static final String ACTION_NAME = "Publish Release";
     private static final String MSG_PREFIX = "Gitflow - " + ACTION_NAME + ": ";
-    private static final MessageFormat MSG_PATTERN_CHECKOUT_MASTER_BRANCH = new MessageFormat(MSG_PREFIX + "Checked out branch {0}");
-    private static final MessageFormat MSG_PATTERN_MERGED_TO_MASTER = new MessageFormat(MSG_PREFIX + "Merged last fixes release {0} to branch {1}");
+    private static final MessageFormat MSG_PATTERN_CHECKOUT_BRANCH = new MessageFormat(MSG_PREFIX + "Checked out branch {0}");
+    private static final MessageFormat MSG_PATTERN_MERGED_LAST_FIXES_RELEASE = new MessageFormat(MSG_PREFIX + "Merged last fixes release {0} to branch {1}");
 
     /**
      * Initialises a new <i>Publish Release</i> action.
@@ -66,40 +68,53 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
     @Override
     protected void beforeMainBuildInternal() throws IOException, InterruptedException {
 
-        // Checkout the master Branch
+        // Merge the last fixes release to the master branch.
         final String masterBranch = getBuildWrapperDescriptor().getMasterBranch();
-        final ObjectId masterBranchRev = this.git.getHeadRev(this.git.getRemoteUrl("origin"), masterBranch);
-        this.git.checkoutBranch(masterBranch, masterBranchRev.getName());
-        this.consoleLogger.println(formatPattern(MSG_PATTERN_CHECKOUT_MASTER_BRANCH, masterBranch));
+        this.mergeLastFixesRelease(masterBranch, THEIRS);
 
-        // Merge the release branch to the master branch.
-        final ObjectId lastFixesReleaseCommit = ObjectId.fromString(this.gitflowCause.getLastFixesReleaseCommit());
-        this.git.merge(lastFixesReleaseCommit, NO_FF, RECURSIVE, THEIRS, false);
-        final String lastFixesReleaseVersion = this.gitflowCause.getLastFixesReleaseVersion();
-        final String msgMergedToMaster = formatPattern(MSG_PATTERN_MERGED_TO_MASTER, lastFixesReleaseVersion, masterBranch);
-        this.git.commit(msgMergedToMaster);
-        this.consoleLogger.println(msgMergedToMaster);
-
-        // Push the master branch with the new merge commit.
-        this.git.push("origin", "refs/heads/" + masterBranch + ":refs/heads/" + masterBranch);
-
-        // Record the fixes development version on the release branch.
+        // Record the version that have been merged to the master branch.
         final RemoteBranch remoteBranchMaster = this.gitflowPluginData.getOrAddRemoteBranch("origin", masterBranch);
-        remoteBranchMaster.setLastBuildResult(Result.SUCCESS);
+        remoteBranchMaster.setLastBuildResult(SUCCESS);
+        final String lastFixesReleaseVersion = this.gitflowCause.getLastFixesReleaseVersion();
         remoteBranchMaster.setLastBuildVersion(lastFixesReleaseVersion);
         remoteBranchMaster.setLastReleaseVersion(lastFixesReleaseVersion);
-        remoteBranchMaster.setLastReleaseVersionCommit(lastFixesReleaseCommit);
+        remoteBranchMaster.setLastReleaseVersionCommit(ObjectId.fromString(this.gitflowCause.getLastFixesReleaseCommit()));
 
         // Set the build data with the merge commit on the master branch, so that it won't be scheduled for a new build.
         // Otherwise Jenkins might try to rebuild an already existing release and deploy it to the (Maven) repository manager.
         final ObjectId masterMergeCommit = this.git.getHeadRev(this.git.getRemoteUrl("origin"), masterBranch);
         final String remoteBranchNameMaster = remoteBranchMaster.toString();
         final List<Branch> branches = Collections.singletonList(new Branch(remoteBranchNameMaster, masterMergeCommit));
-        final Build masterBuild = new Build(new Revision(masterMergeCommit, branches), this.build.getNumber(), Result.SUCCESS);
+        final Build masterBuild = new Build(new Revision(masterMergeCommit, branches), this.build.getNumber(), SUCCESS);
         this.build.getAction(BuildData.class).getBuildsByBranchName().put(remoteBranchNameMaster, masterBuild);
 
+        // Merge the last fixes release to the develop branch (if intended).
+        // TODO Only offer merge if there have not been commits after the last snapshot version commit.
+        if (this.gitflowCause.isMergeToDevelop()) {
+            this.mergeLastFixesRelease(getBuildWrapperDescriptor().getDevelopBranch(), OURS);
+        }
+
         // Abort the job, because there's no need to execute the main build.
-        this.build.getExecutor().interrupt(Result.SUCCESS);
+        this.build.getExecutor().interrupt(SUCCESS);
+    }
+
+    private void mergeLastFixesRelease(final String targetBranch, final StrategyOption recursiveMergeStrategyOption) throws InterruptedException {
+
+        // Checkout the target branch.
+        final ObjectId targetBranchRev = this.git.getHeadRev(this.git.getRemoteUrl("origin"), targetBranch);
+        this.git.checkoutBranch(targetBranch, targetBranchRev.getName());
+        this.consoleLogger.println(formatPattern(MSG_PATTERN_CHECKOUT_BRANCH, targetBranch));
+
+        // Merge the last fixes release (from the release branch) to the target branch.
+        final ObjectId lastFixesReleaseCommit = ObjectId.fromString(this.gitflowCause.getLastFixesReleaseCommit());
+        this.git.merge(lastFixesReleaseCommit, NO_FF, RECURSIVE, recursiveMergeStrategyOption, false);
+        final String lastFixesReleaseVersion = this.gitflowCause.getLastFixesReleaseVersion();
+        final String msgMergedLastFixesRelease = formatPattern(MSG_PATTERN_MERGED_LAST_FIXES_RELEASE, lastFixesReleaseVersion, targetBranch);
+        this.git.commit(msgMergedLastFixesRelease);
+        this.consoleLogger.println(msgMergedLastFixesRelease);
+
+        // Push the master branch with the new merge commit.
+        this.git.push("origin", "refs/heads/" + targetBranch + ":refs/heads/" + targetBranch);
     }
 
     /** {@inheritDoc} */
