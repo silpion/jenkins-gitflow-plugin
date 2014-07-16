@@ -6,6 +6,8 @@ import static org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand.
 
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.Collections;
+import java.util.List;
 
 import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause;
@@ -15,6 +17,10 @@ import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.model.Result;
+import hudson.plugins.git.Branch;
+import hudson.plugins.git.Revision;
+import hudson.plugins.git.util.Build;
+import hudson.plugins.git.util.BuildData;
 
 /**
  * This class executes the required steps for the Gitflow action <i>Publish Release</i>.
@@ -83,6 +89,14 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         remoteBranchMaster.setLastBuildVersion(lastFixesReleaseVersion);
         remoteBranchMaster.setLastReleaseVersion(lastFixesReleaseVersion);
         remoteBranchMaster.setLastReleaseVersionCommit(lastFixesReleaseCommit);
+
+        // Set the build data with the merge commit on the master branch, so that it won't be scheduled for a new build.
+        // Otherwise Jenkins might try to rebuild an already existing release and deploy it to the (Maven) repository manager.
+        final ObjectId masterMergeCommit = this.git.getHeadRev(this.git.getRemoteUrl("origin"), masterBranch);
+        final String remoteBranchNameMaster = remoteBranchMaster.toString();
+        final List<Branch> branches = Collections.singletonList(new Branch(remoteBranchNameMaster, masterMergeCommit));
+        final Build masterBuild = new Build(new Revision(masterMergeCommit, branches), this.build.getNumber(), Result.SUCCESS);
+        this.build.getAction(BuildData.class).getBuildsByBranchName().put(remoteBranchNameMaster, masterBuild);
 
         // Abort the job, because there's no need to execute the main build.
         this.build.getExecutor().interrupt(Result.SUCCESS);
