@@ -40,7 +40,7 @@ public class TestHotfixCause extends AbstractGitflowCause {
 
     @Override
     public String getVersionForBadge() {
-        return this.getHotfixReleaseVersion();
+        return getHotfixReleaseVersion();
     }
 
     public String getHotfixBranch() {

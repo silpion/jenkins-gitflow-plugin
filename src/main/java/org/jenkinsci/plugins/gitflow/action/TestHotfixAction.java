@@ -65,19 +65,18 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
 
         // Update the project files to the minor release number
         String fixesReleaseVersion = gitflowCause.getHotfixReleaseVersion();
-
         addFilesToGitStage(buildTypeAction.updateVersion(fixesReleaseVersion));
         String msgUpdatedReleaseVersion = formatPattern(MSG_PATTERN_UPDATED_HOTFIX_VERSION, fixesReleaseVersion);
-        this.git.commit(msgUpdatedReleaseVersion);
-        this.consoleLogger.println(msgUpdatedReleaseVersion);
+        git.commit(msgUpdatedReleaseVersion);
+        consoleLogger.println(msgUpdatedReleaseVersion);
     }
 
     @Override
     protected void afterMainBuildInternal() throws IOException, InterruptedException {
-        if (this.build.getResult() == Result.SUCCESS) {
-            this.afterSuccessfulMainBuild();
+        if (build.getResult() == Result.SUCCESS) {
+            afterSuccessfulMainBuild();
         } else {
-            this.afterUnsuccessfulMainBuild();
+            afterUnsuccessfulMainBuild();
         }
     }
 
@@ -108,6 +107,6 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
         // Here we assume that there was an error on the hotfix branch right before executed this action.
         String hotfixBranch = gitflowCause.getHotfixBranch();
         String hotfixBranchVersion = gitflowPluginData.getRemoteBranch("origin", hotfixBranch).getLastBuildVersion();
-        this.gitflowPluginData.recordRemoteBranch("origin", hotfixBranch, this.build.getResult(), hotfixBranchVersion);
+        gitflowPluginData.recordRemoteBranch("origin", hotfixBranch, build.getResult(), hotfixBranchVersion);
     }
 }
