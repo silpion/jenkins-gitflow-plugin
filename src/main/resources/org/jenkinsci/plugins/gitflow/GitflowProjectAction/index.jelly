@@ -63,6 +63,22 @@
                                         <f:checkbox name="mergeToDevelop" checked="false"
                                             title="(Using merge strategy 'recursive-ours' to prevent conflicts, but some conflicting changes may be lost.)" />
                                     </f:entry>
+                                    <f:entry title="Included Action">
+                                        <select name="includedAction">
+                                            <option value="NONE">None (keep release branch)</option>
+                                            <option value="FINISH_RELEASE">
+                                                Finish Release ${it.computeReleaseVersion(releaseBranch)}
+                                                <br />
+                                                (Delete release branch - NOTE: Merge to develop must be checked)
+                                            </option>
+                                            <option value="START_HOTFIX" selected="selected">
+                                                Finish Release ${it.computeReleaseVersion(releaseBranch)} and
+                                                Start Hotfix ${it.computeReleaseVersion(releaseBranch)}
+                                                <br />
+                                                (Rename release branch)
+                                            </option>
+                                        </select>
+                                    </f:entry>
                                 </f:dropdownListBlock>
                             </j:forEach>
                         </f:dropdownList>

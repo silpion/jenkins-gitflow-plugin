@@ -9,16 +9,25 @@ import net.sf.json.JSONObject;
  */
 public class PublishReleaseCause extends AbstractGitflowCause {
 
+    /** The actions that can be included/executed after the main <i>Publish Release</i> action. */
+    public static enum IncludedAction {
+        NONE,
+        FINISH_RELEASE,
+        START_HOTFIX
+    }
+
     private static final String PARAM_RELEASE = "release";
     private static final String PARAM_RELEASE_BRANCH = "releaseBranch";
     private static final String PARAM_LAST_FIXES_RELEASE_VERSION = "lastFixesReleaseVersion";
     private static final String PARAM_LAST_FIXES_RELEASE_COMMIT = "lastFixesReleaseCommit";
     private static final String PARAM_MERGE_TO_DEVELOP = "mergeToDevelop";
+    private static final String PARAM_INCLUDED_ACTION = "includedAction";
 
     private final String releaseBranch;
     private final String lastFixesReleaseVersion;
     private final String lastFixesReleaseCommit;
     private final boolean mergeToDevelop;
+    private final IncludedAction includedAction;
 
     /**
      * Creates a cause instance for the <i>Gitflow</i> build.
@@ -34,6 +43,7 @@ public class PublishReleaseCause extends AbstractGitflowCause {
         this.lastFixesReleaseVersion = releaseContent.getString(PARAM_LAST_FIXES_RELEASE_VERSION);
         this.lastFixesReleaseCommit = releaseContent.getString(PARAM_LAST_FIXES_RELEASE_COMMIT);
         this.mergeToDevelop = releaseContent.getBoolean(PARAM_MERGE_TO_DEVELOP);
+        this.includedAction = IncludedAction.valueOf(releaseContent.getString(PARAM_INCLUDED_ACTION));
     }
 
     @Override
@@ -55,5 +65,9 @@ public class PublishReleaseCause extends AbstractGitflowCause {
 
     public boolean isMergeToDevelop() {
         return this.mergeToDevelop;
+    }
+
+    public IncludedAction getIncludedAction() {
+        return this.includedAction;
     }
 }

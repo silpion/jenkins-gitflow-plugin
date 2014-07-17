@@ -69,6 +69,16 @@ public class GitflowPluginData implements Action, Serializable, Cloneable {
     }
 
     /**
+     * Removes the given remote branch from the Gitflow plugin data.
+     *
+     * @param removeRemoteBranch the remote branch to be removed.
+     * @param evenOnDryRun remove the branch even when <i>Dry Run</i> mode is switched on.
+     */
+    public void removeRemoteBranch(final RemoteBranch removeRemoteBranch, final boolean evenOnDryRun) {
+        this.removeRemoteBranches(Collections.singletonList(removeRemoteBranch), evenOnDryRun);
+    }
+
+    /**
      * Removes the given remote branches from the Gitflow plugin data.
      *
      * @param removeRemoteBranches the collection of remote branches to be removed.
