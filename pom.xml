@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>1.532</version>
+        <version>1.573</version>
     </parent>
 
     <groupId>org.jenkins-ci.plugins</groupId>
@@ -57,31 +57,6 @@
         <jenkinsHome>${project.basedir}/work</jenkinsHome>
     </properties>
 
-    <!--
-        Jenkins core POM still has dependencies with those evil version ranges - didn't they learn?
-        From time to time this breaks the build unexpectedly and we need to adjust some of the versions.
-    -->
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.github.jnr</groupId>
-                <artifactId>jffi</artifactId>
-                <version>1.2.7</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.jnr</groupId>
-                <artifactId>jffi</artifactId>
-                <version>1.2.7</version>
-                <classifier>native</classifier>
-            </dependency>
-            <dependency>
-                <groupId>com.github.jnr</groupId>
-                <artifactId>jnr-x86asm</artifactId>
-                <version>1.0.2</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
@@ -91,6 +66,7 @@
         <dependency>
             <groupId>org.jenkins-ci.main</groupId>
             <artifactId>maven-plugin</artifactId>
+            <version>2.5</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
