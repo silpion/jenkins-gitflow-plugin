@@ -1,5 +1,7 @@
 package org.jenkinsci.plugins.gitflow.action;
 
+import static hudson.model.Result.SUCCESS;
+
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Collection;
@@ -21,6 +23,7 @@ import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.model.Executor;
 import hudson.model.Result;
 
 import jenkins.model.Jenkins;
@@ -35,6 +38,7 @@ import jenkins.model.Jenkins;
 public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C extends AbstractGitflowCause> extends AbstractActionBase<B> {
 
     private static final String MSG_CLEAN_WORKING_DIRECTORY = "Ensuring clean working/checkout directory";
+    private static final String MSG_ABORTING_TO_OMIT_MAIN_BUILD = "Gitflow - Intentionally aborting to omit the main build";
 
     private static final MessageFormat MSG_PATTERN_RESULT_TO_UNSTABLE = new MessageFormat("Gitflow - Changing result of successful build to"
                                                                                           + " unstable, because there are unstable branches: {0}");
@@ -202,6 +206,17 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
     protected void cleanCheckout() throws InterruptedException {
         this.consoleLogger.println(this.getConsoleMessagePrefix() + MSG_CLEAN_WORKING_DIRECTORY);
         this.git.clean();
+    }
+
+    /**
+     * Omit the main build by throwing an {@link InterruptedException}.
+     *
+     * @throws InterruptedException always thrown to omit the main build.
+     */
+    protected void omitMainBuild() throws InterruptedException {
+        this.consoleLogger.println(MSG_ABORTING_TO_OMIT_MAIN_BUILD);
+        Executor.currentExecutor().interrupt(SUCCESS);
+        throw new InterruptedException(MSG_ABORTING_TO_OMIT_MAIN_BUILD);
     }
 
     /**

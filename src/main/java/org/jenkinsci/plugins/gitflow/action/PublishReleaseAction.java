@@ -132,7 +132,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         }
 
         // Abort the job, because there's no need to execute the main build.
-        this.build.getExecutor().interrupt(SUCCESS);
+        this.omitMainBuild();
     }
 
     private void createBranch(final String newBranchName, final String releaseBranch) throws InterruptedException {
