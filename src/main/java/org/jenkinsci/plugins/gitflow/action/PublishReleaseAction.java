@@ -10,12 +10,14 @@ import static org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand.
 import static org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand.StrategyOption.THEIRS;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
@@ -44,6 +46,8 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
     private static final MessageFormat MSG_PATTERN_NEW_HOTFIX_BRANCH_BASED_ON_RELEASE = new MessageFormat(MSG_PREFIX + "Created a new branch {0} based on {1}");
     private static final MessageFormat MSG_PATTERN_DELETED_BRANCH = new MessageFormat(MSG_PREFIX + "Deleted branch {0}");
 
+    private final URIish remoteUrl;
+
     /**
      * Initialises a new <i>Publish Release</i> action.
      *
@@ -57,6 +61,13 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
     public <BC extends B> PublishReleaseAction(final BC build, final Launcher launcher, final BuildListener listener, final PublishReleaseCause gitflowCause)
             throws IOException, InterruptedException {
         super(build, launcher, listener, gitflowCause, ACTION_NAME);
+
+        // Create remote URL.
+        try {
+            this.remoteUrl = new URIish("origin");
+        } catch (final URISyntaxException urise) {
+            throw new IOException("Cannot create remote URL", urise);
+        }
     }
 
     /** {@inheritDoc} */
@@ -131,7 +142,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         this.consoleLogger.println(formatPattern(MSG_PATTERN_NEW_HOTFIX_BRANCH_BASED_ON_RELEASE, newBranchName, releaseBranch));
 
         // Push the new hotfix branch.
-        this.git.push("origin", "refs/heads/" + newBranchName + ":refs/heads/" + newBranchName);
+        this.git.push().to(this.remoteUrl).ref("refs/heads/" + newBranchName + ":refs/heads/" + newBranchName).execute();
 
         // Record the data for the new remote branch.
         final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getRemoteBranch("origin", releaseBranch);
@@ -147,7 +158,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         // Delete the remote branch locally and remotely.
         this.git.deleteBranch(branchName);
         this.consoleLogger.println(formatPattern(MSG_PATTERN_DELETED_BRANCH, branchName));
-        this.git.push("origin", ":refs/heads/" + branchName);
+        this.git.push().to(this.remoteUrl).ref(":refs/heads/" + branchName).execute();
 
         // Remove the recorded data of the deleted remote branch.
         final RemoteBranch remoteBranch = this.gitflowPluginData.getRemoteBranch("origin", branchName);
@@ -172,7 +183,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         this.consoleLogger.println(msgMergedLastFixesRelease);
 
         // Push the master branch with the new merge commit.
-        this.git.push("origin", "refs/heads/" + targetBranch + ":refs/heads/" + targetBranch);
+        this.git.push().to(this.remoteUrl).ref("refs/heads/" + targetBranch + ":refs/heads/" + targetBranch).execute();
     }
 
     /** {@inheritDoc} */
