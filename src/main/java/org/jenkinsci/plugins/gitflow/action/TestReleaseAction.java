@@ -7,6 +7,7 @@ import java.text.MessageFormat;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitflow.cause.TestReleaseCause;
+import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -94,8 +95,15 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         final String releaseBranch = this.gitflowCause.getReleaseBranch();
         this.git.push().to(remoteUrl).ref("HEAD:refs/heads/" + releaseBranch).execute();
 
-        // Create a tag for the release version.
+        // Record the information on the currently stable version on the release branch.
         final String fixesReleaseVersion = this.gitflowCause.getFixesReleaseVersion();
+        final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getRemoteBranch("origin", releaseBranch);
+        remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
+        remoteBranchRelease.setLastBuildVersion(fixesReleaseVersion);
+        remoteBranchRelease.setLastReleaseVersion(fixesReleaseVersion);
+        remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev(this.git.getRemoteUrl("origin"), releaseBranch));
+
+        // Create a tag for the release version.
         final String tagName = getBuildWrapperDescriptor().getVersionTagPrefix() + fixesReleaseVersion;
         final String msgCreatedReleaseTag = formatPattern(MSG_PATTERN_CREATED_RELEASE_TAG, tagName);
         this.git.tag(tagName, msgCreatedReleaseTag);
@@ -115,14 +123,15 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         this.git.push().to(remoteUrl).ref("HEAD:refs/heads/" + releaseBranch).execute();
 
         // Record the fixes development version on the release branch.
-        this.gitflowPluginData.recordRemoteBranch("origin", releaseBranch, Result.SUCCESS, nextFixesDevelopmentVersion);
+        remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
+        remoteBranchRelease.setLastBuildVersion(nextFixesDevelopmentVersion);
     }
 
     private void afterUnsuccessfulMainBuild() {
 
         // Here we assume that there was an error on the release branch right before exetuted this action.
-        final String releaseBranch = this.gitflowCause.getReleaseBranch();
-        final String releaseBranchVersion = this.gitflowPluginData.getRemoteBranch("origin", releaseBranch).getLastBuildVersion();
-        this.gitflowPluginData.recordRemoteBranch("origin", releaseBranch, this.build.getResult(), releaseBranchVersion);
+        final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getRemoteBranch("origin", this.gitflowCause.getReleaseBranch());
+        remoteBranchRelease.setLastBuildResult(this.build.getResult());
+        remoteBranchRelease.setLastBuildVersion(remoteBranchRelease.getLastBuildVersion());
     }
 }

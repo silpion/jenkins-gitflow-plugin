@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Repository;
@@ -19,14 +20,21 @@ import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitclient.ChangelogCommand;
+import org.jenkinsci.plugins.gitclient.CliGitAPIImpl;
 import org.jenkinsci.plugins.gitclient.CheckoutCommand;
 import org.jenkinsci.plugins.gitclient.CloneCommand;
 import org.jenkinsci.plugins.gitclient.FetchCommand;
 import org.jenkinsci.plugins.gitclient.GitClient;
+import org.jenkinsci.plugins.gitclient.JGitAPIImpl;
 import org.jenkinsci.plugins.gitclient.InitCommand;
 import org.jenkinsci.plugins.gitclient.MergeCommand;
+import org.jenkinsci.plugins.gitclient.MergeCommand.Strategy;
 import org.jenkinsci.plugins.gitclient.PushCommand;
 import org.jenkinsci.plugins.gitclient.RepositoryCallback;
+import org.jenkinsci.plugins.gitflow.gitclient.merge.CliGitMergeCommand;
+import org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand;
+import org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand.StrategyOption;
+import org.jenkinsci.plugins.gitflow.gitclient.merge.JGitMergeCommand;
 import org.jenkinsci.plugins.gitclient.SubmoduleUpdateCommand;
 
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
@@ -345,6 +353,39 @@ public class GitClientDelegate implements GitClient {
     /** {@inheritDoc} */
     public MergeCommand merge() {
         return this.gitClient.merge();
+    }
+
+    /**
+     * Merge the given revision to the current branch using the provided merge settings.
+     *
+     * @param rev the revision to be merged.
+     * @param fastForwardMode the fast forward mode for the merge.
+     * @param strategy the merge strategy.
+     * @param strategyOption the option for the merge strategy.
+     * @throws GitException if an error occurs while merging.
+     * @throws InterruptedException if the build is interrupted during execution.
+     */
+    public void merge(final ObjectId rev, final FastForwardMode fastForwardMode, final Strategy strategy, final StrategyOption strategyOption,
+                      final boolean autoCommit) throws InterruptedException {
+
+        // Create  merge command object regarding to the underlying (configured) Git client implementation.
+        final GenericMergeCommand<? extends GitClient> mergeCommand;
+        if (this.gitClient instanceof CliGitAPIImpl) {
+            mergeCommand = new CliGitMergeCommand<CliGitAPIImpl>((CliGitAPIImpl) this.gitClient, this.consoleLogger);
+        } else if (this.gitClient instanceof JGitAPIImpl) {
+            mergeCommand = new JGitMergeCommand<JGitAPIImpl>((JGitAPIImpl) this.gitClient, this.consoleLogger);
+        } else {
+            mergeCommand = new GenericMergeCommand<GitClient>(this.gitClient, this.consoleLogger);
+        }
+
+        // Set the provided merge options.
+        mergeCommand.setFastForwardMode(fastForwardMode);
+        mergeCommand.setStrategy(strategy);
+        mergeCommand.setStrategyOption(strategyOption);
+        mergeCommand.setAutoCommit(autoCommit);
+
+        // Merge the given revision.
+        mergeCommand.setRevisionToMerge(rev).execute();
     }
 
     /** {@inheritDoc} */
