@@ -1,8 +1,10 @@
 package org.jenkinsci.plugins.gitflow.action;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.text.MessageFormat;
 
+import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitflow.cause.StartReleaseCause;
 
 import hudson.Launcher;
@@ -81,9 +83,17 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
 
     private void afterSuccessfulMainBuild() throws IOException, InterruptedException {
 
+        // Create remote URL.
+        final URIish remoteUrl;
+        try {
+            remoteUrl = new URIish("origin");
+        } catch (final URISyntaxException urise) {
+            throw new IOException("Cannot create remote URL", urise);
+        }
+
         // Push the new release branch to the remote repo.
         final String releaseBranch = getBuildWrapperDescriptor().getReleaseBranchPrefix() + this.gitflowCause.getReleaseVersion();
-        this.git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
+        this.git.push().to(remoteUrl).ref("refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch).execute();
 
         // Create a tag for the release version.
         final String tagName = getBuildWrapperDescriptor().getVersionTagPrefix() + this.gitflowCause.getReleaseVersion();
@@ -92,7 +102,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         this.consoleLogger.println(msgCreatedReleaseTag);
 
         // Push the tag for the release version.
-        this.git.push("origin", "refs/tags/" + tagName + ":refs/tags/" + tagName);
+        this.git.push().to(remoteUrl).ref("refs/tags/" + tagName + ":refs/tags/" + tagName).execute();
 
         // Update the project files to the development version for the release fixes.
         final String releaseNextDevelopmentVersion = this.gitflowCause.getReleaseNextDevelopmentVersion();
@@ -102,7 +112,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         this.consoleLogger.println(msgUpdatedFixesVersion);
 
         // Push the project files with the development version for the release fixes.
-        this.git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
+        this.git.push().to(remoteUrl).ref("refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch).execute();
 
         // Record the fixes development version on the release branch.
         this.gitflowPluginData.recordRemoteBranch("origin", releaseBranch, Result.SUCCESS, releaseNextDevelopmentVersion);
@@ -117,7 +127,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         this.consoleLogger.println(msgUpdatedNextVersion);
 
         // Push the project files in the develop branch with the development version for the next release.
-        this.git.push("origin", "refs/heads/" + developBranch + ":refs/heads/" + developBranch);
+        this.git.push().to(remoteUrl).ref("refs/heads/" + developBranch + ":refs/heads/" + developBranch).execute();
 
         // Record the next development version on the develop branch.
         this.gitflowPluginData.recordRemoteBranch("origin", developBranch, Result.SUCCESS, nextDevelopmentVersion);
@@ -125,7 +135,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         // TODO Might configure further branches to merge to.
     }
 
-    private void afterUnsuccessfulMainBuild() throws IOException {
+    private void afterUnsuccessfulMainBuild() {
 
         // Here we assume that there was an error on the develop branch right before we created the release branch.
         final String developBranch = getBuildWrapperDescriptor().getDevelopBranch();
