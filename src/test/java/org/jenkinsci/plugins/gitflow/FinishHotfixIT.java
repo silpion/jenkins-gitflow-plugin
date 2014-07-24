@@ -22,6 +22,7 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.jenkinsci.plugins.gitclient.Git;
 import org.jenkinsci.plugins.gitclient.GitClient;
 import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
+import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -74,11 +75,11 @@ public class FinishHotfixIT {
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        data.recordRemoteBranch("origin", "hotfix/foobar1", Result.SUCCESS, "1.1-SNAPSHOT");
-        data.recordRemoteBranch("origin", "hotfix/foobar2", Result.SUCCESS, "1.1-SNAPSHOT");
-        data.recordRemoteBranch("origin", "hotfix/foobar3", Result.SUCCESS, "1.1-SNAPSHOT");
-        data.recordRemoteBranch("origin", "hotfix/foobar4", Result.SUCCESS, "1.1-SNAPSHOT");
-        data.recordRemoteBranch("origin", "hotfix/foobar5", Result.SUCCESS, "1.1-SNAPSHOT");
+        addRemoteBranch(data, "origin", "hotfix/foobar1", Result.SUCCESS, "1.1-SNAPSHOT");
+        addRemoteBranch(data, "origin", "hotfix/foobar2", Result.SUCCESS, "1.1-SNAPSHOT");
+        addRemoteBranch(data, "origin", "hotfix/foobar3", Result.SUCCESS, "1.1-SNAPSHOT");
+        addRemoteBranch(data, "origin", "hotfix/foobar4", Result.SUCCESS, "1.1-SNAPSHOT");
+        addRemoteBranch(data, "origin", "hotfix/foobar5", Result.SUCCESS, "1.1-SNAPSHOT");
 
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
@@ -129,7 +130,7 @@ public class FinishHotfixIT {
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        data.recordRemoteBranch("origin", "hotfix/foobar3", Result.SUCCESS, "1.1-SNAPSHOT");
+        addRemoteBranch(data, "origin", "hotfix/foobar3", Result.SUCCESS, "1.1-SNAPSHOT");
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
@@ -173,7 +174,7 @@ public class FinishHotfixIT {
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        data.recordRemoteBranch("origin", "hotfix/foobar3", Result.SUCCESS, "1.1-SNAPSHOT");
+        addRemoteBranch(data, "origin", "hotfix/foobar3", Result.SUCCESS, "1.1-SNAPSHOT");
 
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
@@ -304,6 +305,12 @@ public class FinishHotfixIT {
 
         GitSCM gitSCM = new GitSCM(pathToUnpack.getAbsolutePath());
         mavenProject.setScm(gitSCM);
+    }
+
+    private void addRemoteBranch(GitflowPluginData data, String origin, String branch, Result result, String version) {
+        RemoteBranch masterBranch = data.getOrAddRemoteBranch(origin, branch);
+        masterBranch.setLastBuildVersion(version);
+        masterBranch.setLastBuildResult(result);
     }
 }
 

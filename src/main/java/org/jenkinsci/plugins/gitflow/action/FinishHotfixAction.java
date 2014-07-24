@@ -1,9 +1,11 @@
 package org.jenkinsci.plugins.gitflow.action;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.text.MessageFormat;
 
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitflow.cause.FinishHotfixCause;
 
 import hudson.Launcher;
@@ -69,7 +71,16 @@ public class FinishHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractG
             // if (remove local branch == SUCCESS) the remove the remote branch
 
             //remove remote branch
-            this.git.push("origin", ":" + gitflowCause.getHotfixBranche());
+            this.git.push().to(getRemoteURI("origin")).ref(":" + gitflowCause.getHotfixBranche()).execute();
+        }
+    }
+
+    private URIish getRemoteURI(String remote) throws IOException{
+        // Create remote URL.
+        try {
+            return new URIish(remote);
+        } catch (final URISyntaxException urise) {
+            throw new IOException("Cannot create remote URL", urise);
         }
     }
 }
