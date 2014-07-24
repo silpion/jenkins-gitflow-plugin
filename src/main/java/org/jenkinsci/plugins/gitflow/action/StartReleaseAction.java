@@ -1,9 +1,12 @@
 package org.jenkinsci.plugins.gitflow.action;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.text.MessageFormat;
 
+import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitflow.cause.StartReleaseCause;
+import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -81,18 +84,34 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
 
     private void afterSuccessfulMainBuild() throws IOException, InterruptedException {
 
+        // Create remote URL.
+        final URIish remoteUrl;
+        try {
+            remoteUrl = new URIish("origin");
+        } catch (final URISyntaxException urise) {
+            throw new IOException("Cannot create remote URL", urise);
+        }
+
         // Push the new release branch to the remote repo.
-        final String releaseBranch = getBuildWrapperDescriptor().getReleaseBranchPrefix() + this.gitflowCause.getReleaseVersion();
-        this.git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
+        final String releaseVersion = this.gitflowCause.getReleaseVersion();
+        final String releaseBranch = getBuildWrapperDescriptor().getReleaseBranchPrefix() + releaseVersion;
+        this.git.push().to(remoteUrl).ref("refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch).execute();
+
+        // Record the information on the currently stable version on the release branch.
+        final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getOrAddRemoteBranch("origin", releaseBranch);
+        remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
+        remoteBranchRelease.setLastBuildVersion(releaseVersion);
+        remoteBranchRelease.setLastReleaseVersion(releaseVersion);
+        remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev(this.git.getRemoteUrl("origin"), releaseBranch));
 
         // Create a tag for the release version.
-        final String tagName = getBuildWrapperDescriptor().getVersionTagPrefix() + this.gitflowCause.getReleaseVersion();
+        final String tagName = getBuildWrapperDescriptor().getVersionTagPrefix() + releaseVersion;
         final String msgCreatedReleaseTag = formatPattern(MSG_PATTERN_CREATED_RELEASE_TAG, tagName);
         this.git.tag(tagName, msgCreatedReleaseTag);
         this.consoleLogger.println(msgCreatedReleaseTag);
 
         // Push the tag for the release version.
-        this.git.push("origin", "refs/tags/" + tagName + ":refs/tags/" + tagName);
+        this.git.push().to(remoteUrl).ref("refs/tags/" + tagName + ":refs/tags/" + tagName).execute();
 
         // Update the project files to the development version for the release fixes.
         final String releaseNextDevelopmentVersion = this.gitflowCause.getReleaseNextDevelopmentVersion();
@@ -102,10 +121,11 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         this.consoleLogger.println(msgUpdatedFixesVersion);
 
         // Push the project files with the development version for the release fixes.
-        this.git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
+        this.git.push().to(remoteUrl).ref("refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch).execute();
 
         // Record the fixes development version on the release branch.
-        this.gitflowPluginData.recordRemoteBranch("origin", releaseBranch, Result.SUCCESS, releaseNextDevelopmentVersion);
+        remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
+        remoteBranchRelease.setLastBuildVersion(releaseNextDevelopmentVersion);
 
         // Update the project files in the develop branch to the development version for the next release.
         final String developBranch = getBuildWrapperDescriptor().getDevelopBranch();
@@ -117,19 +137,23 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         this.consoleLogger.println(msgUpdatedNextVersion);
 
         // Push the project files in the develop branch with the development version for the next release.
-        this.git.push("origin", "refs/heads/" + developBranch + ":refs/heads/" + developBranch);
+        this.git.push().to(remoteUrl).ref("refs/heads/" + developBranch + ":refs/heads/" + developBranch).execute();
 
         // Record the next development version on the develop branch.
-        this.gitflowPluginData.recordRemoteBranch("origin", developBranch, Result.SUCCESS, nextDevelopmentVersion);
+        // TODO We should not offer the Start Release action when no record for the develop branch exists - the method 'getOrAddRemoteBranch' can be used then.
+        final RemoteBranch remoteBranchDevelop = this.gitflowPluginData.getOrAddRemoteBranch("origin", developBranch);
+        remoteBranchDevelop.setLastBuildResult(Result.SUCCESS);
+        remoteBranchDevelop.setLastBuildVersion(nextDevelopmentVersion);
 
         // TODO Might configure further branches to merge to.
     }
 
-    private void afterUnsuccessfulMainBuild() throws IOException {
+    private void afterUnsuccessfulMainBuild() {
 
         // Here we assume that there was an error on the develop branch right before we created the release branch.
-        final String developBranch = getBuildWrapperDescriptor().getDevelopBranch();
-        final String developBranchVersion = this.gitflowPluginData.getRemoteBranch("origin", developBranch).getLastBuildVersion();
-        this.gitflowPluginData.recordRemoteBranch("origin", developBranch, this.build.getResult(), developBranchVersion);
+        // TODO We should not offer the Start Release action when no record for the develop branch exists - the method 'getOrAddRemoteBranch' can be used then.
+        final RemoteBranch remoteBranchDevelop = this.gitflowPluginData.getOrAddRemoteBranch("origin", getBuildWrapperDescriptor().getDevelopBranch());
+        remoteBranchDevelop.setLastBuildResult(this.build.getResult());
+        remoteBranchDevelop.setLastBuildVersion(remoteBranchDevelop.getLastBuildVersion());
     }
 }
