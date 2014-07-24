@@ -47,11 +47,41 @@
                         </f:dropdownList>
                     </f:radioBlock>
                     <f:radioBlock name="action" value="publishRelease" title="Publish Release" checked="false">
-                        <f:entry>
-                            TODO Add form field entries to configure the
-                            <i>Publish Release</i>
-                            action.
-                        </f:entry>
+                        <f:dropdownList name="release" title="Release">
+                            <j:forEach var="releaseBranch" items="${it.computeReleaseBranches()}">
+                                <f:dropdownListBlock value="${it.computeReleaseVersion(releaseBranch)}" title="${it.computeReleaseVersion(releaseBranch)}" selected="false">
+                                    <f:entry title="Release Branch">
+                                        <f:readOnlyTextbox name="releaseBranch" value="${releaseBranch}" />
+                                    </f:entry>
+                                    <f:entry title="Last Fixes Release Version">
+                                        <f:readOnlyTextbox name="lastFixesReleaseVersion" value="${it.computeLastFixesReleaseVersion(releaseBranch)}" />
+                                    </f:entry>
+                                    <f:entry title="Last Fixes Release Commit">
+                                        <f:readOnlyTextbox name="lastFixesReleaseCommit" value="${it.computeLastFixesReleaseCommit(releaseBranch)}" />
+                                    </f:entry>
+                                    <f:entry title="Merge to develop">
+                                        <f:checkbox name="mergeToDevelop" checked="false"
+                                            title="(Using merge strategy 'recursive-ours' to prevent conflicts, but some conflicting changes may be lost.)" />
+                                    </f:entry>
+                                    <f:entry title="Included Action">
+                                        <select name="includedAction">
+                                            <option value="NONE">None (keep release branch)</option>
+                                            <option value="FINISH_RELEASE">
+                                                Finish Release ${it.computeReleaseVersion(releaseBranch)}
+                                                <br />
+                                                (Delete release branch - NOTE: Merge to develop must be checked)
+                                            </option>
+                                            <option value="START_HOTFIX" selected="selected">
+                                                Finish Release ${it.computeReleaseVersion(releaseBranch)} and
+                                                Start Hotfix ${it.computeReleaseVersion(releaseBranch)}
+                                                <br />
+                                                (Rename release branch)
+                                            </option>
+                                        </select>
+                                    </f:entry>
+                                </f:dropdownListBlock>
+                            </j:forEach>
+                        </f:dropdownList>
                     </f:radioBlock>
                     <f:radioBlock name="action" value="finishRelease" title="Finish Release" checked="false">
                         <f:entry>
@@ -103,7 +133,7 @@
                 </tr>
                 <tr>
                     <td colspan="4" align="right">
-                        <a href="http://www.silpion.de" target="_blank" style="position: absolute; right:0px; padding-right:1em">
+                        <a href="http://www.silpion.de" target="_blank" style="position: absolute; right:0; padding-right:1em">
                             <img src="${rootURL}/plugin/gitflow/images/SilpionLogo.gif" />
                         </a>
                     </td>

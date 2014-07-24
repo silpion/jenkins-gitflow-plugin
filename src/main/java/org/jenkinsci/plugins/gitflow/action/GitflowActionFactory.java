@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.gitflow.action;
 import java.io.IOException;
 
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
+import org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause;
 import org.jenkinsci.plugins.gitflow.cause.StartReleaseCause;
 import org.jenkinsci.plugins.gitflow.cause.TestHotfixCause;
 import org.jenkinsci.plugins.gitflow.cause.TestReleaseCause;
@@ -30,6 +31,8 @@ public class GitflowActionFactory {
             gitflowAction = new StartReleaseAction<B>(build, launcher, listener, (StartReleaseCause) gitflowCause);
         } else if (gitflowCause instanceof TestReleaseCause) {
             gitflowAction = new TestReleaseAction<B>(build, launcher, listener, (TestReleaseCause) gitflowCause);
+        } else if (gitflowCause instanceof PublishReleaseCause) {
+            gitflowAction = new PublishReleaseAction<B>(build, launcher, listener, (PublishReleaseCause) gitflowCause);
         } else if (gitflowCause instanceof TestHotfixCause) {
             gitflowAction = new TestHotfixAction<B>(build, launcher, listener, (TestHotfixCause) gitflowCause);
         } else {
