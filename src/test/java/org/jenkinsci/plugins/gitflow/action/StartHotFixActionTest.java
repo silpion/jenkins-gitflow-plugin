@@ -16,7 +16,6 @@ import java.util.List;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.eclipse.jgit.transport.URIish;
-import org.jenkinsci.plugins.gitclient.GitClient;
 import org.jenkinsci.plugins.gitclient.PushCommand;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
@@ -25,7 +24,6 @@ import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -174,7 +172,6 @@ public class StartHotFixActionTest {
     }
 
     @Test
-    @Ignore
     public void testAfterMainBuildInternalFail() throws Exception {
         //Setup
         GitflowPluginData pluginData = mock(GitflowPluginData.class);
@@ -184,13 +181,17 @@ public class StartHotFixActionTest {
         StartHotFixCause cause = new StartHotFixCause("VeryHotFix", "1.0.2-Snapshot", false);
         StartHotFixAction action = createAction(cause);
 
+        RemoteBranch remoteBranch = mock(RemoteBranch.class);
+        when(pluginData.getOrAddRemoteBranch("origin", "hotfix/VeryHotFix")).thenReturn(remoteBranch);
+
         //Run
         action.afterMainBuildInternal();
 
         //Check
         verify(pluginData).setDryRun(false);
         verify(pluginData).getOrAddRemoteBranch("origin", "hotfix/VeryHotFix");
-        //Result.FAILURE, "1.0.2-Snapshot");
+        verify(remoteBranch).setLastBuildResult(Result.FAILURE);
+        verify(remoteBranch).setLastBuildVersion("1.0.2-Snapshot");
 
         verifyNoMoreInteractions(gitClient, pluginData);
     }
