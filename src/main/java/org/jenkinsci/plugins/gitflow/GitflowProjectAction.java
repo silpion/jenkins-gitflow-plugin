@@ -82,6 +82,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
 
     private static boolean isExistingRemoteBranch(final GitClientDelegate git, final String remoteAlias, final String branchName) {
         try {
+            // TODO The 'release' and 'hotfix' branches get mixed up.
             return git.getHeadRev(git.getRemoteUrl(remoteAlias), branchName) != null;
         } catch (final Exception ignored) {
             // NOTE that proper error handling for Git client problems is not possible here.
@@ -204,6 +205,19 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         nextFixesDevelopmentVersionBuilder.append("-SNAPSHOT");
 
         return nextFixesDevelopmentVersionBuilder.toString();
+    }
+
+    public String computeLastFixesReleaseVersion(final String releaseBranch) throws IOException {
+        return this.remoteBranches.get("origin/" + releaseBranch).getLastReleaseVersion();
+    }
+
+    public String computeLastFixesReleaseCommit(final String releaseBranch) throws IOException {
+        return this.remoteBranches.get("origin/" + releaseBranch).getLastReleaseVersionCommit().getName();
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public String computeHotfixBranch(final String releaseBranch) {
+        return getBuildWrapperDescriptor().getHotfixBranchPrefix() + this.computeReleaseVersion(releaseBranch);
     }
 
     @SuppressWarnings("UnusedDeclaration")

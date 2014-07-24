@@ -3,11 +3,10 @@ package org.jenkinsci.plugins.gitflow.action;
 import java.io.IOException;
 import java.util.Collection;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
 import org.jenkinsci.plugins.gitflow.cause.NoGitflowCause;
+import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -24,13 +23,6 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
 
     private static final String ACTION_NAME = "";
     private static final String CONSOLE_MESSAGE_PREFIX = "Gitflow - " + ACTION_NAME + ": ";
-
-    private static final Transformer REMOVE_ORIGIN_PREFIX_TRANSFORMER = new Transformer() {
-
-        public Object transform(final Object input) {
-            return StringUtils.removeStart((String) input, "origin/");
-        }
-    };
 
     public <BC extends B> NoGitflowAction(final BC build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
         super(build, launcher, listener, new NoGitflowCause(), ACTION_NAME);
@@ -62,7 +54,12 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
 
         // Record the data about the Gitflow branches that have been built.
         final Collection<String> remoteBranchNames = this.build.getAction(GitTagAction.class).getTags().keySet();
-        final Collection<String> simpleBranchNames = CollectionUtils.collect(remoteBranchNames, REMOVE_ORIGIN_PREFIX_TRANSFORMER);
-        this.gitflowPluginData.recordRemoteBranches("origin", simpleBranchNames, this.build.getResult(), this.buildTypeAction.getCurrentVersion());
+        for (final String remoteBranchName : remoteBranchNames) {
+            final String[] remoteBranchNameTokens = StringUtils.split(remoteBranchName, "/", 2);
+
+            final RemoteBranch remoteBranch = this.gitflowPluginData.getOrAddRemoteBranch(remoteBranchNameTokens[0], remoteBranchNameTokens[1]);
+            remoteBranch.setLastBuildResult(this.build.getResult());
+            remoteBranch.setLastBuildVersion(this.buildTypeAction.getCurrentVersion());
+        }
     }
 }

@@ -24,7 +24,7 @@ import hudson.model.Result;
  */
 public class GitflowPluginData implements Action, Serializable, Cloneable {
 
-    private static final long serialVersionUID = 109223276757967160L;
+    private static final long serialVersionUID = 7613596093574533990L;
 
     private static final Comparator<Result> RESULT_SEVERITY_COMPARATOR = new Comparator<Result>() {
 
@@ -69,34 +69,13 @@ public class GitflowPluginData implements Action, Serializable, Cloneable {
     }
 
     /**
-     * Records the data for the provided Git remote branches - unless {@code dryRun} isn't set to {@code true}.
+     * Removes the given remote branch from the Gitflow plugin data.
      *
-     * @param remoteAlias the alias for the remote repository.
-     * @param branchNames the simple names of the remote branches (without remote alias).
-     * @param buildResult the result of the last build on the remoteBranches.
-     * @param buildVersion the project version of the last build on the remoteBranches.
+     * @param removeRemoteBranch the remote branch to be removed.
+     * @param evenOnDryRun remove the branch even when <i>Dry Run</i> mode is switched on.
      */
-    public void recordRemoteBranches(final String remoteAlias, final Collection<String> branchNames, final Result buildResult, final String buildVersion) {
-        if (!this.dryRun) {
-            for (final String branchName : branchNames) {
-                this.recordRemoteBranch(remoteAlias, branchName, buildResult, buildVersion);
-            }
-        }
-    }
-
-    /**
-     * Records the data for the provided Git remote branch - unless {@code dryRun} isn't set to {@code true}.
-     *
-     * @param remoteAlias the alias for the remote repository.
-     * @param branchName the simple name of the branch (without remote alias).
-     * @param buildVersion the project version of the last build on the branch.
-     */
-    public void recordRemoteBranch(final String remoteAlias, final String branchName, final Result buildResult, final String buildVersion) {
-        if (!this.dryRun) {
-            final RemoteBranch remoteBranch = this.getRemoteBranch(remoteAlias, branchName, true);
-            remoteBranch.setLastBuildResult(buildResult);
-            remoteBranch.setLastBuildVersion(buildVersion);
-        }
+    public void removeRemoteBranch(final RemoteBranch removeRemoteBranch, final boolean evenOnDryRun) {
+        this.removeRemoteBranches(Collections.singletonList(removeRemoteBranch), evenOnDryRun);
     }
 
     /**
@@ -145,39 +124,55 @@ public class GitflowPluginData implements Action, Serializable, Cloneable {
     }
 
     /**
-     * Returns the {@link RemoteBranch} with the given remote alias and name.
-     * <p/>
-     * If there is no record for the requested branch and the parameter {@code createNewIfMissing} is set to {@code true}, a new {@link RemoteBranch} object
-     * is be created. If the parameter is set to {@code false}, {@code null} will be returned. attached to the {@link GitflowPluginData} and returned.
+     * Returns the {@link RemoteBranch} with the given remote alias and name. If there is no record for the requested
+     * branch, a new {@link RemoteBranch} object is created, attached to the {@link GitflowPluginData} and returned.
+     * <p />
+     * In <i>Dry Run</i> mode, a copy of the {@link RemoteBranch} is returned. It's a dummy object that is not attached to the persited data.
      *
      * @param remoteAlias the alias for the remote repository.
      * @param branchName the simple name of the branch.
-     * @return the {@link RemoteBranch} with the given remote alias and name or {@code null}.
+     * @return the {@link RemoteBranch} with the given remote alias and name or a new {@link RemoteBranch} object.
      */
-    private RemoteBranch getRemoteBranch(final String remoteAlias, final String branchName, final boolean createNewIfMissing) {
+    public RemoteBranch getOrAddRemoteBranch(final String remoteAlias, final String branchName) {
         RemoteBranch remoteBranch = this.getRemoteBranch(remoteAlias, branchName);
-        if (remoteBranch == null && createNewIfMissing) {
+        if (remoteBranch == null) {
             remoteBranch = new RemoteBranch(remoteAlias, branchName);
-            this.remoteBranches.add(remoteBranch);
-            Collections.sort(this.remoteBranches);
+            if (!this.dryRun) {
+                this.remoteBranches.add(remoteBranch);
+                Collections.sort(this.remoteBranches);
+            }
         }
         return remoteBranch;
     }
 
     /**
      * Returns the {@link RemoteBranch} with the given remote alias and name.
+     * <p />
+     * In <i>Dry Run</i> mode, a copy of the {@link RemoteBranch} is returned. It's a dummy object that is not attached to the persited data.
      *
      * @param remoteAlias the alias for the remote repository.
      * @param branchName the simple name of the branch.
      * @return the {@link RemoteBranch} with the given remote alias and name or {@code null}.
      */
     public RemoteBranch getRemoteBranch(final String remoteAlias, final String branchName) {
+        RemoteBranch requestedRemoteBranch = null;
+
         for (final RemoteBranch remoteBranch : this.remoteBranches) {
             if (remoteBranch.getRemoteAlias().equals(remoteAlias) && remoteBranch.getBranchName().equals(branchName)) {
-                return remoteBranch;
+                if (this.dryRun) {
+                    try {
+                        requestedRemoteBranch = remoteBranch.clone();
+                    } catch (final CloneNotSupportedException ignore) {
+                        // Should not happen. But even if it happens it's not important, because on dry run the object won't be dropped anyway.
+                        requestedRemoteBranch = new RemoteBranch(remoteAlias, branchName);
+                    }
+                } else {
+                    requestedRemoteBranch = remoteBranch;
+                }
             }
         }
-        return null;
+
+        return requestedRemoteBranch;
     }
 
     public List<RemoteBranch> getRemoteBranches() {
