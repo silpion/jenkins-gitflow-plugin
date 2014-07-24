@@ -1,5 +1,7 @@
 package org.jenkinsci.plugins.gitflow.action;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -13,14 +15,21 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitclient.GitClient;
+import org.jenkinsci.plugins.gitclient.PushCommand;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
 import org.jenkinsci.plugins.gitflow.cause.StartHotFixCause;
 import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
+import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -47,7 +56,7 @@ public class StartHotFixActionTest {
     private GitSCM scm;
 
     @Mock
-    private GitClient gitClient;
+    private GitClientDelegate gitClient;
 
     @Mock
     private GitflowBuildWrapper.DescriptorImpl descriptor;
@@ -56,6 +65,9 @@ public class StartHotFixActionTest {
     private AbstractBuildTypeAction<?> buildTypeAction;
 
     private ByteArrayOutputStream outputStream;
+
+    @Captor
+    private ArgumentCaptor<URIish> urIishArgumentCaptor;
 
     @Before
     public void setUp() throws Exception {
@@ -124,26 +136,45 @@ public class StartHotFixActionTest {
     @Test
     public void testAfterMainBuildInternalSuccess() throws Exception {
 
+        //Setup
         GitflowPluginData pluginData = mock(GitflowPluginData.class);
+        RemoteBranch remoteBranch = mock(RemoteBranch.class);
+        PushCommand pushCommand = mock(PushCommand.class);
+
         when(build.getAction(GitflowPluginData.class)).thenReturn(pluginData);
         when(build.getResult()).thenReturn(Result.SUCCESS);
 
-        //Setup
         StartHotFixCause cause = new StartHotFixCause("VeryHotFix", "1.0.2-Snapshot", false);
         StartHotFixAction action = createAction(cause);
+
+        when(pluginData.getOrAddRemoteBranch("origin", "hotfix/VeryHotFix")).thenReturn(remoteBranch);
+        when(gitClient.push()).thenReturn(pushCommand);
+        when(pushCommand.to(any(URIish.class))).thenReturn(pushCommand);
+        when(pushCommand.ref(any(String.class))).thenReturn(pushCommand);
 
         //Run
         action.afterMainBuildInternal();
 
         //Check
-        verify(gitClient).push("origin","refs/heads/hotfix/VeryHotFix:refs/heads/hotfix/VeryHotFix");
-        verify(pluginData).setDryRun(false);
-        verify(pluginData).recordRemoteBranch("origin","hotfix/VeryHotFix", Result.SUCCESS, "1.0.2-Snapshot");
+        verify(gitClient).push();
 
-        verifyNoMoreInteractions(gitClient, pluginData);
+        verify(pluginData).setDryRun(false);
+        verify(pluginData).getOrAddRemoteBranch("origin", "hotfix/VeryHotFix");
+
+        verify(remoteBranch).setLastBuildResult(Result.SUCCESS);
+        verify(remoteBranch).setLastBuildVersion("1.0.2-Snapshot");
+
+        verify(pushCommand).to(urIishArgumentCaptor.capture());
+        verify(pushCommand).ref("refs/heads/hotfix/VeryHotFix:refs/heads/hotfix/VeryHotFix");
+        verify(pushCommand).execute();
+
+        assertThat(urIishArgumentCaptor.getValue().getPath(), is("origin"));
+
+        verifyNoMoreInteractions(gitClient, pluginData, remoteBranch, pushCommand);
     }
 
     @Test
+    @Ignore
     public void testAfterMainBuildInternalFail() throws Exception {
         //Setup
         GitflowPluginData pluginData = mock(GitflowPluginData.class);
@@ -158,7 +189,8 @@ public class StartHotFixActionTest {
 
         //Check
         verify(pluginData).setDryRun(false);
-        verify(pluginData).recordRemoteBranch("origin","hotfix/VeryHotFix", Result.FAILURE, "1.0.2-Snapshot");
+        verify(pluginData).getOrAddRemoteBranch("origin", "hotfix/VeryHotFix");
+        //Result.FAILURE, "1.0.2-Snapshot");
 
         verifyNoMoreInteractions(gitClient, pluginData);
     }
