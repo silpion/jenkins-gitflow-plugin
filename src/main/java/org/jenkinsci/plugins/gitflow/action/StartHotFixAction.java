@@ -1,11 +1,14 @@
 package org.jenkinsci.plugins.gitflow.action;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.text.MessageFormat;
 import java.util.List;
 
+import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.cause.StartHotFixCause;
+import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -74,10 +77,12 @@ public class StartHotFixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
     protected void afterMainBuildInternal() throws IOException, InterruptedException {
         if (build.getResult()== Result.SUCCESS) {
             // Push the new hotfix branch to the remote repo.
-            this.git.push("origin", "refs/heads/" + getHotfixBranchName() + ":refs/heads/" + getHotfixBranchName());
+            this.git.push().to(getRemoteURI("origin")).ref("refs/heads/" + getHotfixBranchName() + ":refs/heads/" + getHotfixBranchName()).execute();
         }
         //Record the build Data
-        gitflowPluginData.recordRemoteBranch("origin", getHotfixBranchName(), build.getResult(), gitflowCause.getNextHotfixDevelopmentVersion());
+        RemoteBranch remoteBranch = gitflowPluginData.getOrAddRemoteBranch("origin", getHotfixBranchName());
+        remoteBranch.setLastBuildResult(build.getResult());
+        remoteBranch.setLastBuildVersion(gitflowCause.getNextHotfixDevelopmentVersion());
     }
 
     private String getHotfixBranchName() {
@@ -97,6 +102,14 @@ public class StartHotFixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         this.descriptor = descriptor;
     }
 
+    private URIish getRemoteURI(String remote) throws IOException{
+        // Create remote URL.
+        try {
+            return new URIish(remote);
+        } catch (final URISyntaxException urise) {
+            throw new IOException("Cannot create remote URL", urise);
+        }
+    }
 }
 
 
