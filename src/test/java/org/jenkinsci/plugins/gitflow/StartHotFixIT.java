@@ -20,6 +20,7 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.jenkinsci.plugins.gitclient.Git;
 import org.jenkinsci.plugins.gitclient.GitClient;
 import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
+import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,7 +29,6 @@ import org.jvnet.hudson.test.JenkinsRule;
 
 import com.gargoylesoftware.htmlunit.html.HtmlCheckBoxInput;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlRadioButtonInput;
 import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
@@ -77,7 +77,9 @@ public class StartHotFixIT {
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        data.recordRemoteBranch("origin", "master", Result.SUCCESS, "1.2");
+
+        addRemoteBranch(data,"origin", "master", Result.SUCCESS, "1.2");
+
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
@@ -118,6 +120,12 @@ public class StartHotFixIT {
         checkMultiModuleProject(repository, "1.2.2-SNAPSHOT", 4);
     }
 
+    private void addRemoteBranch(GitflowPluginData data, String origin, String branch, Result result, String version) {
+        RemoteBranch masterBranch = data.getOrAddRemoteBranch(origin, branch);
+        masterBranch.setLastBuildVersion(version);
+        masterBranch.setLastBuildResult(result);
+    }
+
     /**
      * Run the <i>Start Hotfix</i> Gitflow action in <i>dryRun</i> via a webclient.
      *
@@ -133,7 +141,7 @@ public class StartHotFixIT {
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        data.recordRemoteBranch("origin", "master", Result.SUCCESS, "1.2");
+        addRemoteBranch(data, "origin", "master", Result.SUCCESS, "1.2");
 
         JenkinsRule.WebClient webClient = j.createWebClient();
 
@@ -179,7 +187,7 @@ public class StartHotFixIT {
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        data.recordRemoteBranch("origin", "master", Result.SUCCESS, "1.2");
+        addRemoteBranch(data, "origin", "master", Result.SUCCESS, "1.2");
 
         JenkinsRule.WebClient webClient = j.createWebClient();
 
