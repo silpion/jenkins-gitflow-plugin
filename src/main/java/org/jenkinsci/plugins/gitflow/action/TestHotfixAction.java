@@ -1,10 +1,13 @@
 package org.jenkinsci.plugins.gitflow.action;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.text.MessageFormat;
 
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitflow.cause.TestHotfixCause;
+import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -84,7 +87,7 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
 
         // Push the new minor release version to the remote repo.
         String hotfixBranch = gitflowCause.getHotfixBranch();
-        git.push("origin", "HEAD:refs/heads/" + hotfixBranch);
+        git.push().to(getRemoteURI("origin")).ref("HEAD:refs/heads/" + hotfixBranch).execute();
         consoleLogger.println(formatPattern(MSG_PATTERN_PUSHED_HOTFIX_BRANCH, hotfixBranch));
 
         // Update and commit the project files to the next version for the next hotfix
@@ -95,11 +98,11 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
         consoleLogger.println(msgUpdatedFixesVersion);
 
         // Push the project files with the next version for the next hotfix.
-        git.push("origin", "HEAD:refs/heads/" + hotfixBranch);
+        git.push().to(getRemoteURI("origin")).ref("HEAD:refs/heads/" + hotfixBranch).execute();
         consoleLogger.println(formatPattern(MSG_PATTERN_PUSHED_NEXT_HOTFIX_VERSION, nextHotfixVersion));
 
         // Record the next hot development version on the hotfix branch.
-        gitflowPluginData.recordRemoteBranch("origin", hotfixBranch, build.getResult(), nextHotfixVersion);
+        updatePluginData("origin", hotfixBranch, build.getResult(), nextHotfixVersion);
     }
 
     private void afterUnsuccessfulMainBuild() throws IOException {
@@ -107,6 +110,23 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
         // Here we assume that there was an error on the hotfix branch right before executed this action.
         String hotfixBranch = gitflowCause.getHotfixBranch();
         String hotfixBranchVersion = gitflowPluginData.getRemoteBranch("origin", hotfixBranch).getLastBuildVersion();
-        gitflowPluginData.recordRemoteBranch("origin", hotfixBranch, build.getResult(), hotfixBranchVersion);
+        updatePluginData("origin", hotfixBranch, build.getResult(), hotfixBranchVersion);
     }
+
+    private RemoteBranch updatePluginData(String remote, String branch, Result result, String version) {
+        RemoteBranch remoteBranch = gitflowPluginData.getOrAddRemoteBranch(remote, branch);
+        remoteBranch.setLastBuildResult(result);
+        remoteBranch.setLastBuildVersion(version);
+        return remoteBranch;
+    }
+
+    private URIish getRemoteURI(String remote) throws IOException{
+        // Create remote URL.
+        try {
+            return new URIish(remote);
+        } catch (final URISyntaxException urise) {
+            throw new IOException("Cannot create remote URL", urise);
+        }
+    }
+
 }

@@ -1,5 +1,7 @@
 package org.jenkinsci.plugins.gitflow.action;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -15,16 +17,19 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.jgit.lib.ObjectId;
-import org.jenkinsci.plugins.gitclient.GitClient;
+import org.eclipse.jgit.transport.URIish;
+import org.jenkinsci.plugins.gitclient.PushCommand;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
 import org.jenkinsci.plugins.gitflow.cause.TestHotfixCause;
 import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.internal.verification.Times;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import hudson.Launcher;
@@ -50,10 +55,13 @@ public class TestHotfixActionTest {
     private GitSCM scm;
 
     @Mock
-    private GitClient gitClient;
+    private GitClientDelegate gitClient;
 
     @Mock
     private AbstractBuildTypeAction<?> buildTypeAction;
+
+    @Captor
+    private ArgumentCaptor<URIish> urIishArgumentCaptor;
 
     @Before
     public void setUp() throws Exception {
@@ -129,6 +137,9 @@ public class TestHotfixActionTest {
         String nextHotfixVersion = "1.2.4-SNAPSHOT";
 
         GitflowPluginData pluginData = mock(GitflowPluginData.class);
+        RemoteBranch remoteBranch = mock(RemoteBranch.class);
+        PushCommand pushCommand = mock(PushCommand.class);
+
         when(build.getAction(GitflowPluginData.class)).thenReturn(pluginData);
 
         TestHotfixCause cause = new TestHotfixCause(hotfixBranch, hotfixVersion, nextHotfixVersion, false);
@@ -139,12 +150,17 @@ public class TestHotfixActionTest {
         List<String> changeFiles = Arrays.asList("pom.xml", "child1/pom.xml", "child2/pom.xml", "child3/pom.xml");
         when(buildTypeAction.updateVersion(nextHotfixVersion)).thenReturn(changeFiles);
 
+        when(pluginData.getOrAddRemoteBranch("origin", "hotfix/foobar")).thenReturn(remoteBranch);
+        when(gitClient.push()).thenReturn(pushCommand);
+        when(pushCommand.to(any(URIish.class))).thenReturn(pushCommand);
+        when(pushCommand.ref(any(String.class))).thenReturn(pushCommand);
         //Run
         action.afterMainBuildInternal();
 
         //Check
         verify(pluginData).setDryRun(false);
-        verify(gitClient, times(2)).push("origin", "HEAD:refs/heads/" + hotfixBranch);
+        verify(pluginData).getOrAddRemoteBranch("origin", hotfixBranch);
+        verify(gitClient, times(2)).push();
 
         verify(gitClient).add("pom.xml");
         verify(gitClient).add("child1/pom.xml");
@@ -152,10 +168,19 @@ public class TestHotfixActionTest {
         verify(gitClient).add("child3/pom.xml");
         verify(gitClient).commit(any(String.class));
 
-        verify(pluginData).recordRemoteBranch("origin", hotfixBranch,Result.SUCCESS,nextHotfixVersion);
+        verify(remoteBranch).setLastBuildResult(Result.SUCCESS);
+        verify(remoteBranch).setLastBuildVersion(nextHotfixVersion);
 
-        verifyNoMoreInteractions(gitClient, pluginData);
+        verify(pushCommand, times(2)).to(urIishArgumentCaptor.capture());
+        verify(pushCommand, times(2)).ref("HEAD:refs/heads/" + hotfixBranch);
+        verify(pushCommand, times(2)).execute();
+
+        assertThat(urIishArgumentCaptor.getValue().getPath(), is("origin"));
+
+        verifyNoMoreInteractions(gitClient, pluginData, remoteBranch, pushCommand);
     }
+
+
 
     @Test
     public void testAfterMainBuildInternalFail() throws Exception {
@@ -166,11 +191,13 @@ public class TestHotfixActionTest {
         String nextHotfixVersion = "1.2.4-SNAPSHOT";
 
         GitflowPluginData pluginData = mock(GitflowPluginData.class);
+
         when(build.getAction(GitflowPluginData.class)).thenReturn(pluginData);
         RemoteBranch remoteBranch = mock(RemoteBranch.class);
 
         when(remoteBranch.getLastBuildVersion()).thenReturn(lastVersion);
         when(pluginData.getRemoteBranch("origin", hotfixBranch)).thenReturn(remoteBranch);
+        when(pluginData.getOrAddRemoteBranch("origin", hotfixBranch)).thenReturn(remoteBranch);
 
         TestHotfixCause cause = new TestHotfixCause(hotfixBranch, hotfixVersion, nextHotfixVersion, false);
         TestHotfixAction action = createAction(cause);
@@ -183,7 +210,11 @@ public class TestHotfixActionTest {
         //Check
         verify(pluginData).setDryRun(false);
         verify(pluginData).getRemoteBranch("origin", hotfixBranch);
-        verify(pluginData).recordRemoteBranch("origin", hotfixBranch,Result.FAILURE,lastVersion);
+        verify(pluginData).getOrAddRemoteBranch("origin", hotfixBranch);
+
+        verify(remoteBranch).setLastBuildResult(Result.FAILURE);
+        verify(remoteBranch).setLastBuildVersion(lastVersion);
+
         verify(remoteBranch).getLastBuildVersion();
 
         verifyNoMoreInteractions(gitClient, pluginData, remoteBranch);
