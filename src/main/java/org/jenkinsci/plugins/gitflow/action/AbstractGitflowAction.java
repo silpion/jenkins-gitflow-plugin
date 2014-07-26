@@ -58,20 +58,16 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
      * @param build the build that is in progress.
      * @param launcher can be used to launch processes for this build - even if the build runs remotely.
      * @param listener can be used to send any message.
+     * @param git the Git client used to execute commands for the Gitflow actions.
      * @param gitflowCause the <i>Gitflow</i> cause for the build in progress.
-     * @param actionName the name of the new action.
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    protected AbstractGitflowAction(final B build, final Launcher launcher, final BuildListener listener, C gitflowCause, final String actionName)
-            throws IOException, InterruptedException {
+    protected AbstractGitflowAction(final B build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git, C gitflowCause) throws IOException, InterruptedException {
         super(build, listener);
 
         this.gitflowCause = gitflowCause;
-
-        final boolean dryRun = gitflowCause.isDryRun();
-        this.git = new GitClientDelegate(build, listener, dryRun);
-
+        this.git = git;
         this.buildTypeAction = BuildTypeActionFactory.newInstance(build, launcher, listener);
 
         // Prepare the action object that holds the data for the Gitflow plugin.
@@ -115,12 +111,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
             // Add the new action object to the build.
             build.addAction(this.gitflowPluginData);
         }
-        this.gitflowPluginData.setDryRun(dryRun);
-
-        // Prepare the action object for the build badges to be displayed.
-        final GitflowBadgeAction gitflowBadgeAction = new GitflowBadgeAction();
-        gitflowBadgeAction.setGitflowActionName(actionName);
-        build.addAction(gitflowBadgeAction);
+        this.gitflowPluginData.setDryRun(gitflowCause.isDryRun());
     }
 
     /**
@@ -139,8 +130,19 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
      * @throws InterruptedException if the build is interrupted during execution.
      */
     public final void beforeMainBuild() throws IOException, InterruptedException {
+
+        // Prepare the action object for the build badges to be displayed.
+        final GitflowBadgeAction gitflowBadgeAction = new GitflowBadgeAction();
+        gitflowBadgeAction.setGitflowActionName(this.getActionName());
+        this.build.addAction(gitflowBadgeAction);
+
+        // Clean up the checkout.
         this.cleanCheckout();
+
+        // Execute the action-specific tasks.
         this.beforeMainBuildInternal();
+
+        // Don't publish/deploy archives on Dry Run.
         if (this.gitflowCause.isDryRun()) {
             this.buildTypeAction.preventArchivePublication(this.additionalBuildEnvVars);
         }

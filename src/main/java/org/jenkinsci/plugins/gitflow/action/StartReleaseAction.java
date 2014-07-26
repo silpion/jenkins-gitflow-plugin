@@ -7,6 +7,7 @@ import java.text.MessageFormat;
 import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitflow.cause.StartReleaseCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -38,13 +39,14 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
      * @param build the <i>Start Release</i> build that is in progress.
      * @param launcher can be used to launch processes for this build - even if the build runs remotely.
      * @param listener can be used to send any message.
+     * @param git the Git client used to execute commands for the Gitflow actions.
      * @param gitflowCause the cause for the new action.
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    public <BC extends B> StartReleaseAction(final BC build, final Launcher launcher, final BuildListener listener, final StartReleaseCause gitflowCause)
+    public <BC extends B> StartReleaseAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git, final StartReleaseCause gitflowCause)
             throws IOException, InterruptedException {
-        super(build, launcher, listener, gitflowCause, ACTION_NAME);
+        super(build, launcher, listener, git, gitflowCause);
     }
 
     @Override

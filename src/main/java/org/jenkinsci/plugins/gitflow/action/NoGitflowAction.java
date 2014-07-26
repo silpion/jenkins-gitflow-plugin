@@ -7,6 +7,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
 import org.jenkinsci.plugins.gitflow.cause.NoGitflowCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -24,8 +25,18 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
     private static final String ACTION_NAME = "";
     private static final String CONSOLE_MESSAGE_PREFIX = "Gitflow - " + ACTION_NAME + ": ";
 
-    public <BC extends B> NoGitflowAction(final BC build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
-        super(build, launcher, listener, new NoGitflowCause(), ACTION_NAME);
+    /**
+     * Initialises a new action for a non-Gitflow build.
+     *
+     * @param build the <i>Publish Release</i> build that is in progress.
+     * @param launcher can be used to launch processes for this build - even if the build runs remotely.
+     * @param listener can be used to send any message.
+     * @param git the Git client used to execute commands for the Gitflow actions.
+     * @throws IOException if an error occurs that causes/should cause the build to fail.
+     * @throws InterruptedException if the build is interrupted during execution.
+     */
+    public <BC extends B> NoGitflowAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git) throws IOException, InterruptedException {
+        super(build, launcher, listener, git, new NoGitflowCause());
     }
 
     @Override

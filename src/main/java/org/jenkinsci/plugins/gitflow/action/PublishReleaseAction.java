@@ -21,6 +21,7 @@ import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 import org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand.StrategyOption;
 
 import hudson.Launcher;
@@ -54,13 +55,14 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
      * @param build the <i>Publish Release</i> build that is in progress.
      * @param launcher can be used to launch processes for this build - even if the build runs remotely.
      * @param listener can be used to send any message.
+     * @param git the Git client used to execute commands for the Gitflow actions.
      * @param gitflowCause the cause for the new action.
-     * @throws java.io.IOException if an error occurs that causes/should cause the build to fail.
+     * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    public <BC extends B> PublishReleaseAction(final BC build, final Launcher launcher, final BuildListener listener, final PublishReleaseCause gitflowCause)
+    public <BC extends B> PublishReleaseAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git, final PublishReleaseCause gitflowCause)
             throws IOException, InterruptedException {
-        super(build, launcher, listener, gitflowCause, ACTION_NAME);
+        super(build, launcher, listener, git, gitflowCause);
 
         // Create remote URL.
         try {
