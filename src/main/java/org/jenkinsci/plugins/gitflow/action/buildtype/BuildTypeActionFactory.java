@@ -27,8 +27,7 @@ public class BuildTypeActionFactory {
             final MavenModuleSetBuild mavenModuleSetBuild = (MavenModuleSetBuild) build;
             abstractBuildTypeAction = new MavenBuildTypeAction(mavenModuleSetBuild, launcher, listener);
         } else {
-            final MavenModuleSetBuild mavenModuleSetBuild = (MavenModuleSetBuild) build;
-            abstractBuildTypeAction = new UnknownBuildTypeAction(mavenModuleSetBuild, launcher, listener);
+            abstractBuildTypeAction = new UnknownBuildTypeAction(build, launcher, listener);
         }
 
         return abstractBuildTypeAction;
