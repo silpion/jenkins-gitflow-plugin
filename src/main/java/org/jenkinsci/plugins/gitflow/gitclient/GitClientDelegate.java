@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
@@ -20,22 +21,22 @@ import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitclient.ChangelogCommand;
-import org.jenkinsci.plugins.gitclient.CliGitAPIImpl;
 import org.jenkinsci.plugins.gitclient.CheckoutCommand;
+import org.jenkinsci.plugins.gitclient.CliGitAPIImpl;
 import org.jenkinsci.plugins.gitclient.CloneCommand;
 import org.jenkinsci.plugins.gitclient.FetchCommand;
 import org.jenkinsci.plugins.gitclient.GitClient;
-import org.jenkinsci.plugins.gitclient.JGitAPIImpl;
 import org.jenkinsci.plugins.gitclient.InitCommand;
+import org.jenkinsci.plugins.gitclient.JGitAPIImpl;
 import org.jenkinsci.plugins.gitclient.MergeCommand;
 import org.jenkinsci.plugins.gitclient.MergeCommand.Strategy;
 import org.jenkinsci.plugins.gitclient.PushCommand;
 import org.jenkinsci.plugins.gitclient.RepositoryCallback;
+import org.jenkinsci.plugins.gitclient.SubmoduleUpdateCommand;
 import org.jenkinsci.plugins.gitflow.gitclient.merge.CliGitMergeCommand;
 import org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand;
 import org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand.StrategyOption;
 import org.jenkinsci.plugins.gitflow.gitclient.merge.JGitMergeCommand;
-import org.jenkinsci.plugins.gitclient.SubmoduleUpdateCommand;
 
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
@@ -470,7 +471,23 @@ public class GitClientDelegate implements GitClient {
     /** {@inheritDoc} */
     @SuppressWarnings("ThrowsRuntimeException")
     public ObjectId getHeadRev(String remoteRepoUrl, String branch) throws GitException, InterruptedException {
-        return this.gitClient.getHeadRev(remoteRepoUrl, branch);
+        ObjectId headRev = null;
+
+        // Bugfix: When 'branch' is provided with a simple branch name that contains slashes, branches might get mixed up.
+        // E.g.: When looking for branch 'release/1.0', the head rev of 'hotfix/1.0' might be returned.
+        if (branch.startsWith("remotes/") || branch.startsWith("refs/heads/")) {
+            headRev = this.gitClient.getHeadRev(remoteRepoUrl, branch);
+        } else {
+            for (final Map.Entry<String, ObjectId> branchHeadRev : this.gitClient.getHeadRev(remoteRepoUrl).entrySet()) {
+                final String branchName = StringUtils.removeStart(branchHeadRev.getKey(), "refs/heads/");
+                if (branchName.equals(branch)) {
+                    headRev = branchHeadRev.getValue();
+                    break;
+                }
+            }
+        }
+
+        return headRev;
     }
 
     /** {@inheritDoc} */
