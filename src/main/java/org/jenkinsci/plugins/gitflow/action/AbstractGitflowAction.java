@@ -43,12 +43,11 @@ import jenkins.model.Jenkins;
  */
 public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C extends AbstractGitflowCause> extends AbstractActionBase<B> {
 
-    private static final String MSG_CLEAN_WORKING_DIRECTORY = "Ensuring clean working/checkout directory";
-    private static final String MSG_ABORTING_TO_OMIT_MAIN_BUILD = "Gitflow - Intentionally aborting to omit the main build";
+    private static final MessageFormat MSG_PATTERN_CLEANED_UP_WORKING_DIRECTORY = new MessageFormat("Gitflow - {0}: Cleaned up working/checkout directory");
     private static final MessageFormat MSG_PATTERN_CREATED_BRANCH_BASED_ON_OTHER = new MessageFormat("Gitflow - {0}: Created a new branch {1} based on {2}");
     private static final MessageFormat MSG_PATTERN_DELETED_BRANCH = new MessageFormat("Gitflow - {0}: Deleted branch {1}");
-    private static final MessageFormat MSG_PATTERN_RESULT_TO_UNSTABLE = new MessageFormat("Gitflow - Changing result of successful build to"
-                                                                                          + " unstable, because there are unstable branches: {0}");
+    private static final MessageFormat MSG_PATTERN_ABORTING_TO_OMIT_MAIN_BUILD = new MessageFormat("Gitflow - {0}: Intentionally aborting to omit the main build");
+    private static final MessageFormat MSG_PATTERN_RESULT_TO_UNSTABLE = new MessageFormat("Gitflow - {0}: Changing result of successful build to unstable, because there are unstable branches: {0}");
 
     private static final Function<Branch, String> BRANCH_TO_NAME_FUNCTION = new Function<Branch, String>() {
 
@@ -84,8 +83,10 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
         super(build, listener);
 
         this.gitflowCause = gitflowCause;
-        this.git = git;
         this.buildTypeAction = BuildTypeActionFactory.newInstance(build, launcher, listener);
+
+        this.git = git;
+        this.git.setGitflowActionName(this.getActionName());
 
         // Create remote URL.
         try {
@@ -186,7 +187,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
         if (buildResult.isBetterThan(Result.UNSTABLE) && getBuildWrapperDescriptor().isMarkSuccessfulBuildUnstableOnBrokenBranches()) {
             final Map<Result, Collection<RemoteBranch>> unstableBranchesGroupedByResult = this.gitflowPluginData.getUnstableRemoteBranchesGroupedByResult();
             if (MapUtils.isNotEmpty(unstableBranchesGroupedByResult)) {
-                this.consoleLogger.println(formatPattern(MSG_PATTERN_RESULT_TO_UNSTABLE, unstableBranchesGroupedByResult.toString()));
+                this.consoleLogger.println(formatPattern(MSG_PATTERN_RESULT_TO_UNSTABLE, this.getActionName(), unstableBranchesGroupedByResult.toString()));
                 this.build.setResult(Result.UNSTABLE);
             }
         }
@@ -230,8 +231,8 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
      * @throws InterruptedException if the build is interrupted during execution.
      */
     protected void cleanCheckout() throws InterruptedException {
-        this.consoleLogger.println(this.getConsoleMessagePrefix() + MSG_CLEAN_WORKING_DIRECTORY);
         this.git.clean();
+        this.consoleLogger.println(formatPattern(MSG_PATTERN_CLEANED_UP_WORKING_DIRECTORY, this.getActionName()));
     }
 
     protected void createBranch(final String newBranchName, final String releaseBranch) throws InterruptedException {
@@ -276,17 +277,11 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
      * @throws InterruptedException always thrown to omit the main build.
      */
     protected void omitMainBuild() throws InterruptedException {
-        this.consoleLogger.println(MSG_ABORTING_TO_OMIT_MAIN_BUILD);
+        final String msgAbortingToOmitMainBuild = formatPattern(MSG_PATTERN_ABORTING_TO_OMIT_MAIN_BUILD, this.getActionName());
+        this.consoleLogger.println(msgAbortingToOmitMainBuild);
         Executor.currentExecutor().interrupt(SUCCESS);
-        throw new InterruptedException(MSG_ABORTING_TO_OMIT_MAIN_BUILD);
+        throw new InterruptedException(msgAbortingToOmitMainBuild);
     }
-
-    /**
-     * Returns the action-specific prefix for console messages.
-     *
-     * @return the action-specific prefix for console messages.
-     */
-    protected abstract String getConsoleMessagePrefix();
 
     /**
      * Returns the action-specific name for console messages.

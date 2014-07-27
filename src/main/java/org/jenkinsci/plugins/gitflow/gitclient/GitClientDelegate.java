@@ -58,12 +58,14 @@ import hudson.plugins.git.Revision;
  */
 public class GitClientDelegate implements GitClient {
 
-    private static final MessageFormat MSG_PATTERN_PUSHED_TO_REMOTE = new MessageFormat("Gitflow - Pushed {0} to {1}");
-    private static final MessageFormat MSG_PATTERN_DIDNT_PUSH_DUE_TO_DRY_RUN = new MessageFormat("Gitflow - Dry run: didn''t push {0} to {1}");
+    private static final MessageFormat MSG_PATTERN_PUSHED_TO_REMOTE = new MessageFormat("Gitflow - {0}: Pushed to {1} using refspec {2}");
+    private static final MessageFormat MSG_PATTERN_PUSH_OMITTED_DUE_TO_DRY_RUN = new MessageFormat("Gitflow - {0} (dry run): Omitted push to {1} using refspec {2}");
 
     protected final PrintStream consoleLogger;
 
     private final GitClient gitClient;
+
+    private String gitflowActionName = "unknown action";
     private final boolean dryRun;
 
     /**
@@ -272,9 +274,9 @@ public class GitClientDelegate implements GitClient {
     @SuppressWarnings("ThrowsRuntimeException")
     public void push(String remoteName, String refspec) throws GitException, InterruptedException {
         // This method is deprecated, but let's still support 'Dry Run' - just for the case ...
-        final String[] messageArguments = new String[] { refspec, remoteName };
+        final String[] messageArguments = new String[] { this.gitflowActionName, remoteName, refspec };
         if (GitClientDelegate.this.dryRun) {
-            GitClientDelegate.this.consoleLogger.println(formatPattern(MSG_PATTERN_DIDNT_PUSH_DUE_TO_DRY_RUN, messageArguments));
+            GitClientDelegate.this.consoleLogger.println(formatPattern(MSG_PATTERN_PUSH_OMITTED_DUE_TO_DRY_RUN, messageArguments));
         } else {
             this.gitClient.push(remoteName, refspec);
             GitClientDelegate.this.consoleLogger.println(formatPattern(MSG_PATTERN_PUSHED_TO_REMOTE, messageArguments));
@@ -286,9 +288,9 @@ public class GitClientDelegate implements GitClient {
     @SuppressWarnings("ThrowsRuntimeException")
     public void push(URIish url, String refspec) throws GitException, InterruptedException {
         // This method is deprecated, but let's still support 'Dry Run' - just for the case ...
-        final String[] messageArguments = new String[] { refspec, url.getHumanishName() };
+        final String[] messageArguments = new String[] { this.gitflowActionName, url.getHumanishName(), refspec };
         if (GitClientDelegate.this.dryRun) {
-            GitClientDelegate.this.consoleLogger.println(formatPattern(MSG_PATTERN_DIDNT_PUSH_DUE_TO_DRY_RUN, messageArguments));
+            GitClientDelegate.this.consoleLogger.println(formatPattern(MSG_PATTERN_PUSH_OMITTED_DUE_TO_DRY_RUN, messageArguments));
         } else {
             this.gitClient.push(url, refspec);
             GitClientDelegate.this.consoleLogger.println(formatPattern(MSG_PATTERN_PUSHED_TO_REMOTE, messageArguments));
@@ -332,9 +334,9 @@ public class GitClientDelegate implements GitClient {
             /** {@inheritDoc} */
             @SuppressWarnings("ThrowsRuntimeException")
             public void execute() throws GitException, InterruptedException {
-                final String[] messageArguments = new String[] { this.refspec, this.remote.getHumanishName() };
+                final String[] messageArguments = new String[] { GitClientDelegate.this.gitflowActionName, this.remote.getHumanishName(), this.refspec };
                 if (GitClientDelegate.this.dryRun) {
-                    GitClientDelegate.this.consoleLogger.println(formatPattern(MSG_PATTERN_DIDNT_PUSH_DUE_TO_DRY_RUN, messageArguments));
+                    GitClientDelegate.this.consoleLogger.println(formatPattern(MSG_PATTERN_PUSH_OMITTED_DUE_TO_DRY_RUN, messageArguments));
                 } else {
                     pushCommand.execute();
                     GitClientDelegate.this.consoleLogger.println(formatPattern(MSG_PATTERN_PUSHED_TO_REMOTE, messageArguments));
@@ -633,5 +635,9 @@ public class GitClientDelegate implements GitClient {
      */
     private static String formatPattern(final MessageFormat messageFormat, final String... messageArguments) {
         return messageFormat.format(messageArguments);
+    }
+
+    public void setGitflowActionName(final String gitflowActionName) {
+        this.gitflowActionName = gitflowActionName;
     }
 }

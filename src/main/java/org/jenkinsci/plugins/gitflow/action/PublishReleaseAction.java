@@ -39,7 +39,6 @@ import hudson.plugins.git.util.BuildData;
 public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGitflowAction<B, PublishReleaseCause> {
 
     private static final String ACTION_NAME = "Publish Release";
-    private static final String MSG_PREFIX = "Gitflow - " + ACTION_NAME + ": ";
 
     private static final MessageFormat MSG_PATTERN_CHECKOUT_BRANCH = new MessageFormat("Gitflow - {0}: Checked out branch {1}");
     private static final MessageFormat MSG_PATTERN_MERGED_LAST_FIXES_RELEASE = new MessageFormat("Gitflow - {0}: Merged last fixes release {1} to branch {2}");
@@ -58,12 +57,6 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
     public <BC extends B> PublishReleaseAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git, final PublishReleaseCause gitflowCause)
             throws IOException, InterruptedException {
         super(build, launcher, listener, git, gitflowCause);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected String getConsoleMessagePrefix() {
-        return MSG_PREFIX;
     }
 
     /** {@inheritDoc} */
