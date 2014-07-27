@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.gitflow.action;
 
+import static org.mockito.Matchers.startsWith;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 import java.util.HashMap;
@@ -45,9 +46,7 @@ public class StartReleaseActionTest extends AbstractGitflowActionTest<StartRelea
         // Mock relevant method calls.
         when(this.cause.getReleaseVersion()).thenReturn("1.0");
         when(this.gitflowBuildWrapperDescriptor.getReleaseBranchPrefix()).thenReturn("release/");
-/*
         when(this.gitflowBuildWrapperDescriptor.getBranchType(startsWith("release/"))).thenReturn("release");
-*/
 
         // Define expectations.
         expectedAdditionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", "release/1.0");

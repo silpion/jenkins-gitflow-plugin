@@ -50,9 +50,7 @@ public class NoGitflowActionTest extends AbstractGitflowActionTest<NoGitflowActi
         final GitTagAction gitTagAction = mock(GitTagAction.class);
         when(this.build.getAction(GitTagAction.class)).thenReturn(gitTagAction);
         when(gitTagAction.getTags()).thenReturn(Collections.<String, List<String>>singletonMap("origin/develop", null));
-/*
         when(this.gitflowBuildWrapperDescriptor.getBranchType("develop")).thenReturn("develop");
-*/
 
         // Define expectations.
         expectedAdditionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", "develop");

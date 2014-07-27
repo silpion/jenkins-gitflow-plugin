@@ -50,12 +50,18 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
 
     @Override
     protected void cleanCheckout() throws InterruptedException {
-        // Override without actually cleaning up, because standard builds should folllow the cleanup configuration of the Git plugin.
+        // Override without actually cleaning up, because standard builds should follow the cleanup configuration of the Git plugin.
     }
 
     @Override
     protected void beforeMainBuildInternal() throws IOException, InterruptedException {
-        // Nothing to do.
+
+        // Add environment and property variables
+        final String remoteBranchName = this.build.getAction(GitTagAction.class).getTags().keySet().iterator().next();
+        final String simpleBranchName = StringUtils.split(remoteBranchName, "/", 2)[1];
+        this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", simpleBranchName);
+        this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", remoteBranchName);
+        this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getBuildWrapperDescriptor().getBranchType(simpleBranchName));
     }
 
     @Override
