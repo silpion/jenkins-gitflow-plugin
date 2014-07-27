@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Collection;
 
 import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
 import org.jenkinsci.plugins.gitflow.cause.NoGitflowCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
@@ -20,7 +19,7 @@ import hudson.plugins.git.GitTagAction;
  * @param <B> the build in progress.
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
-public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitflowAction<B, AbstractGitflowCause> {
+public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitflowAction<B, NoGitflowCause> {
 
     private static final String ACTION_NAME = "";
     private static final String CONSOLE_MESSAGE_PREFIX = "Gitflow - " + ACTION_NAME + ": ";
