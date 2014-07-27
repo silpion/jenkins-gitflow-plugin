@@ -84,7 +84,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
         // Push the new minor release version to the remote repo.
         final String releaseBranch = this.gitflowCause.getReleaseBranch();
-        this.git.push().to(this.remoteUrl).ref("HEAD:refs/heads/" + releaseBranch).execute();
+        this.git.push().to(this.remoteUrl).ref("refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch).execute();
 
         // Record the information on the currently stable version on the release branch.
         final String fixesReleaseVersion = this.gitflowCause.getFixesReleaseVersion();
@@ -111,7 +111,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         this.consoleLogger.println(msgUpdatedFixesVersion);
 
         // Push the project files with the minor version for the next release.
-        this.git.push().to(this.remoteUrl).ref("HEAD:refs/heads/" + releaseBranch).execute();
+        this.git.push().to(this.remoteUrl).ref("refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch).execute();
 
         // Record the fixes development version on the release branch.
         remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
