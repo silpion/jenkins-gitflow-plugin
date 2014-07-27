@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.gitflow.action.buildtype;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -54,7 +55,7 @@ public class MavenBuildTypeAction extends AbstractBuildTypeAction<MavenModuleSet
         final List<String> modifiedFiles;
 
         // Run a Maven build that updates the project versions in the POMs.
-        this.executeMaven(formatPattern(CMD_PATTERN_SET_POM_VERSION, version));
+        this.executeMaven("set-version_" + version + ".log", formatPattern(CMD_PATTERN_SET_POM_VERSION, version));
 
         // Each modules' POM should have been modified.
         final Collection<MavenModule> modules = this.build.getProject().getModules();
@@ -68,15 +69,19 @@ public class MavenBuildTypeAction extends AbstractBuildTypeAction<MavenModuleSet
         return modifiedFiles;
     }
 
-    private void executeMaven(final String... arguments) throws IOException, InterruptedException {
+    private void executeMaven(final String logFileName, final String... arguments) throws IOException, InterruptedException {
 
         final MavenModuleSet mavenProject = this.build.getProject();
         final String mavenInstallation = mavenProject.getMaven().getName();
         final String pom = mavenProject.getRootPOM(this.build.getEnvironment(this.listener));
 
+        // Use a BuildListener delegate to redirect the Maven output to a file (instead of being displayed in the Jenkins console).
+        final File outputLogFile = new File(this.build.getRootDir(), "gitflow-log/" + logFileName);
+        final BuildListener buildListener = new BuildListenerDelegate(this.listener, outputLogFile);
+
         // Execute Maven and throw an Exception when it returns with an error.
         final String argumentsString = StringUtils.join(arguments, " ");
-        final boolean success = new Maven(argumentsString, mavenInstallation, pom, null, null).perform(this.build, this.launcher, this.listener);
+        final boolean success = new Maven(argumentsString, mavenInstallation, pom, null, null).perform(this.build, this.launcher, buildListener);
         if (!success) {
             throw new IOException("Error while executing mvn " + argumentsString);
         }
