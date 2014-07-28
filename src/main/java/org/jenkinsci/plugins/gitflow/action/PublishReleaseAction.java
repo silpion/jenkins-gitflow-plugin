@@ -10,14 +10,12 @@ import static org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand.
 import static org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand.StrategyOption.THEIRS;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
@@ -42,12 +40,9 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
 
     private static final String ACTION_NAME = "Publish Release";
     private static final String MSG_PREFIX = "Gitflow - " + ACTION_NAME + ": ";
-    private static final MessageFormat MSG_PATTERN_CHECKOUT_BRANCH = new MessageFormat(MSG_PREFIX + "Checked out branch {0}");
-    private static final MessageFormat MSG_PATTERN_MERGED_LAST_FIXES_RELEASE = new MessageFormat(MSG_PREFIX + "Merged last fixes release {0} to branch {1}");
-    private static final MessageFormat MSG_PATTERN_NEW_HOTFIX_BRANCH_BASED_ON_RELEASE = new MessageFormat(MSG_PREFIX + "Created a new branch {0} based on {1}");
-    private static final MessageFormat MSG_PATTERN_DELETED_BRANCH = new MessageFormat(MSG_PREFIX + "Deleted branch {0}");
 
-    private final URIish remoteUrl;
+    private static final MessageFormat MSG_PATTERN_CHECKOUT_BRANCH = new MessageFormat("Gitflow - {0}: Checked out branch {1}");
+    private static final MessageFormat MSG_PATTERN_MERGED_LAST_FIXES_RELEASE = new MessageFormat("Gitflow - {0}: Merged last fixes release {1} to branch {2}");
 
     /**
      * Initialises a new <i>Publish Release</i> action.
@@ -63,13 +58,6 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
     public <BC extends B> PublishReleaseAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git, final PublishReleaseCause gitflowCause)
             throws IOException, InterruptedException {
         super(build, launcher, listener, git, gitflowCause);
-
-        // Create remote URL.
-        try {
-            this.remoteUrl = new URIish("origin");
-        } catch (final URISyntaxException urise) {
-            throw new IOException("Cannot create remote URL", urise);
-        }
     }
 
     /** {@inheritDoc} */
@@ -137,50 +125,18 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         this.omitMainBuild();
     }
 
-    private void createBranch(final String newBranchName, final String releaseBranch) throws InterruptedException {
-
-        // Create a new hotfix branch.
-        this.git.checkoutBranch(newBranchName, "origin/" + releaseBranch);
-        this.consoleLogger.println(formatPattern(MSG_PATTERN_NEW_HOTFIX_BRANCH_BASED_ON_RELEASE, newBranchName, releaseBranch));
-
-        // Push the new hotfix branch.
-        this.git.push().to(this.remoteUrl).ref("refs/heads/" + newBranchName + ":refs/heads/" + newBranchName).execute();
-
-        // Record the data for the new remote branch.
-        final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getRemoteBranch("origin", releaseBranch);
-        final RemoteBranch remoteBranchNew = this.gitflowPluginData.getOrAddRemoteBranch("origin", newBranchName);
-        remoteBranchNew.setLastBuildResult(remoteBranchRelease.getLastBuildResult());
-        remoteBranchNew.setLastBuildVersion(remoteBranchRelease.getLastBuildVersion());
-        remoteBranchNew.setLastReleaseVersion(remoteBranchRelease.getLastReleaseVersion());
-        remoteBranchNew.setLastReleaseVersionCommit(remoteBranchRelease.getLastReleaseVersionCommit());
-    }
-
-    private void deleteBranch(final String branchName) throws InterruptedException {
-
-        // Delete the remote branch locally and remotely.
-        this.git.deleteBranch(branchName);
-        this.consoleLogger.println(formatPattern(MSG_PATTERN_DELETED_BRANCH, branchName));
-        this.git.push().to(this.remoteUrl).ref(":refs/heads/" + branchName).execute();
-
-        // Remove the recorded data of the deleted remote branch.
-        final RemoteBranch remoteBranch = this.gitflowPluginData.getRemoteBranch("origin", branchName);
-        if (remoteBranch != null) {
-            this.gitflowPluginData.removeRemoteBranch(remoteBranch, false);
-        }
-    }
-
     private void mergeLastFixesRelease(final String targetBranch, final StrategyOption recursiveMergeStrategyOption) throws InterruptedException {
 
         // Checkout the target branch.
         final ObjectId targetBranchRev = this.git.getHeadRev(this.git.getRemoteUrl("origin"), targetBranch);
         this.git.checkoutBranch(targetBranch, targetBranchRev.getName());
-        this.consoleLogger.println(formatPattern(MSG_PATTERN_CHECKOUT_BRANCH, targetBranch));
+        this.consoleLogger.println(formatPattern(MSG_PATTERN_CHECKOUT_BRANCH, ACTION_NAME, targetBranch));
 
         // Merge the last fixes release (from the release branch) to the target branch.
         final ObjectId lastFixesReleaseCommit = ObjectId.fromString(this.gitflowCause.getLastFixesReleaseCommit());
         this.git.merge(lastFixesReleaseCommit, NO_FF, RECURSIVE, recursiveMergeStrategyOption, false);
         final String lastFixesReleaseVersion = this.gitflowCause.getLastFixesReleaseVersion();
-        final String msgMergedLastFixesRelease = formatPattern(MSG_PATTERN_MERGED_LAST_FIXES_RELEASE, lastFixesReleaseVersion, targetBranch);
+        final String msgMergedLastFixesRelease = formatPattern(MSG_PATTERN_MERGED_LAST_FIXES_RELEASE, ACTION_NAME, lastFixesReleaseVersion, targetBranch);
         this.git.commit(msgMergedLastFixesRelease);
         this.consoleLogger.println(msgMergedLastFixesRelease);
 
