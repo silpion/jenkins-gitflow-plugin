@@ -21,8 +21,7 @@ import hudson.plugins.git.GitTagAction;
  */
 public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitflowAction<B, NoGitflowCause> {
 
-    private static final String ACTION_NAME = "";
-    private static final String CONSOLE_MESSAGE_PREFIX = "Gitflow - " + ACTION_NAME + ": ";
+    private static final String ACTION_NAME = "default build";
 
     /**
      * Initialises a new action for a non-Gitflow build.
@@ -36,11 +35,6 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
      */
     public <BC extends B> NoGitflowAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git) throws IOException, InterruptedException {
         super(build, launcher, listener, git, new NoGitflowCause());
-    }
-
-    @Override
-    protected String getConsoleMessagePrefix() {
-        return CONSOLE_MESSAGE_PREFIX;
     }
 
     @Override

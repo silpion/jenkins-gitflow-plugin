@@ -20,7 +20,6 @@ import hudson.model.BuildListener;
 public class FinishReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGitflowAction<B, FinishReleaseCause> {
 
     private static final String ACTION_NAME = "Finish Release";
-    private static final String MSG_PREFIX = "Gitflow - " + ACTION_NAME + ": ";
 
     /**
      * Initialises a new <i>Finish Release</i> action.
@@ -36,12 +35,6 @@ public class FinishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstract
     public <BC extends B> FinishReleaseAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git, final FinishReleaseCause gitflowCause)
             throws IOException, InterruptedException {
         super(build, launcher, listener, git, gitflowCause);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected String getConsoleMessagePrefix() {
-        return MSG_PREFIX;
     }
 
     /** {@inheritDoc} */
