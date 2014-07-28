@@ -1,13 +1,19 @@
 package org.jenkinsci.plugins.gitflow.action;
 
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasKey;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import java.util.Map;
 
 import org.jenkinsci.plugins.gitflow.AbstractGitflowPluginTest;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
 import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 
 import hudson.Launcher;
@@ -63,4 +69,43 @@ public abstract class AbstractGitflowActionTest<A extends AbstractGitflowAction<
      * @return the action to be tested.
      */
     protected abstract A getTestAction();
+
+    @Test
+    public void testGetAdditionalBuildEnvVars() throws Exception {
+
+        // Set up the test for the individual action and retrieve its expected variables.
+        // NOTE: Must be executed before 'beforeMainBuild' method.
+        final Map<String, String> expectedBuildEnvVars = this.setUpTestGetAdditionalBuildEnvVars();
+
+        // The additionalBuildEnvVars must be created before the main build - if the main build isn't omitted.
+        boolean isOmitMainBuild = false;
+        try {
+            this.getTestAction().beforeMainBuild();
+        } catch (final InterruptedException ignore) {
+            isOmitMainBuild = true;
+        }
+
+        if (!isOmitMainBuild) {
+
+            // The implementations of this class must provide the expectations for the required variables - if they don't omit the main build.
+            final String testActionClassName = this.getClass().getSimpleName();
+            assertThat(testActionClassName + " must provide an expectation for GIT_SIMPLE_BRANCH_NAME", expectedBuildEnvVars, hasKey("GIT_SIMPLE_BRANCH_NAME"));
+            assertThat(testActionClassName + " must provide an expectation for GIT_REMOTE_BRANCH_NAME", expectedBuildEnvVars, hasKey("GIT_REMOTE_BRANCH_NAME"));
+            assertThat(testActionClassName + " must provide an expectation for GIT_BRANCH_TYPE", expectedBuildEnvVars, hasKey("GIT_BRANCH_TYPE"));
+
+            // Test the expectations.
+            final Map<String, String> buildEnvVars = this.getTestAction().getAdditionalBuildEnvVars();
+            for (final Map.Entry<String, String> expectedBuildEnvVar : expectedBuildEnvVars.entrySet()) {
+                assertThat(buildEnvVars, hasEntry(expectedBuildEnvVar.getKey(), expectedBuildEnvVar.getValue()));
+            }
+        }
+    }
+
+    /**
+     * Mocks the relevant method calls for the {@link #testGetAdditionalBuildEnvVars()}
+     * test and returns a map containing the expected build environment variables.
+     *
+     * @return a map containing the expected build environment variables.
+     */
+    protected abstract Map<String, String> setUpTestGetAdditionalBuildEnvVars() throws InterruptedException;
 }

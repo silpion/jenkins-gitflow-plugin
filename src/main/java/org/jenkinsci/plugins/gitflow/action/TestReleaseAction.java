@@ -72,6 +72,11 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         final String msgUpdatedReleaseVersion = formatPattern(MSG_PATTERN_UPDATED_RELEASE_VERSION, fixesReleaseVersion);
         this.git.commit(msgUpdatedReleaseVersion);
         this.consoleLogger.println(msgUpdatedReleaseVersion);
+
+        // Add environment and property variables
+        this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", releaseBranch);
+        this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/" + releaseBranch);
+        this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getBuildWrapperDescriptor().getBranchType(releaseBranch));
     }
 
     @Override

@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.text.MessageFormat;
 
 import org.eclipse.jgit.transport.URIish;
+import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.cause.StartReleaseCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
@@ -63,8 +64,9 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
     protected void beforeMainBuildInternal() throws IOException, InterruptedException {
 
         // Create a new release branch based on the develop branch.
-        final String releaseBranch = getBuildWrapperDescriptor().getReleaseBranchPrefix() + this.gitflowCause.getReleaseVersion();
-        this.git.checkoutBranch(releaseBranch, "origin/" + getBuildWrapperDescriptor().getDevelopBranch());
+        final GitflowBuildWrapper.DescriptorImpl buildWrapperDescriptor = getBuildWrapperDescriptor();
+        final String releaseBranch = buildWrapperDescriptor.getReleaseBranchPrefix() + this.gitflowCause.getReleaseVersion();
+        this.git.checkoutBranch(releaseBranch, "origin/" + buildWrapperDescriptor.getDevelopBranch());
         this.consoleLogger.println(formatPattern(MSG_PATTERN_CREATED_RELEASE_BRANCH, releaseBranch));
 
         // Update the version numbers in the project files to the release version.
@@ -73,6 +75,11 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         final String msgUpadtedReleaseVersion = formatPattern(MSG_PATTERN_UPDATED_RELEASE_VERSION, releaseVersion);
         this.git.commit(msgUpadtedReleaseVersion);
         this.consoleLogger.println(msgUpadtedReleaseVersion);
+
+        // Add environment and property variables
+        this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", releaseBranch);
+        this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/" + releaseBranch);
+        this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", buildWrapperDescriptor.getBranchType(releaseBranch));
     }
 
     @Override
