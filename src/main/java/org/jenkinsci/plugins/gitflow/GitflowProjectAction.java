@@ -82,7 +82,6 @@ public class GitflowProjectAction implements PermalinkProjectAction {
 
     private static boolean isExistingRemoteBranch(final GitClientDelegate git, final String remoteAlias, final String branchName) {
         try {
-            // TODO The 'release' and 'hotfix' branches get mixed up.
             return git.getHeadRev(git.getRemoteUrl(remoteAlias), branchName) != null;
         } catch (final Exception ignored) {
             // NOTE that proper error handling for Git client problems is not possible here.
