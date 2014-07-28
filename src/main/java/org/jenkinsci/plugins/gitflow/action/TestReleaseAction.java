@@ -1,13 +1,12 @@
 package org.jenkinsci.plugins.gitflow.action;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.text.MessageFormat;
 
 import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitflow.cause.TestReleaseCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -23,12 +22,11 @@ import hudson.model.Result;
 public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGitflowAction<B, TestReleaseCause> {
 
     private static final String ACTION_NAME = "Test Release";
-    private static final String MSG_PREFIX = "Gitflow - " + ACTION_NAME + ": ";
-    private static final MessageFormat MSG_PATTERN_CHECKOUT_RELEASE_BRANCH = new MessageFormat(MSG_PREFIX + "Checkout release branch {0}");
-    private static final MessageFormat MSG_PATTERN_UPDATED_RELEASE_VERSION = new MessageFormat(MSG_PREFIX + "Updated project files to release version {0}");
-    private static final MessageFormat MSG_PATTERN_CREATED_RELEASE_TAG = new MessageFormat(MSG_PREFIX + "Created release version tag {0}");
-    private static final MessageFormat MSG_PATTERN_UPDATED_FIXES_VERSION = new MessageFormat(MSG_PREFIX
-                                                                                             + "Updated project files to fixes development version {0}");
+
+    private static final MessageFormat MSG_PATTERN_CHECKED_OUT_RELEASE_BRANCH = new MessageFormat("Gitflow - {0}: Checked out release branch {1}");
+    private static final MessageFormat MSG_PATTERN_UPDATED_RELEASE_VERSION = new MessageFormat("Gitflow - {0}: Updated project files to release version {1}");
+    private static final MessageFormat MSG_PATTERN_CREATED_RELEASE_TAG = new MessageFormat("Gitflow - {0}: Created release version tag {1}");
+    private static final MessageFormat MSG_PATTERN_UPDATED_FIXES_VERSION = new MessageFormat("Gitflow - {0}: Updated project files to fixes development version {1}");
 
     /**
      * Initialises a new <i>Publish Release</i> action.
@@ -36,18 +34,14 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
      * @param build the <i>Publish Release</i> build that is in progress.
      * @param launcher can be used to launch processes for this build - even if the build runs remotely.
      * @param listener can be used to send any message.
+     * @param git the Git client used to execute commands for the Gitflow actions.
      * @param gitflowCause the cause for the new action.
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    public <BC extends B> TestReleaseAction(final BC build, final Launcher launcher, final BuildListener listener, final TestReleaseCause gitflowCause)
+    public <BC extends B> TestReleaseAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git, final TestReleaseCause gitflowCause)
             throws IOException, InterruptedException {
-        super(build, launcher, listener, gitflowCause, ACTION_NAME);
-    }
-
-    @Override
-    protected String getConsoleMessagePrefix() {
-        return MSG_PREFIX;
+        super(build, launcher, listener, git, gitflowCause);
     }
 
     @Override
@@ -62,14 +56,19 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         final String releaseBranch = this.gitflowCause.getReleaseBranch();
         final ObjectId releaseBranchRev = this.git.getHeadRev(this.git.getRemoteUrl("origin"), releaseBranch);
         this.git.checkoutBranch(releaseBranch, releaseBranchRev.getName());
-        this.consoleLogger.println(formatPattern(MSG_PATTERN_CHECKOUT_RELEASE_BRANCH, releaseBranch));
+        this.consoleLogger.println(formatPattern(MSG_PATTERN_CHECKED_OUT_RELEASE_BRANCH, ACTION_NAME, releaseBranch));
 
         // Update the project files to the minor release number
         final String fixesReleaseVersion = this.gitflowCause.getFixesReleaseVersion();
         this.addFilesToGitStage(this.buildTypeAction.updateVersion(fixesReleaseVersion));
-        final String msgUpdatedReleaseVersion = formatPattern(MSG_PATTERN_UPDATED_RELEASE_VERSION, fixesReleaseVersion);
+        final String msgUpdatedReleaseVersion = formatPattern(MSG_PATTERN_UPDATED_RELEASE_VERSION, ACTION_NAME, fixesReleaseVersion);
         this.git.commit(msgUpdatedReleaseVersion);
         this.consoleLogger.println(msgUpdatedReleaseVersion);
+
+        // Add environment and property variables
+        this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", releaseBranch);
+        this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/" + releaseBranch);
+        this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getBuildWrapperDescriptor().getBranchType(releaseBranch));
     }
 
     @Override
@@ -83,17 +82,9 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
     private void afterSuccessfulMainBuild() throws IOException, InterruptedException {
 
-        // Create remote URL.
-        final URIish remoteUrl;
-        try {
-            remoteUrl = new URIish("origin");
-        } catch (final URISyntaxException urise) {
-            throw new IOException("Cannot create remote URL", urise);
-        }
-
         // Push the new minor release version to the remote repo.
         final String releaseBranch = this.gitflowCause.getReleaseBranch();
-        this.git.push().to(remoteUrl).ref("HEAD:refs/heads/" + releaseBranch).execute();
+        this.git.push().to(this.remoteUrl).ref("refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch).execute();
 
         // Record the information on the currently stable version on the release branch.
         final String fixesReleaseVersion = this.gitflowCause.getFixesReleaseVersion();
@@ -105,22 +96,22 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
         // Create a tag for the release version.
         final String tagName = getBuildWrapperDescriptor().getVersionTagPrefix() + fixesReleaseVersion;
-        final String msgCreatedReleaseTag = formatPattern(MSG_PATTERN_CREATED_RELEASE_TAG, tagName);
+        final String msgCreatedReleaseTag = formatPattern(MSG_PATTERN_CREATED_RELEASE_TAG, ACTION_NAME, tagName);
         this.git.tag(tagName, msgCreatedReleaseTag);
         this.consoleLogger.println(msgCreatedReleaseTag);
 
         // Push the tag for the release version.
-        this.git.push().to(remoteUrl).ref("refs/tags/" + tagName + ":refs/tags/" + tagName).execute();
+        this.git.push().to(this.remoteUrl).ref("refs/tags/" + tagName + ":refs/tags/" + tagName).execute();
 
         // Update and commit the project files to the minor version for the next release
         final String nextFixesDevelopmentVersion = this.gitflowCause.getNextFixesDevelopmentVersion();
         this.addFilesToGitStage(this.buildTypeAction.updateVersion(nextFixesDevelopmentVersion));
-        final String msgUpdatedFixesVersion = formatPattern(MSG_PATTERN_UPDATED_FIXES_VERSION, nextFixesDevelopmentVersion);
+        final String msgUpdatedFixesVersion = formatPattern(MSG_PATTERN_UPDATED_FIXES_VERSION, ACTION_NAME, nextFixesDevelopmentVersion);
         this.git.commit(msgUpdatedFixesVersion);
         this.consoleLogger.println(msgUpdatedFixesVersion);
 
         // Push the project files with the minor version for the next release.
-        this.git.push().to(remoteUrl).ref("HEAD:refs/heads/" + releaseBranch).execute();
+        this.git.push().to(this.remoteUrl).ref("refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch).execute();
 
         // Record the fixes development version on the release branch.
         remoteBranchRelease.setLastBuildResult(Result.SUCCESS);

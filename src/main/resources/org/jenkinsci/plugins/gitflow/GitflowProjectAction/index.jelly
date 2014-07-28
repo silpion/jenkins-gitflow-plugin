@@ -84,11 +84,18 @@
                         </f:dropdownList>
                     </f:radioBlock>
                     <f:radioBlock name="action" value="finishRelease" title="Finish Release" checked="false">
-                        <f:entry>
-                            TODO Add form field entries to configure the
-                            <i>Finish Release</i>
-                            action.
-                        </f:entry>
+                        <f:dropdownList name="release" title="Release">
+                            <j:forEach var="releaseBranch" items="${it.computeReleaseBranches()}">
+                                <f:dropdownListBlock value="${it.computeReleaseVersion(releaseBranch)}" title="${it.computeReleaseVersion(releaseBranch)}" selected="false">
+                                    <f:entry title="Release Branch">
+                                        <f:readOnlyTextbox name="releaseBranch" value="${releaseBranch}" />
+                                    </f:entry>
+                                    <f:entry title="Included Action">
+                                        <f:checkbox name="includeStartHotfixAction" title="Start Hotfix ${it.computeReleaseVersion(releaseBranch)} (Don't delete release branch, reanme to hotfix branch)" checked="true" />
+                                    </f:entry>
+                                </f:dropdownListBlock>
+                            </j:forEach>
+                        </f:dropdownList>
                     </f:radioBlock>
                     <f:radioBlock name="action" value="startHotfix" title="Start Hotfix" checked="false">
                        <f:entry title="Release Version">
