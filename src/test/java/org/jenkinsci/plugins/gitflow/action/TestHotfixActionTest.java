@@ -7,12 +7,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.PrintStream;
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 
@@ -20,6 +19,7 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitclient.PushCommand;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
+import org.jenkinsci.plugins.gitflow.action.buildtype.BuildTypeActionFactory;
 import org.jenkinsci.plugins.gitflow.cause.TestHotfixCause;
 import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
@@ -30,7 +30,8 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -39,8 +40,14 @@ import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.plugins.git.GitSCM;
 
-@RunWith(MockitoJUnitRunner.class)
+import jenkins.model.Jenkins;
+
+@PrepareForTest({ Jenkins.class, BuildTypeActionFactory.class })
+@RunWith(PowerMockRunner.class)
 public class TestHotfixActionTest {
+
+    @Mock
+    private Jenkins jenkins;
 
     @Mock
     private AbstractBuild build;
@@ -58,13 +65,17 @@ public class TestHotfixActionTest {
     private GitClientDelegate gitClient;
 
     @Mock
-    private AbstractBuildTypeAction<?> buildTypeAction;
+    private AbstractBuildTypeAction buildTypeAction;
 
     @Captor
     private ArgumentCaptor<URIish> urIishArgumentCaptor;
 
     @Before
+    @SuppressWarnings("unchecked assignment")
     public void setUp() throws Exception {
+        mockStatic(BuildTypeActionFactory.class);
+        when(BuildTypeActionFactory.newInstance(build, launcher, listener)).thenReturn(buildTypeAction);
+
         AbstractProject project = mock(AbstractProject.class);
         when(project.getScm()).thenReturn(scm);
         when(build.getProject()).thenReturn(project);
@@ -75,33 +86,17 @@ public class TestHotfixActionTest {
 
     //**********************************************************************************************************************************************************
     //
-    // Helper
+    // Test
     //
     //**********************************************************************************************************************************************************
-
-    //TODO This Method only exist for make UnitTesting work, the AbstractGitflowAction needs some refactoring
-    private TestHotfixAction createAction(TestHotfixCause cause) throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        TestHotfixAction action = new TestHotfixAction(build, launcher, listener, cause);
-        setPrivateFinalField(action, "git", gitClient);
-        setPrivateFinalField(action, "buildTypeAction", buildTypeAction);
-        return action;
-    }
-
-    //TODO This Method only exist for make UnitTesting work, the AbstractGitflowAction needs some refactoring
-    private void setPrivateFinalField(Object obj, String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
-        Field f = obj.getClass().getSuperclass().getDeclaredField(fieldName);
-        f.setAccessible(true);
-        f.set(obj, value);
-    }
-
 
     @Test
     public void testBeforeMainBuildInternal() throws Exception {
         //Setup
         String hotfixBranch = "hotfix/foobar";
         String hotfixReleaseVersion = "1.2.3";
-        TestHotfixCause cause = new TestHotfixCause(hotfixBranch, hotfixReleaseVersion,"1.2.4-SNAPSHOT", false);
-        TestHotfixAction action = createAction(cause);
+        TestHotfixCause cause = new TestHotfixCause(hotfixBranch, hotfixReleaseVersion, "1.2.4-SNAPSHOT", false);
+        TestHotfixAction action = new TestHotfixAction(build, launcher, listener, gitClient, cause);
 
         ObjectId id = ObjectId.zeroId();
         String remoteRepoUrl = "someOriginUrl";
@@ -115,6 +110,7 @@ public class TestHotfixActionTest {
         action.beforeMainBuildInternal();
 
         //Check
+        verify(gitClient).setGitflowActionName(action.getActionName());
         verify(gitClient).getRemoteUrl("origin");
         verify(gitClient).getHeadRev(remoteRepoUrl, hotfixBranch);
         verify(gitClient).checkout(id.getName());
@@ -143,7 +139,7 @@ public class TestHotfixActionTest {
         when(build.getAction(GitflowPluginData.class)).thenReturn(pluginData);
 
         TestHotfixCause cause = new TestHotfixCause(hotfixBranch, hotfixVersion, nextHotfixVersion, false);
-        TestHotfixAction action = createAction(cause);
+        TestHotfixAction action = new TestHotfixAction(build, launcher, listener, gitClient, cause);
 
         when(build.getResult()).thenReturn(Result.SUCCESS);
 
@@ -160,6 +156,7 @@ public class TestHotfixActionTest {
         //Check
         verify(pluginData).setDryRun(false);
         verify(pluginData).getOrAddRemoteBranch("origin", hotfixBranch);
+        verify(gitClient).setGitflowActionName(action.getActionName());
         verify(gitClient, times(2)).push();
 
         verify(gitClient).add("pom.xml");
@@ -180,8 +177,6 @@ public class TestHotfixActionTest {
         verifyNoMoreInteractions(gitClient, pluginData, remoteBranch, pushCommand);
     }
 
-
-
     @Test
     public void testAfterMainBuildInternalFail() throws Exception {
         //Setup
@@ -200,7 +195,7 @@ public class TestHotfixActionTest {
         when(pluginData.getOrAddRemoteBranch("origin", hotfixBranch)).thenReturn(remoteBranch);
 
         TestHotfixCause cause = new TestHotfixCause(hotfixBranch, hotfixVersion, nextHotfixVersion, false);
-        TestHotfixAction action = createAction(cause);
+        TestHotfixAction action = new TestHotfixAction(build, launcher, listener, gitClient, cause);
 
         when(build.getResult()).thenReturn(Result.FAILURE);
 
@@ -208,6 +203,7 @@ public class TestHotfixActionTest {
         action.afterMainBuildInternal();
 
         //Check
+        verify(gitClient).setGitflowActionName(action.getActionName());
         verify(pluginData).setDryRun(false);
         verify(pluginData).getRemoteBranch("origin", hotfixBranch);
         verify(pluginData).getOrAddRemoteBranch("origin", hotfixBranch);
