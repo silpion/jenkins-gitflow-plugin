@@ -1,20 +1,28 @@
 package org.jenkinsci.plugins.gitflow.action.buildtype;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 
 import org.jenkinsci.plugins.gitflow.action.AbstractActionBase;
 
 import hudson.Launcher;
+import hudson.console.ConsoleNote;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.model.Cause;
+import hudson.model.Result;
 
 /**
  * Abstract base class for the different build-type-specific actions.
  *
- * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  * @param <T> the build in progress.
+ * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
 public abstract class AbstractBuildTypeAction<T extends AbstractBuild<?, ?>> extends AbstractActionBase<T> {
 
@@ -60,4 +68,69 @@ public abstract class AbstractBuildTypeAction<T extends AbstractBuild<?, ?>> ext
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      */
     public abstract void preventArchivePublication(final Map<String, String> buildEnvVars) throws IOException;
+
+    /**
+     * {@link BuildListener} delegate omitting the Jenkins console output and redirecting it to a file.
+     *
+     * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
+     */
+    protected class BuildListenerDelegate implements BuildListener {
+
+        private static final long serialVersionUID = 1497107043585114757L;
+
+        private final BuildListener delegate;
+        private final PrintStream logger;
+
+        @SuppressWarnings("ResultOfMethodCallIgnored")
+        public BuildListenerDelegate(final BuildListener delegate, final File outputLogFile) throws FileNotFoundException {
+            outputLogFile.getParentFile().mkdirs();
+            this.logger = new PrintStream(new FileOutputStream(outputLogFile));
+            this.delegate = delegate;
+        }
+
+        /** {@inheritDoc} */
+        public void started(final List<Cause> causes) {
+            this.delegate.started(causes);
+        }
+
+        /** {@inheritDoc} */
+        public void finished(final Result result) {
+            this.delegate.finished(result);
+        }
+
+        /** {@inheritDoc} */
+        public PrintStream getLogger() {
+            return this.logger;
+        }
+
+        /** {@inheritDoc} */
+        public void annotate(@SuppressWarnings("rawtypes") final ConsoleNote ann) throws IOException {
+            this.delegate.annotate(ann);
+        }
+
+        /** {@inheritDoc} */
+        public void hyperlink(final String url, final String text) throws IOException {
+            this.delegate.hyperlink(url, text);
+        }
+
+        /** {@inheritDoc} */
+        public PrintWriter error(final String msg) {
+            return this.delegate.error(msg);
+        }
+
+        /** {@inheritDoc} */
+        public PrintWriter error(final String format, final Object... args) {
+            return this.delegate.error(format, args);
+        }
+
+        /** {@inheritDoc} */
+        public PrintWriter fatalError(final String msg) {
+            return this.delegate.fatalError(msg);
+        }
+
+        /** {@inheritDoc} */
+        public PrintWriter fatalError(final String format, final Object... args) {
+            return this.delegate.fatalError(format, args);
+        }
+    }
 }
