@@ -11,6 +11,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 
 import hudson.Launcher;
+import hudson.maven.MavenArgumentInterceptorAction;
 import hudson.maven.MavenModule;
 import hudson.maven.MavenModuleSet;
 import hudson.maven.MavenModuleSetBuild;
@@ -18,6 +19,7 @@ import hudson.maven.RedeployPublisher;
 import hudson.model.BuildListener;
 import hudson.tasks.Maven;
 import hudson.tasks.Publisher;
+import hudson.util.ArgumentListBuilder;
 
 /**
  * This class implements the different actions, that are required to apply the <i>Gitflow</i> to Maven projects.
@@ -34,6 +36,34 @@ public class MavenBuildTypeAction extends AbstractBuildTypeAction<MavenModuleSet
     private static final String MAVEN_PROPERTY_SKIP_DEPLOYMENT = "maven.deploy.skip";
     private static final String PROPERTY_VALUE_TRUE = Boolean.TRUE.toString();
 
+    private static final MavenArgumentInterceptorAction RELEASE_BUILD_ARGUMENT_INTERCEPTOR_ACTION = new MavenArgumentInterceptorAction() {
+
+        /** {@inheritDoc} */
+        public String getGoalsAndOptions(final MavenModuleSetBuild build) {
+            return build.getProject().getGoals() + " -Prelease-profile";
+        }
+
+        /** {@inheritDoc} */
+        public ArgumentListBuilder intercept(final ArgumentListBuilder mavenargs, final MavenModuleSetBuild build) {
+            return null;
+        }
+
+        /** {@inheritDoc} */
+        public String getIconFileName() {
+            return null;
+        }
+
+        /** {@inheritDoc} */
+        public String getDisplayName() {
+            return null;
+        }
+
+        /** {@inheritDoc} */
+        public String getUrlName() {
+            return null;
+        }
+    };
+
     /**
      * Initialises a new Maven build type action.
      *
@@ -45,11 +75,13 @@ public class MavenBuildTypeAction extends AbstractBuildTypeAction<MavenModuleSet
         super(build, launcher, listener);
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getCurrentVersion() {
         return this.build.getProject().getRootModule().getVersion();
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<String> updateVersion(final String version) throws IOException, InterruptedException {
         final List<String> modifiedFiles;
@@ -87,6 +119,13 @@ public class MavenBuildTypeAction extends AbstractBuildTypeAction<MavenModuleSet
         }
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public void prepareForReleaseBuild() throws IOException {
+        this.build.addAction(RELEASE_BUILD_ARGUMENT_INTERCEPTOR_ACTION);
+    }
+
+    /** {@inheritDoc} */
     @Override
     public void preventArchivePublication(final Map<String, String> buildEnvVars) throws IOException {
 

@@ -65,6 +65,9 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         this.git.commit(msgUpdatedReleaseVersion);
         this.consoleLogger.println(msgUpdatedReleaseVersion);
 
+        // Tell the main build that it will perform a release build.
+        this.buildTypeAction.prepareForReleaseBuild();
+
         // Add environment and property variables
         this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", releaseBranch);
         this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/" + releaseBranch);
