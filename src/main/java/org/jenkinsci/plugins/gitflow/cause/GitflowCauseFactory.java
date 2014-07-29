@@ -37,6 +37,8 @@ public class GitflowCauseFactory {
             gitflowCause = new TestReleaseCause(submittedActionConent, dryRun);
         } else if ("publishRelease".equals(action)) {
             gitflowCause = new PublishReleaseCause(submittedActionConent, dryRun);
+        } else if ("finishRelease".equals(action)) {
+            gitflowCause = new FinishReleaseCause(submittedActionConent, dryRun);
         } else if ("finishHotfix".equals(action)) {
             gitflowCause = new FinishHotfixCause(submittedActionConent, dryRun);
         } else {

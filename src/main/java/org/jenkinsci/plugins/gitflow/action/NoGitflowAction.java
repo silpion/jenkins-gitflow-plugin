@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.util.Collection;
 
 import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
 import org.jenkinsci.plugins.gitflow.cause.NoGitflowCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -19,18 +19,22 @@ import hudson.plugins.git.GitTagAction;
  * @param <B> the build in progress.
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
-public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitflowAction<B, AbstractGitflowCause> {
+public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitflowAction<B, NoGitflowCause> {
 
-    private static final String ACTION_NAME = "";
-    private static final String CONSOLE_MESSAGE_PREFIX = "Gitflow - " + ACTION_NAME + ": ";
+    private static final String ACTION_NAME = "default build";
 
-    public <BC extends B> NoGitflowAction(final BC build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
-        super(build, launcher, listener, new NoGitflowCause(), ACTION_NAME);
-    }
-
-    @Override
-    protected String getConsoleMessagePrefix() {
-        return CONSOLE_MESSAGE_PREFIX;
+    /**
+     * Initialises a new action for a non-Gitflow build.
+     *
+     * @param build the <i>Publish Release</i> build that is in progress.
+     * @param launcher can be used to launch processes for this build - even if the build runs remotely.
+     * @param listener can be used to send any message.
+     * @param git the Git client used to execute commands for the Gitflow actions.
+     * @throws IOException if an error occurs that causes/should cause the build to fail.
+     * @throws InterruptedException if the build is interrupted during execution.
+     */
+    public <BC extends B> NoGitflowAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git) throws IOException, InterruptedException {
+        super(build, launcher, listener, git, new NoGitflowCause());
     }
 
     @Override
@@ -40,12 +44,18 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
 
     @Override
     protected void cleanCheckout() throws InterruptedException {
-        // Override without actually cleaning up, because standard builds should folllow the cleanup configuration of the Git plugin.
+        // Override without actually cleaning up, because standard builds should follow the cleanup configuration of the Git plugin.
     }
 
     @Override
     protected void beforeMainBuildInternal() throws IOException, InterruptedException {
-        // Nothing to do.
+
+        // Add environment and property variables
+        final String remoteBranchName = this.build.getAction(GitTagAction.class).getTags().keySet().iterator().next();
+        final String simpleBranchName = StringUtils.split(remoteBranchName, "/", 2)[1];
+        this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", simpleBranchName);
+        this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", remoteBranchName);
+        this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getBuildWrapperDescriptor().getBranchType(simpleBranchName));
     }
 
     @Override

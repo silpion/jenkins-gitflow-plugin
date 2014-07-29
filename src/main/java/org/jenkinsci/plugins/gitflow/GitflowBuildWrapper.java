@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitflow.action.AbstractGitflowAction;
 import org.jenkinsci.plugins.gitflow.action.GitflowActionFactory;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -123,6 +124,28 @@ public class GitflowBuildWrapper extends BuildWrapper {
 
             this.save();
             return true; // everything is alright so far
+        }
+
+        /**
+         * Returns the <i>Gitflow</i> branch type for the given simple branch name.
+         *
+         * @param branchName the simple branch name to get the branch type for.
+         * @return the <i>Gitflow</i> branch type for the given simple branch name.
+         */
+        public String getBranchType(final String branchName) {
+            if (StringUtils.equals(branchName, this.masterBranch)) {
+                return "master";
+            } else if (StringUtils.equals(branchName, this.developBranch)) {
+                return "develop";
+            } else if (StringUtils.startsWith(branchName, this.releaseBranchPrefix)) {
+                return "release";
+            } else if (StringUtils.startsWith(branchName, this.hotfixBranchPrefix)) {
+                return "hotfix";
+            } else if (StringUtils.startsWith(branchName, this.featureBranchPrefix)) {
+                return "feature";
+            } else {
+                return "unknown";
+            }
         }
 
         @Override
