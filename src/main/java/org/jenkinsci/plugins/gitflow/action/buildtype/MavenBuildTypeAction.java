@@ -1,5 +1,7 @@
 package org.jenkinsci.plugins.gitflow.action.buildtype;
 
+import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -8,7 +10,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
 
 import hudson.Launcher;
 import hudson.maven.MavenArgumentInterceptorAction;
@@ -27,6 +31,14 @@ import hudson.util.ArgumentListBuilder;
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
 public class MavenBuildTypeAction extends AbstractBuildTypeAction<MavenModuleSetBuild> {
+
+    private static final String SHORT_MSG_ABORTING_BECAUSE_OF_ARTIFACT_PUBLICATION_PREVENTION =
+            "Aborting build because the release artifacts won't (probably) be published";
+    private static final String LONG_MSG_PATTERN_ABORTING_BECAUSE_OF_ARTIFACT_PUBLICATION_PREVENTION =
+            SHORT_MSG_ABORTING_BECAUSE_OF_ARTIFACT_PUBLICATION_PREVENTION + ":%n"
+            + " - There are unstable branches in this job.%n"
+            + " - The builds are declared unstable when there are unstable branches (see global configuration).%n"
+            + " - The option 'Deploy even if the build is unstable' of the post build action 'Deploy artifacts to Maven repository' is not activated (see job configuration).%n";
 
     private static final MessageFormat CMD_PATTERN_SET_POM_VERSION = new MessageFormat("org.codehaus.mojo:versions-maven-plugin:2.1:set"
                                                                                        + " -DnewVersion={0} -DgenerateBackupPoms=false");
@@ -122,7 +134,25 @@ public class MavenBuildTypeAction extends AbstractBuildTypeAction<MavenModuleSet
     /** {@inheritDoc} */
     @Override
     public void prepareForReleaseBuild() throws IOException {
+
+        // Raise an error when the release artifacts probably won't be deployed.
+        final boolean markSuccessfulBuildUnstableOnBrokenBranches = getGitflowBuildWrapperDescriptor().isMarkSuccessfulBuildUnstableOnBrokenBranches();
+        if (markSuccessfulBuildUnstableOnBrokenBranches && this.isPreventPublicationIfUnstable() && this.hasUnstableBranches()) {
+            this.consoleLogger.printf(LONG_MSG_PATTERN_ABORTING_BECAUSE_OF_ARTIFACT_PUBLICATION_PREVENTION);
+            throw new IOException(SHORT_MSG_ABORTING_BECAUSE_OF_ARTIFACT_PUBLICATION_PREVENTION);
+        }
+
+        // MavenArgumentInterceptorAction that adds ' -Prelease-profile' to the Maven goals.
         this.build.addAction(RELEASE_BUILD_ARGUMENT_INTERCEPTOR_ACTION);
+    }
+
+    private boolean isPreventPublicationIfUnstable() {
+        final RedeployPublisher redeployPublisher = this.getConfiguredRedeployPublisher();
+        return redeployPublisher != null && !redeployPublisher.evenIfUnstable;
+    }
+
+    private boolean hasUnstableBranches() {
+        return MapUtils.isNotEmpty(this.build.getAction(GitflowPluginData.class).getUnstableRemoteBranchesGroupedByResult());
     }
 
     /** {@inheritDoc} */
