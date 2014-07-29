@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.gitflow.action;
 
 import static hudson.model.Result.SUCCESS;
+import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -14,7 +15,6 @@ import java.util.Map;
 import org.apache.commons.collections.MapUtils;
 import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitflow.GitflowBadgeAction;
-import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
 import org.jenkinsci.plugins.gitflow.action.buildtype.BuildTypeActionFactory;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
@@ -31,8 +31,6 @@ import hudson.model.BuildListener;
 import hudson.model.Executor;
 import hudson.model.Result;
 import hudson.plugins.git.Branch;
-
-import jenkins.model.Jenkins;
 
 /**
  * Abstract base class for the different Gitflow actions to be executed - before and after the main build.
@@ -140,15 +138,6 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
     }
 
     /**
-     * Returns the build wrapper descriptor.
-     *
-     * @return the build wrapper descriptor.
-     */
-    protected static GitflowBuildWrapper.DescriptorImpl getBuildWrapperDescriptor() {
-        return (GitflowBuildWrapper.DescriptorImpl) Jenkins.getInstance().getDescriptor(GitflowBuildWrapper.class);
-    }
-
-    /**
      * Runs the Gitflow actions that must be executed before the main build.
      *
      * @throws IOException if an error occurs that causes/should cause the build to fail.
@@ -184,7 +173,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
 
         // Mark successful build as unstable if there are unstable branches.
         final Result buildResult = this.build.getResult();
-        if (buildResult.isBetterThan(Result.UNSTABLE) && getBuildWrapperDescriptor().isMarkSuccessfulBuildUnstableOnBrokenBranches()) {
+        if (buildResult.isBetterThan(Result.UNSTABLE) && getGitflowBuildWrapperDescriptor().isMarkSuccessfulBuildUnstableOnBrokenBranches()) {
             final Map<Result, Collection<RemoteBranch>> unstableBranchesGroupedByResult = this.gitflowPluginData.getUnstableRemoteBranchesGroupedByResult();
             if (MapUtils.isNotEmpty(unstableBranchesGroupedByResult)) {
                 this.consoleLogger.println(formatPattern(MSG_PATTERN_RESULT_TO_UNSTABLE, this.getActionName(), unstableBranchesGroupedByResult.toString()));

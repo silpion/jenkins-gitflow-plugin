@@ -1,5 +1,7 @@
 package org.jenkinsci.plugins.gitflow.action;
 
+import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
+
 import java.io.IOException;
 import java.text.MessageFormat;
 
@@ -71,7 +73,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         // Add environment and property variables
         this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", releaseBranch);
         this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/" + releaseBranch);
-        this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getBuildWrapperDescriptor().getBranchType(releaseBranch));
+        this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getGitflowBuildWrapperDescriptor().getBranchType(releaseBranch));
     }
 
     @Override
@@ -98,7 +100,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev(this.git.getRemoteUrl("origin"), releaseBranch));
 
         // Create a tag for the release version.
-        final String tagName = getBuildWrapperDescriptor().getVersionTagPrefix() + fixesReleaseVersion;
+        final String tagName = getGitflowBuildWrapperDescriptor().getVersionTagPrefix() + fixesReleaseVersion;
         final String msgCreatedReleaseTag = formatPattern(MSG_PATTERN_CREATED_RELEASE_TAG, ACTION_NAME, tagName);
         this.git.tag(tagName, msgCreatedReleaseTag);
         this.consoleLogger.println(msgCreatedReleaseTag);

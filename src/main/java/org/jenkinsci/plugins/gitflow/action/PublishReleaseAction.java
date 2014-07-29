@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.gitflow.action;
 import static hudson.model.Result.SUCCESS;
 import static org.eclipse.jgit.api.MergeCommand.FastForwardMode.NO_FF;
 import static org.jenkinsci.plugins.gitclient.MergeCommand.Strategy.RECURSIVE;
+import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
 import static org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause.IncludedAction.FINISH_RELEASE;
 import static org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause.IncludedAction.NONE;
 import static org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause.IncludedAction.START_HOTFIX;
@@ -70,7 +71,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
     protected void beforeMainBuildInternal() throws IOException, InterruptedException {
 
         // Merge the last fixes release to the master branch.
-        final GitflowBuildWrapper.DescriptorImpl buildWrapperDescriptor = getBuildWrapperDescriptor();
+        final GitflowBuildWrapper.DescriptorImpl buildWrapperDescriptor = getGitflowBuildWrapperDescriptor();
         final String masterBranch = buildWrapperDescriptor.getMasterBranch();
         this.mergeLastFixesRelease(masterBranch, THEIRS);
 
