@@ -1,6 +1,8 @@
 package org.jenkinsci.plugins.gitflow.action;
 
 import static hudson.model.Result.SUCCESS;
+import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.OMIT_MAIN_BUILD_PARAMETER_NAME;
+import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.OMIT_MAIN_BUILD_PARAMETER_VALUE_TRUE;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -272,15 +274,24 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
     }
 
     /**
-     * Omit the main build by throwing an {@link InterruptedException}.
+     * Cause the omission of the main build - the build will be interrupted by a subsequent build wrapper then.
+     * Furthermore the method ensures proper settings for some post build actions that might the results of miss
+     * the main build.
      *
-     * @throws InterruptedException always thrown to omit the main build.
+     * @throws IOException if an error occurs that causes or should cause the build to fail.
      */
-    protected void omitMainBuild() throws InterruptedException {
-        final String msgAbortingToOmitMainBuild = formatPattern(MSG_PATTERN_ABORTING_TO_OMIT_MAIN_BUILD, this.getActionName());
-        this.consoleLogger.println(msgAbortingToOmitMainBuild);
+    protected void omitMainBuild() throws IOException {
+
+        // Publication must be prevented, otherwise the publisher raises an error when not artifacts are to be deployed.
+        this.buildTypeAction.preventArchivePublication(this.additionalBuildEnvVars);
+
+        // The result of the interrupted build must be set to SUCCESS. Otherwise the build would be declared as FAILED.
         Executor.currentExecutor().interrupt(SUCCESS);
-        throw new InterruptedException(msgAbortingToOmitMainBuild);
+
+        // The build must be interrupted by a subsequent build wrapper, otherwise configurations for the post build actions aren't properly provided.
+        this.additionalBuildEnvVars.put(OMIT_MAIN_BUILD_PARAMETER_NAME, OMIT_MAIN_BUILD_PARAMETER_VALUE_TRUE);
+
+        this.consoleLogger.println(formatPattern(MSG_PATTERN_ABORTING_TO_OMIT_MAIN_BUILD, this.getActionName()));
     }
 
     /**
