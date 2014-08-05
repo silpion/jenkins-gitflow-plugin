@@ -125,6 +125,16 @@ public class GitflowBuildWrapper extends BuildWrapper {
     }
 
     /**
+     * Returns the one and only {@link GitflowBuildWrapper.DescriptorImpl} instance.
+     *
+     * @return the one and only {@link GitflowBuildWrapper.DescriptorImpl} instance.
+     * @throws AssertionError if the descriptor is missing.
+     */
+    public static DescriptorImpl getGitflowBuildWrapperDescriptor() {
+        return (GitflowBuildWrapper.DescriptorImpl) Jenkins.getInstance().getDescriptorOrDie(GitflowBuildWrapper.class);
+    }
+
+    /**
      * The descriptor for the <i>Jenkins Gitflow Plugin</i>.
      *
      * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
