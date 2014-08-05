@@ -51,8 +51,10 @@ public class PublishReleaseActionTest extends AbstractGitflowActionTest<PublishR
     protected Map<String, String> setUpTestGetAdditionalBuildEnvVars() throws InterruptedException {
 
         // Mock relevant method calls.
+        when(this.gitflowBuildWrapperDescriptor.getMasterBranch()).thenReturn("master");
         when(this.cause.getLastFixesReleaseCommit()).thenReturn(ObjectId.zeroId().getName());
         when(this.git.getHeadRev(anyString(), anyString())).thenReturn(ObjectId.zeroId());
+        when(this.cause.getReleaseBranch()).thenReturn("release/1.0");
 
         // Mock push command.
         final PushCommand pushCommand = mock(PushCommand.class);
