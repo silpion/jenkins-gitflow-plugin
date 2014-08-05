@@ -105,11 +105,16 @@
                         </f:entry>
                     </f:radioBlock>
                     <f:radioBlock name="action" value="finishHotfix" title="Finish Hotfix" checked="false">
-                        <f:entry>
-                            TODO Add form field entries to configure the
-                            <i>Finish Hotfix</i>
-                            action.
-                        </f:entry>
+                        <f:dropdownList name="finishHotfix" title="Hotfix">
+                            <j:forEach var="hotfixBranch" items="${it.computeHotfixBranches()}">
+                                <f:dropdownListBlock value="${it.computeHotfixVersion(hotfixBranch)}" title="${it.computeHotfixVersion(hotfixBranch)}"
+                                    selected="false">
+                                    <f:entry title="Hotfix Branch">
+                                        <f:readOnlyTextbox name="hotfixBranch" value="${hotfixBranch}" />
+                                    </f:entry>
+                                </f:dropdownListBlock>
+                            </j:forEach>
+                        </f:dropdownList>
                     </f:radioBlock>
                     <f:entry>
                         <f:checkbox name="dryRun" title="Dry Run" checked="false" />
