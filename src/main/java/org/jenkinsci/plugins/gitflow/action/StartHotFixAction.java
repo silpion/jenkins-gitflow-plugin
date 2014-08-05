@@ -1,7 +1,8 @@
 package org.jenkinsci.plugins.gitflow.action;
 
+import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
+
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.List;
 
 import org.jenkinsci.plugins.gitflow.cause.StartHotFixCause;
@@ -23,8 +24,8 @@ public class StartHotFixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
     private static final String ACTION_NAME = "Start HotFix";
 
-    private static final MessageFormat MSG_PATTERN_CREATED_HOTFIX_BRANCH = new MessageFormat("Gitflow - {0}: Created hotfix branch {0}");
-    private static final MessageFormat MSG_PATTERN_UPDATED_HOTFIX_VERSION = new MessageFormat("Gitflow - {0}: Updated project files to hotfix version {0}");
+    private static final String MSG_PATTERN_CREATED_HOTFIX_BRANCH = "Gitflow - %s: Created hotfix branch %s%n";
+    private static final String MSG_PATTERN_UPDATED_HOTFIX_VERSION = "Gitflow - %s: Updated project files to hotfix version %s%n";
 
     /**
      * Initialises a new <i>Start Hotfix</i> action.
@@ -33,11 +34,11 @@ public class StartHotFixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
      * @param launcher can be used to launch processes for this build - even if the build runs remotely.
      * @param listener can be used to send any message.
      * @param git the Git client used to execute commands for the Gitflow actions.
-     * @param startHotFixCause the cause for the new action.  @throws IOException if an error occurs that causes/should cause the build to fail.
+     * @param startHotFixCause the cause for the new action.
+     * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    public <BC extends B> StartHotFixAction(BC build, Launcher launcher, BuildListener listener, GitClientDelegate git, StartHotFixCause startHotFixCause)
-            throws IOException, InterruptedException {
+    public <BC extends B> StartHotFixAction(BC build, Launcher launcher, BuildListener listener, GitClientDelegate git, StartHotFixCause startHotFixCause) throws IOException, InterruptedException {
         super(build, launcher, listener, git, startHotFixCause);
     }
 
@@ -49,17 +50,17 @@ public class StartHotFixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
     @Override
     protected void beforeMainBuildInternal() throws IOException, InterruptedException {
         // Create a new hotfix branch based on the master branch.
-        String ref = "origin/" + getBuildWrapperDescriptor().getMasterBranch();
+        String ref = "origin/" + getGitflowBuildWrapperDescriptor().getMasterBranch();
         git.checkoutBranch(getHotfixBranchName(), ref);
-        consoleLogger.println(formatPattern(MSG_PATTERN_CREATED_HOTFIX_BRANCH, getActionName(), getHotfixBranchName()));
+        this.consoleLogger.printf(MSG_PATTERN_CREATED_HOTFIX_BRANCH, ACTION_NAME, this.getHotfixBranchName());
 
         // Update the version numbers in the project files to the hotfix version.
         String hotfixVersion = gitflowCause.getNextHotfixDevelopmentVersion();
         List<String> changesFiles = buildTypeAction.updateVersion(hotfixVersion);
         addFilesToGitStage(changesFiles);
-        String msgUpadtedReleaseVersion = formatPattern(MSG_PATTERN_UPDATED_HOTFIX_VERSION, getActionName(), hotfixVersion);
+        final String msgUpadtedReleaseVersion = formatPattern(MSG_PATTERN_UPDATED_HOTFIX_VERSION, ACTION_NAME, hotfixVersion);
         git.commit(msgUpadtedReleaseVersion);
-        consoleLogger.println(msgUpadtedReleaseVersion);
+        this.consoleLogger.print(msgUpadtedReleaseVersion);
     }
 
     @Override
@@ -75,7 +76,7 @@ public class StartHotFixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
     }
 
     private String getHotfixBranchName() {
-        return getBuildWrapperDescriptor().getHotfixBranchPrefix() + gitflowCause.getName();
+        return getGitflowBuildWrapperDescriptor().getHotfixBranchPrefix() + gitflowCause.getName();
     }
 }
 
