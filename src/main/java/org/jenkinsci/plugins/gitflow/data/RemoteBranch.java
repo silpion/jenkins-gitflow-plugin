@@ -26,6 +26,8 @@ public class RemoteBranch implements Serializable, Cloneable, Comparable<RemoteB
     private Result lastBuildResult;
     private String lastBuildVersion;
 
+    private String baseReleaseVersion;
+
     private String lastReleaseVersion;
     private ObjectId lastReleaseVersionCommit;
 
@@ -75,6 +77,14 @@ public class RemoteBranch implements Serializable, Cloneable, Comparable<RemoteB
 
     public Result getLastBuildResult() {
         return this.lastBuildResult;
+    }
+
+    public String getBaseReleaseVersion() {
+        return this.baseReleaseVersion;
+    }
+
+    public void setBaseReleaseVersion(final String baseReleaseVersion) {
+        this.baseReleaseVersion = baseReleaseVersion;
     }
 
     public void setLastBuildVersion(final String lastBuildVersion) {

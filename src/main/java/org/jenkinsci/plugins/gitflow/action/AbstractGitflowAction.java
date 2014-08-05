@@ -238,6 +238,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
         final RemoteBranch remoteBranchNew = this.gitflowPluginData.getOrAddRemoteBranch("origin", newBranchName);
         remoteBranchNew.setLastBuildResult(remoteBranchRelease.getLastBuildResult());
         remoteBranchNew.setLastBuildVersion(remoteBranchRelease.getLastBuildVersion());
+        remoteBranchNew.setBaseReleaseVersion(remoteBranchRelease.getBaseReleaseVersion());
         remoteBranchNew.setLastReleaseVersion(remoteBranchRelease.getLastReleaseVersion());
         remoteBranchNew.setLastReleaseVersionCommit(remoteBranchRelease.getLastReleaseVersionCommit());
     }

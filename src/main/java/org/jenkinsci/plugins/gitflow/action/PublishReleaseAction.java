@@ -75,10 +75,13 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         this.mergeLastFixesRelease(masterBranch, THEIRS);
 
         // Record the version that have been merged to the master branch.
+        final String lastFixesReleaseVersion = this.gitflowCause.getLastFixesReleaseVersion();
+        final String releaseBranch = this.gitflowCause.getReleaseBranch();
+        final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getOrAddRemoteBranch("origin", releaseBranch);
         final RemoteBranch remoteBranchMaster = this.gitflowPluginData.getOrAddRemoteBranch("origin", masterBranch);
         remoteBranchMaster.setLastBuildResult(SUCCESS);
-        final String lastFixesReleaseVersion = this.gitflowCause.getLastFixesReleaseVersion();
         remoteBranchMaster.setLastBuildVersion(lastFixesReleaseVersion);
+        remoteBranchMaster.setBaseReleaseVersion(remoteBranchRelease.getBaseReleaseVersion());
         remoteBranchMaster.setLastReleaseVersion(lastFixesReleaseVersion);
         remoteBranchMaster.setLastReleaseVersionCommit(ObjectId.fromString(this.gitflowCause.getLastFixesReleaseCommit()));
 
@@ -100,7 +103,6 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         // Execute the included action(s).
         final PublishReleaseCause.IncludedAction includedAction = this.gitflowCause.getIncludedAction();
         if (includedAction != NONE) {
-            final String releaseBranch = this.gitflowCause.getReleaseBranch();
 
             // Include action(s).
             if (includedAction == START_HOTFIX) {

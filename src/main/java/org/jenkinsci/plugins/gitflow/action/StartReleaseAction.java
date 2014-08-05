@@ -97,6 +97,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getOrAddRemoteBranch("origin", releaseBranch);
         remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
         remoteBranchRelease.setLastBuildVersion(releaseVersion);
+        remoteBranchRelease.setBaseReleaseVersion(releaseVersion);
         remoteBranchRelease.setLastReleaseVersion(releaseVersion);
         remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev(this.git.getRemoteUrl("origin"), releaseBranch));
 
