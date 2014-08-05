@@ -34,7 +34,7 @@ import hudson.util.NullStream;
  */
 public class GitflowProjectAction implements PermalinkProjectAction {
 
-    private static final String DEFAULT_STRING = "Please enter a valid version number...";
+    protected static final String DEFAULT_STRING = "Please enter a valid version number...";
 
     private final AbstractProject<?, ?> job;
 
@@ -156,6 +156,28 @@ public class GitflowProjectAction implements PermalinkProjectAction {
 
         return releaseBranches;
     }
+
+    public String computeNextHotfixVersion() throws IOException {
+        final RemoteBranch masterBranch = this.remoteBranches.get("origin/" + getBuildWrapperDescriptor().getMasterBranch());
+        if (masterBranch == null) {
+            return DEFAULT_STRING;
+        } else {
+            return computeNextHotfixVersion(masterBranch.getLastBuildVersion());
+        }
+    }
+
+    protected static String computeNextHotfixVersion(String lastVersion){
+        int countDots = StringUtils.countMatches(lastVersion, ".");
+        if (countDots == 1){
+            return lastVersion + ".1-SNAPSHOT";
+        }
+        if (countDots == 2){
+            int nextMinorVersion = Integer.valueOf(StringUtils.substringAfterLast(lastVersion, ".")) +1;
+            return StringUtils.substringBeforeLast(lastVersion, ".") + "." + nextMinorVersion + "-SNAPSHOT";
+        }
+        return DEFAULT_STRING;
+    }
+
 
     public String computeReleaseVersion(final String releaseBranch) {
         final String releaseBranchPrefix = getGitflowBuildWrapperDescriptor().getReleaseBranchPrefix();
