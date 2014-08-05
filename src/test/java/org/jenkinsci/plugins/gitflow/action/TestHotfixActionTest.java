@@ -13,7 +13,9 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.transport.URIish;
@@ -23,7 +25,6 @@ import org.jenkinsci.plugins.gitflow.action.buildtype.BuildTypeActionFactory;
 import org.jenkinsci.plugins.gitflow.cause.TestHotfixCause;
 import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,36 +34,22 @@ import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.plugins.git.GitSCM;
 
-import jenkins.model.Jenkins;
-
-@PrepareForTest({ Jenkins.class, BuildTypeActionFactory.class })
+@PrepareForTest(BuildTypeActionFactory.class)
 @RunWith(PowerMockRunner.class)
-public class TestHotfixActionTest {
+public class TestHotfixActionTest extends AbstractGitflowActionTest<TestHotfixAction<AbstractBuild<?, ?>>, TestHotfixCause> {
 
     @Mock
-    private Jenkins jenkins;
+    private TestHotfixCause cause;
 
-    @Mock
-    private AbstractBuild build;
-
-    @Mock
-    private Launcher launcher;
-
-    @Mock
-    private BuildListener listener;
+    private TestHotfixAction<AbstractBuild<?, ?>> testAction;
 
     @Mock
     private GitSCM scm;
-
-    @Mock
-    private GitClientDelegate gitClient;
 
     @Mock
     private AbstractBuildTypeAction buildTypeAction;
@@ -73,6 +60,10 @@ public class TestHotfixActionTest {
     @Before
     @SuppressWarnings("unchecked assignment")
     public void setUp() throws Exception {
+        super.setUp();
+
+        this.testAction = new TestHotfixAction<AbstractBuild<?, ?>>(this.build, this.launcher, this.listener, this.git, this.cause);
+
         mockStatic(BuildTypeActionFactory.class);
         when(BuildTypeActionFactory.newInstance(build, launcher, listener)).thenReturn(buildTypeAction);
 
@@ -82,6 +73,20 @@ public class TestHotfixActionTest {
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         when(listener.getLogger()).thenReturn(new PrintStream(outputStream));
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected TestHotfixAction<AbstractBuild<?, ?>> getTestAction() {
+        return this.testAction;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected Map<String, String> setUpTestGetAdditionalBuildEnvVars() throws InterruptedException {
+
+        // No expectations, because the main build is omitted.
+        return Collections.emptyMap();
     }
 
     //**********************************************************************************************************************************************************
@@ -96,12 +101,12 @@ public class TestHotfixActionTest {
         String hotfixBranch = "hotfix/foobar";
         String hotfixReleaseVersion = "1.2.3";
         TestHotfixCause cause = new TestHotfixCause(hotfixBranch, hotfixReleaseVersion, "1.2.4-SNAPSHOT", false);
-        TestHotfixAction action = new TestHotfixAction(build, launcher, listener, gitClient, cause);
+        TestHotfixAction action = new TestHotfixAction(build, launcher, listener, this.git, cause);
 
         ObjectId id = ObjectId.zeroId();
         String remoteRepoUrl = "someOriginUrl";
-        when(gitClient.getRemoteUrl("origin")).thenReturn(remoteRepoUrl);
-        when(gitClient.getHeadRev(remoteRepoUrl, hotfixBranch)).thenReturn(id);
+        when(this.git.getRemoteUrl("origin")).thenReturn(remoteRepoUrl);
+        when(this.git.getHeadRev(remoteRepoUrl, hotfixBranch)).thenReturn(id);
 
         List<String> changeFiles = Arrays.asList("pom.xml", "child1/pom.xml", "child2/pom.xml", "child3/pom.xml");
         when(buildTypeAction.updateVersion(hotfixReleaseVersion)).thenReturn(changeFiles);
@@ -110,18 +115,18 @@ public class TestHotfixActionTest {
         action.beforeMainBuildInternal();
 
         //Check
-        verify(gitClient).setGitflowActionName(action.getActionName());
-        verify(gitClient).getRemoteUrl("origin");
-        verify(gitClient).getHeadRev(remoteRepoUrl, hotfixBranch);
-        verify(gitClient).checkout(id.getName());
+        verify(this.git).setGitflowActionName(action.getActionName());
+        verify(this.git).getRemoteUrl("origin");
+        verify(this.git).getHeadRev(remoteRepoUrl, hotfixBranch);
+        verify(this.git).checkout(id.getName());
 
-        verify(gitClient).add("pom.xml");
-        verify(gitClient).add("child1/pom.xml");
-        verify(gitClient).add("child2/pom.xml");
-        verify(gitClient).add("child3/pom.xml");
-        verify(gitClient).commit(any(String.class));
+        verify(this.git).add("pom.xml");
+        verify(this.git).add("child1/pom.xml");
+        verify(this.git).add("child2/pom.xml");
+        verify(this.git).add("child3/pom.xml");
+        verify(this.git).commit(any(String.class));
 
-        verifyNoMoreInteractions(gitClient);
+        verifyNoMoreInteractions(this.git);
 
     }
 
@@ -139,7 +144,7 @@ public class TestHotfixActionTest {
         when(build.getAction(GitflowPluginData.class)).thenReturn(pluginData);
 
         TestHotfixCause cause = new TestHotfixCause(hotfixBranch, hotfixVersion, nextHotfixVersion, false);
-        TestHotfixAction action = new TestHotfixAction(build, launcher, listener, gitClient, cause);
+        TestHotfixAction action = new TestHotfixAction(build, launcher, listener, this.git, cause);
 
         when(build.getResult()).thenReturn(Result.SUCCESS);
 
@@ -147,7 +152,7 @@ public class TestHotfixActionTest {
         when(buildTypeAction.updateVersion(nextHotfixVersion)).thenReturn(changeFiles);
 
         when(pluginData.getOrAddRemoteBranch("origin", "hotfix/foobar")).thenReturn(remoteBranch);
-        when(gitClient.push()).thenReturn(pushCommand);
+        when(this.git.push()).thenReturn(pushCommand);
         when(pushCommand.to(any(URIish.class))).thenReturn(pushCommand);
         when(pushCommand.ref(any(String.class))).thenReturn(pushCommand);
         //Run
@@ -156,25 +161,25 @@ public class TestHotfixActionTest {
         //Check
         verify(pluginData).setDryRun(false);
         verify(pluginData).getOrAddRemoteBranch("origin", hotfixBranch);
-        verify(gitClient).setGitflowActionName(action.getActionName());
-        verify(gitClient, times(2)).push();
+        verify(this.git).setGitflowActionName(action.getActionName());
+        verify(this.git, times(2)).push();
 
-        verify(gitClient).add("pom.xml");
-        verify(gitClient).add("child1/pom.xml");
-        verify(gitClient).add("child2/pom.xml");
-        verify(gitClient).add("child3/pom.xml");
-        verify(gitClient).commit(any(String.class));
+        verify(this.git).add("pom.xml");
+        verify(this.git).add("child1/pom.xml");
+        verify(this.git).add("child2/pom.xml");
+        verify(this.git).add("child3/pom.xml");
+        verify(this.git).commit(any(String.class));
 
         verify(remoteBranch).setLastBuildResult(Result.SUCCESS);
         verify(remoteBranch).setLastBuildVersion(nextHotfixVersion);
 
         verify(pushCommand, times(2)).to(urIishArgumentCaptor.capture());
-        verify(pushCommand, times(2)).ref("HEAD:refs/heads/" + hotfixBranch);
+        verify(pushCommand, times(2)).ref("refs/heads/" + hotfixBranch + ":refs/heads/" + hotfixBranch);
         verify(pushCommand, times(2)).execute();
 
         assertThat(urIishArgumentCaptor.getValue().getPath(), is("origin"));
 
-        verifyNoMoreInteractions(gitClient, pluginData, remoteBranch, pushCommand);
+        verifyNoMoreInteractions(this.git, pluginData, remoteBranch, pushCommand);
     }
 
     @Test
@@ -195,7 +200,7 @@ public class TestHotfixActionTest {
         when(pluginData.getOrAddRemoteBranch("origin", hotfixBranch)).thenReturn(remoteBranch);
 
         TestHotfixCause cause = new TestHotfixCause(hotfixBranch, hotfixVersion, nextHotfixVersion, false);
-        TestHotfixAction action = new TestHotfixAction(build, launcher, listener, gitClient, cause);
+        TestHotfixAction action = new TestHotfixAction(build, launcher, listener, this.git, cause);
 
         when(build.getResult()).thenReturn(Result.FAILURE);
 
@@ -203,7 +208,7 @@ public class TestHotfixActionTest {
         action.afterMainBuildInternal();
 
         //Check
-        verify(gitClient).setGitflowActionName(action.getActionName());
+        verify(this.git).setGitflowActionName(action.getActionName());
         verify(pluginData).setDryRun(false);
         verify(pluginData).getRemoteBranch("origin", hotfixBranch);
         verify(pluginData).getOrAddRemoteBranch("origin", hotfixBranch);
@@ -213,7 +218,7 @@ public class TestHotfixActionTest {
 
         verify(remoteBranch).getLastBuildVersion();
 
-        verifyNoMoreInteractions(gitClient, pluginData, remoteBranch);
+        verifyNoMoreInteractions(this.git, pluginData, remoteBranch);
 
     }
 }

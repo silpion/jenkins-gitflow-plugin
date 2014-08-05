@@ -1,7 +1,6 @@
 package org.jenkinsci.plugins.gitflow.action;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 
 import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.gitflow.cause.TestHotfixCause;
@@ -22,12 +21,10 @@ import hudson.model.Result;
 public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGitflowAction<B, TestHotfixCause> {
 
     private static final String ACTION_NAME = "Test Hotfix";
-    private static final MessageFormat MSG_PATTERN_CHECKOUT_HOTFIX_BRANCH = new MessageFormat("Gitflow - {0}: Checkout hotfix branch {0}");
-    private static final MessageFormat MSG_PATTERN_UPDATED_HOTFIX_VERSION = new MessageFormat("Gitflow - {0}: Updated project files to Hotfix version {0}");
-    private static final MessageFormat MSG_PATTERN_PUSHED_HOTFIX_BRANCH = new MessageFormat("Gitflow - {0}: Pushed hotfix branch {0}");
-    private static final MessageFormat MSG_PATTERN_UPDATED_NEXT_HOTFIX_VERSION = new MessageFormat("Gitflow - {0}: Updated project files to next hotfix version {0}");
-    private static final MessageFormat MSG_PATTERN_PUSHED_NEXT_HOTFIX_VERSION = new MessageFormat("Gitflow - {0}: Pushed project files with next hotfix version" +
-                                                                                                  " {0}");
+
+    private static final String MSG_PATTERN_CHECKOUT_HOTFIX_BRANCH = "Gitflow - %s: Checkout hotfix branch %s%n";
+    private static final String MSG_PATTERN_UPDATED_HOTFIX_VERSION = "Gitflow - %s: Updated project files to Hotfix version %s%n";
+    private static final String MSG_PATTERN_UPDATED_NEXT_HOTFIX_VERSION = "Gitflow - %s: Updated project files to next hotfix version %s%n";
 
     /**
      * Initialises a new <i>Test Hotfix</i> action.
@@ -36,11 +33,11 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
      * @param launcher can be used to launch processes for this build - even if the build runs remotely.
      * @param listener can be used to send any message.
      * @param git the Git client used to execute commands for the Gitflow actions.
-     * @param gitflowCause the cause for the new action.  @throws java.io.IOException if an error occurs that causes/should cause the build to fail.
+     * @param gitflowCause the cause for the new action.
+     * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    public <BC extends B> TestHotfixAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git, final
-    TestHotfixCause gitflowCause)
+    public <BC extends B> TestHotfixAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git, final TestHotfixCause gitflowCause)
             throws IOException, InterruptedException {
         super(build, launcher, listener, git, gitflowCause);
     }
@@ -57,14 +54,14 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
         String hotfixBranch = gitflowCause.getHotfixBranch();
         ObjectId hotfixBranchRev = git.getHeadRev(git.getRemoteUrl("origin"), hotfixBranch);
         git.checkout(hotfixBranchRev.getName());
-        consoleLogger.println(formatPattern(MSG_PATTERN_CHECKOUT_HOTFIX_BRANCH, getActionName(), hotfixBranch));
+        this.consoleLogger.printf(MSG_PATTERN_CHECKOUT_HOTFIX_BRANCH, ACTION_NAME, hotfixBranch);
 
         // Update the project files to the minor release number
         String fixesReleaseVersion = gitflowCause.getHotfixReleaseVersion();
         addFilesToGitStage(buildTypeAction.updateVersion(fixesReleaseVersion));
-        String msgUpdatedReleaseVersion = formatPattern(MSG_PATTERN_UPDATED_HOTFIX_VERSION, getActionName(), fixesReleaseVersion);
+        final String msgUpdatedReleaseVersion = formatPattern(MSG_PATTERN_UPDATED_HOTFIX_VERSION, ACTION_NAME, fixesReleaseVersion);
         git.commit(msgUpdatedReleaseVersion);
-        consoleLogger.println(msgUpdatedReleaseVersion);
+        this.consoleLogger.print(msgUpdatedReleaseVersion);
     }
 
     @Override
@@ -80,19 +77,17 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
 
         // Push the new minor release version to the remote repo.
         String hotfixBranch = gitflowCause.getHotfixBranch();
-        git.push().to(remoteUrl).ref("HEAD:refs/heads/" + hotfixBranch).execute();
-        consoleLogger.println(formatPattern(MSG_PATTERN_PUSHED_HOTFIX_BRANCH, getActionName(), hotfixBranch));
+        this.git.push().to(this.remoteUrl).ref("refs/heads/" + hotfixBranch + ":refs/heads/" + hotfixBranch).execute();
 
         // Update and commit the project files to the next version for the next hotfix
         String nextHotfixVersion = gitflowCause.getNextHotfixReleaseVersion();
         addFilesToGitStage(buildTypeAction.updateVersion(nextHotfixVersion));
-        String msgUpdatedFixesVersion = formatPattern(MSG_PATTERN_UPDATED_NEXT_HOTFIX_VERSION, getActionName(), nextHotfixVersion);
+        final String msgUpdatedFixesVersion = formatPattern(MSG_PATTERN_UPDATED_NEXT_HOTFIX_VERSION, ACTION_NAME, nextHotfixVersion);
         git.commit(msgUpdatedFixesVersion);
-        consoleLogger.println(msgUpdatedFixesVersion);
+        this.consoleLogger.print(msgUpdatedFixesVersion);
 
         // Push the project files with the next version for the next hotfix.
-        git.push().to(remoteUrl).ref("HEAD:refs/heads/" + hotfixBranch).execute();
-        consoleLogger.println(formatPattern(MSG_PATTERN_PUSHED_NEXT_HOTFIX_VERSION, getActionName(), nextHotfixVersion));
+        this.git.push().to(this.remoteUrl).ref("refs/heads/" + hotfixBranch + ":refs/heads/" + hotfixBranch).execute();
 
         // Record the next hot development version on the hotfix branch.
         updatePluginData("origin", hotfixBranch, build.getResult(), nextHotfixVersion);
