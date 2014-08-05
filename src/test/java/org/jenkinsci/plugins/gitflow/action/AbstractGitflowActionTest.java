@@ -2,6 +2,8 @@ package org.jenkinsci.plugins.gitflow.action;
 
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasKey;
+import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.OMIT_MAIN_BUILD_PARAMETER_NAME;
+import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.OMIT_MAIN_BUILD_PARAMETER_VALUE_TRUE;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -72,20 +74,17 @@ public abstract class AbstractGitflowActionTest<A extends AbstractGitflowAction<
 
     @Test
     public void testGetAdditionalBuildEnvVars() throws Exception {
+        final A testAction = this.getTestAction();
 
         // Set up the test for the individual action and retrieve its expected variables.
         // NOTE: Must be executed before 'beforeMainBuild' method.
         final Map<String, String> expectedBuildEnvVars = this.setUpTestGetAdditionalBuildEnvVars();
 
-        // The additionalBuildEnvVars must be created before the main build - if the main build isn't omitted.
-        boolean isOmitMainBuild = false;
-        try {
-            this.getTestAction().beforeMainBuild();
-        } catch (final InterruptedException ignore) {
-            isOmitMainBuild = true;
-        }
+        // The additionalBuildEnvVars must be created before the main build.
+        testAction.beforeMainBuild();
 
-        if (!isOmitMainBuild) {
+        // But they are not required when the main build is omitted.
+        if (!OMIT_MAIN_BUILD_PARAMETER_VALUE_TRUE.equals(testAction.getAdditionalBuildEnvVars().get(OMIT_MAIN_BUILD_PARAMETER_NAME))) {
 
             // The implementations of this class must provide the expectations for the required variables - if they don't omit the main build.
             final String testActionClassName = this.getClass().getSimpleName();
@@ -94,7 +93,7 @@ public abstract class AbstractGitflowActionTest<A extends AbstractGitflowAction<
             assertThat(testActionClassName + " must provide an expectation for GIT_BRANCH_TYPE", expectedBuildEnvVars, hasKey("GIT_BRANCH_TYPE"));
 
             // Test the expectations.
-            final Map<String, String> buildEnvVars = this.getTestAction().getAdditionalBuildEnvVars();
+            final Map<String, String> buildEnvVars = testAction.getAdditionalBuildEnvVars();
             for (final Map.Entry<String, String> expectedBuildEnvVar : expectedBuildEnvVars.entrySet()) {
                 assertThat(buildEnvVars, hasEntry(expectedBuildEnvVar.getKey(), expectedBuildEnvVar.getValue()));
             }
