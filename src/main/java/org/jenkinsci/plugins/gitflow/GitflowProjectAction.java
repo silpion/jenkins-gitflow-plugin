@@ -1,5 +1,7 @@
 package org.jenkinsci.plugins.gitflow;
 
+import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -24,8 +26,6 @@ import hudson.model.AbstractProject;
 import hudson.model.PermalinkProjectAction;
 import hudson.model.StreamBuildListener;
 import hudson.util.NullStream;
-
-import jenkins.model.Jenkins;
 
 /**
  * The action that appears as link in the side bar of a project. Users will click on it in order to execute a Gitflow action.
@@ -110,12 +110,8 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         return "gitflow";
     }
 
-    private static GitflowBuildWrapper.DescriptorImpl getBuildWrapperDescriptor() {
-        return (GitflowBuildWrapper.DescriptorImpl) Jenkins.getInstance().getDescriptor(GitflowBuildWrapper.class);
-    }
-
     public String computeReleaseVersion() throws IOException {
-        final RemoteBranch developBranch = this.remoteBranches.get("origin/" + getBuildWrapperDescriptor().getDevelopBranch());
+        final RemoteBranch developBranch = this.remoteBranches.get("origin/" + getGitflowBuildWrapperDescriptor().getDevelopBranch());
         if (developBranch == null) {
             return DEFAULT_STRING;
         } else {
@@ -146,17 +142,17 @@ public class GitflowProjectAction implements PermalinkProjectAction {
     }
 
     public SortedSet<String> computeReleaseBranches() throws IOException {
-        final String releaseBranchPrefix = getBuildWrapperDescriptor().getReleaseBranchPrefix();
+        final String releaseBranchPrefix = getGitflowBuildWrapperDescriptor().getReleaseBranchPrefix();
         return filterBranches(releaseBranchPrefix, this.remoteBranches.values());
     }
 
     public SortedSet<String> computeHotfixBranches() throws IOException {
-        final String hotfixBranchPrefix = getBuildWrapperDescriptor().getHotfixBranchPrefix();
+        final String hotfixBranchPrefix = getGitflowBuildWrapperDescriptor().getHotfixBranchPrefix();
         return filterBranches(hotfixBranchPrefix, this.remoteBranches.values());
     }
 
     public String computeHotfixVersion(final String hotfixBranch) {
-        final String hotfixPrefix = getBuildWrapperDescriptor().getHotfixBranchPrefix();
+        final String hotfixPrefix = getGitflowBuildWrapperDescriptor().getHotfixBranchPrefix();
         return StringUtils.removeStart(hotfixBranch, hotfixPrefix);
     }
 
@@ -174,7 +170,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
     }
 
     public String computeReleaseVersion(final String releaseBranch) {
-        final String releaseBranchPrefix = getBuildWrapperDescriptor().getReleaseBranchPrefix();
+        final String releaseBranchPrefix = getGitflowBuildWrapperDescriptor().getReleaseBranchPrefix();
         return StringUtils.removeStart(releaseBranch, releaseBranchPrefix);
     }
 
@@ -206,7 +202,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
 
     @SuppressWarnings("UnusedDeclaration")
     public String computeHotfixBranch(final String releaseBranch) {
-        return getBuildWrapperDescriptor().getHotfixBranchPrefix() + this.computeReleaseVersion(releaseBranch);
+        return getGitflowBuildWrapperDescriptor().getHotfixBranchPrefix() + this.computeReleaseVersion(releaseBranch);
     }
 
     @SuppressWarnings("UnusedDeclaration")

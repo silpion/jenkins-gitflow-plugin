@@ -1,5 +1,7 @@
 package org.jenkinsci.plugins.gitflow.action;
 
+import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
+
 import java.io.IOException;
 
 import org.apache.commons.lang.StringUtils;
@@ -51,7 +53,7 @@ public class FinishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstract
 
         // Include Start Hotfix action.
         if (this.gitflowCause.isIncludeStartHotfixAction()) {
-            final GitflowBuildWrapper.DescriptorImpl buildWrapperDescriptor = getBuildWrapperDescriptor();
+            final GitflowBuildWrapper.DescriptorImpl buildWrapperDescriptor = getGitflowBuildWrapperDescriptor();
             final String releaseBranchPrefix = buildWrapperDescriptor.getReleaseBranchPrefix();
             final String hotfixBranchPrefix = buildWrapperDescriptor.getHotfixBranchPrefix();
             final String hotfixBranch = hotfixBranchPrefix + StringUtils.removeStart(releaseBranch, releaseBranchPrefix);
