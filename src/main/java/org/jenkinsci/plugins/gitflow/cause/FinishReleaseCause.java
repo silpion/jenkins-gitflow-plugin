@@ -1,11 +1,10 @@
 package org.jenkinsci.plugins.gitflow.cause;
 
+import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
+
 import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 
 import net.sf.json.JSONObject;
-
-import jenkins.model.Jenkins;
 
 /**
  * The {@link hudson.model.Cause} object for the <i>Finish Release</i> action to be executed.
@@ -44,9 +43,7 @@ public class FinishReleaseCause extends AbstractGitflowCause {
 
     @Override
     public String getVersionForBadge() {
-        final Jenkins jenkins = Jenkins.getInstance();
-        final GitflowBuildWrapper.DescriptorImpl buildWrapperDescriptor = (GitflowBuildWrapper.DescriptorImpl) jenkins.getDescriptor(GitflowBuildWrapper.class);
-        return StringUtils.removeStart(this.releaseBranch, buildWrapperDescriptor.getReleaseBranchPrefix());
+        return StringUtils.removeStart(this.releaseBranch, getGitflowBuildWrapperDescriptor().getReleaseBranchPrefix());
     }
 
     public String getReleaseBranch() {

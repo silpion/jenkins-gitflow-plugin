@@ -1,5 +1,7 @@
 package org.jenkinsci.plugins.gitflow.action;
 
+import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
+
 import java.io.IOException;
 import java.text.MessageFormat;
 
@@ -54,7 +56,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
     protected void beforeMainBuildInternal() throws IOException, InterruptedException {
 
         // Create a new release branch based on the develop branch.
-        final GitflowBuildWrapper.DescriptorImpl buildWrapperDescriptor = getBuildWrapperDescriptor();
+        final GitflowBuildWrapper.DescriptorImpl buildWrapperDescriptor = getGitflowBuildWrapperDescriptor();
         final String releaseBranch = buildWrapperDescriptor.getReleaseBranchPrefix() + this.gitflowCause.getReleaseVersion();
         this.git.checkoutBranch(releaseBranch, "origin/" + buildWrapperDescriptor.getDevelopBranch());
         this.consoleLogger.println(formatPattern(MSG_PATTERN_CREATED_RELEASE_BRANCH, ACTION_NAME, releaseBranch));
@@ -88,7 +90,8 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
 
         // Push the new release branch to the remote repo.
         final String releaseVersion = this.gitflowCause.getReleaseVersion();
-        final String releaseBranch = getBuildWrapperDescriptor().getReleaseBranchPrefix() + releaseVersion;
+        final GitflowBuildWrapper.DescriptorImpl buildWrapperDescriptor = getGitflowBuildWrapperDescriptor();
+        final String releaseBranch = buildWrapperDescriptor.getReleaseBranchPrefix() + releaseVersion;
         this.git.push().to(this.remoteUrl).ref("refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch).execute();
 
         // Record the information on the currently stable version on the release branch.
@@ -99,7 +102,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev(this.git.getRemoteUrl("origin"), releaseBranch));
 
         // Create a tag for the release version.
-        final String tagName = getBuildWrapperDescriptor().getVersionTagPrefix() + releaseVersion;
+        final String tagName = buildWrapperDescriptor.getVersionTagPrefix() + releaseVersion;
         final String msgCreatedReleaseTag = formatPattern(MSG_PATTERN_CREATED_RELEASE_TAG, ACTION_NAME, tagName);
         this.git.tag(tagName, msgCreatedReleaseTag);
         this.consoleLogger.println(msgCreatedReleaseTag);
@@ -122,7 +125,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         remoteBranchRelease.setLastBuildVersion(releaseNextDevelopmentVersion);
 
         // Update the project files in the develop branch to the development version for the next release.
-        final String developBranch = getBuildWrapperDescriptor().getDevelopBranch();
+        final String developBranch = buildWrapperDescriptor.getDevelopBranch();
         this.git.checkoutBranch(developBranch, "origin/" + developBranch);
         final String nextDevelopmentVersion = this.gitflowCause.getNextDevelopmentVersion();
         this.addFilesToGitStage(this.buildTypeAction.updateVersion(nextDevelopmentVersion));
@@ -146,7 +149,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
 
         // Here we assume that there was an error on the develop branch right before we created the release branch.
         // TODO We should not offer the Start Release action when no record for the develop branch exists - the method 'getOrAddRemoteBranch' can be used then.
-        final RemoteBranch remoteBranchDevelop = this.gitflowPluginData.getOrAddRemoteBranch("origin", getBuildWrapperDescriptor().getDevelopBranch());
+        final RemoteBranch remoteBranchDevelop = this.gitflowPluginData.getOrAddRemoteBranch("origin", getGitflowBuildWrapperDescriptor().getDevelopBranch());
         remoteBranchDevelop.setLastBuildResult(this.build.getResult());
         remoteBranchDevelop.setLastBuildVersion(remoteBranchDevelop.getLastBuildVersion());
     }
