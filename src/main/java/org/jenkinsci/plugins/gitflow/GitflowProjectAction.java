@@ -3,10 +3,10 @@ package org.jenkinsci.plugins.gitflow;
 import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -142,19 +142,31 @@ public class GitflowProjectAction implements PermalinkProjectAction {
     }
 
     public SortedSet<String> computeReleaseBranches() throws IOException {
-        final SortedSet<String> releaseBranches = new TreeSet<String>();
-
         final String releaseBranchPrefix = getGitflowBuildWrapperDescriptor().getReleaseBranchPrefix();
+        return filterBranches(releaseBranchPrefix, this.remoteBranches.values());
+    }
 
-        for (final Map.Entry<String, RemoteBranch> remoteBranchEntry : this.remoteBranches.entrySet()) {
-            final String branchName = remoteBranchEntry.getValue().getBranchName();
+    public SortedSet<String> computeHotfixBranches() throws IOException {
+        final String hotfixBranchPrefix = getGitflowBuildWrapperDescriptor().getHotfixBranchPrefix();
+        return filterBranches(hotfixBranchPrefix, this.remoteBranches.values());
+    }
+
+    public String computeHotfixVersion(final String hotfixBranch) {
+        final String hotfixPrefix = getGitflowBuildWrapperDescriptor().getHotfixBranchPrefix();
+        return StringUtils.removeStart(hotfixBranch, hotfixPrefix);
+    }
+
+    protected static SortedSet<String> filterBranches(final String branchPrefix, final Collection<RemoteBranch> branches) {
+        final SortedSet<String> filterBranches = new TreeSet<String>();
+
+        for (final RemoteBranch remoteBranchEntry : branches) {
+            final String branchName = remoteBranchEntry.getBranchName();
             //plus origin
-            if (StringUtils.startsWith(branchName, releaseBranchPrefix)) {
-                releaseBranches.add(branchName);
+            if (StringUtils.startsWith(branchName, branchPrefix)) {
+                filterBranches.add(branchName);
             }
         }
-
-        return releaseBranches;
+        return filterBranches;
     }
 
     public String computeReleaseVersion(final String releaseBranch) {
