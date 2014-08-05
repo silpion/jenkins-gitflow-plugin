@@ -42,7 +42,7 @@ public class GitflowActionFactory {
         } else if (gitflowCause instanceof FinishReleaseCause) {
             gitflowAction = new FinishReleaseAction<B>(build, launcher, listener, git, (FinishReleaseCause) gitflowCause);
         } else if (gitflowCause instanceof FinishHotfixCause) {
-            gitflowAction = new FinishHotfixAction<B>(build, launcher, listener, (FinishHotfixCause) gitflowCause);
+            gitflowAction = new FinishHotfixAction<B>(build, launcher, listener, git, (FinishHotfixCause) gitflowCause);
         } else {
             // Only an IOException causes the build to fail properly.
             throw new IOException("Unknown Gitflow cause " + gitflowCause.getClass().getName());

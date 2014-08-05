@@ -11,6 +11,8 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.Map;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.eclipse.jgit.lib.ObjectId;
@@ -19,7 +21,6 @@ import org.jenkinsci.plugins.gitclient.PushCommand;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
 import org.jenkinsci.plugins.gitflow.cause.FinishHotfixCause;
 import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,30 +29,21 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.plugins.git.GitSCM;
 
 @RunWith(MockitoJUnitRunner.class)
-public class FinishHotfixActionTest {
+public class FinishHotfixActionTest extends AbstractGitflowActionTest<FinishHotfixAction<AbstractBuild<?, ?>>, FinishHotfixCause> {
 
     @Mock
-    private AbstractBuild build;
+    private FinishHotfixCause cause;
 
-    @Mock
-    private Launcher launcher;
-
-    @Mock
-    private BuildListener listener;
+    private FinishHotfixAction<AbstractBuild<?, ?>> testAction;
 
     @Mock
     private GitSCM scm;
-
-    @Mock
-    private GitClientDelegate gitClient;
 
     @Mock
     private AbstractBuildTypeAction<?> buildTypeAction;
@@ -61,12 +53,30 @@ public class FinishHotfixActionTest {
 
     @Before
     public void setUp() throws Exception {
+        super.setUp();
+
+        this.testAction = new FinishHotfixAction<AbstractBuild<?, ?>>(this.build, this.launcher, this.listener, this.git, this.cause);
+
         AbstractProject project = mock(AbstractProject.class);
         when(project.getScm()).thenReturn(scm);
         when(build.getProject()).thenReturn(project);
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         when(listener.getLogger()).thenReturn(new PrintStream(outputStream));
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected FinishHotfixAction<AbstractBuild<?, ?>> getTestAction() {
+        return this.testAction;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected Map<String, String> setUpTestGetAdditionalBuildEnvVars() throws InterruptedException {
+
+        // No expectations, because the main build is omitted.
+        return Collections.emptyMap();
     }
 
     //**********************************************************************************************************************************************************
@@ -77,8 +87,8 @@ public class FinishHotfixActionTest {
 
     //TODO This Method only exist for make UnitTesting work, the AbstractGitflowAction needs some refactoring
     private FinishHotfixAction createAction(FinishHotfixCause cause) throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        FinishHotfixAction action = new FinishHotfixAction(build, launcher, listener, cause);
-        setPrivateFinalField(action, "git", gitClient);
+        FinishHotfixAction action = new FinishHotfixAction(build, launcher, listener, this.git, cause);
+        setPrivateFinalField(action, "git", this.git);
         setPrivateFinalField(action, "buildTypeAction", buildTypeAction);
         return action;
     }
@@ -103,18 +113,18 @@ public class FinishHotfixActionTest {
         FinishHotfixAction action = createAction(cause);
 
         ObjectId id = ObjectId.zeroId();
-        when(gitClient.getRemoteUrl("origin")).thenReturn("someOriginUrl");
-        when(gitClient.getHeadRev("someOriginUrl", "master")).thenReturn(id);
+        when(this.git.getRemoteUrl("origin")).thenReturn("someOriginUrl");
+        when(this.git.getHeadRev("someOriginUrl", "master")).thenReturn(id);
 
         //Run
         action.beforeMainBuildInternal();
 
         //Check
-        verify(gitClient).getRemoteUrl("origin");
-        verify(gitClient).getHeadRev("someOriginUrl", "master");
-        verify(gitClient).checkout(id.getName());
+        verify(this.git).getRemoteUrl("origin");
+        verify(this.git).getHeadRev("someOriginUrl", "master");
+        verify(this.git).checkout(id.getName());
 
-        verifyNoMoreInteractions(gitClient);
+        verifyNoMoreInteractions(this.git);
     }
 
     @Test
@@ -128,7 +138,7 @@ public class FinishHotfixActionTest {
         when(build.getResult()).thenReturn(Result.SUCCESS);
 
         PushCommand pushCommand = mock(PushCommand.class);
-        when(gitClient.push()).thenReturn(pushCommand);
+        when(this.git.push()).thenReturn(pushCommand);
         when(pushCommand.to(any(URIish.class))).thenReturn(pushCommand);
         when(pushCommand.ref(any(String.class))).thenReturn(pushCommand);
 
@@ -136,13 +146,13 @@ public class FinishHotfixActionTest {
         action.afterMainBuildInternal();
 
         //Check
-        verify(gitClient).push();
+        verify(this.git).push();
         verify(pushCommand).to(urIishArgumentCaptor.capture());
         verify(pushCommand).ref(":hotfix/foobar");
         verify(pushCommand).execute();
 
         assertThat(urIishArgumentCaptor.getValue().getPath(), is("origin"));
-        verifyNoMoreInteractions(gitClient, pluginData, pushCommand);
+        verifyNoMoreInteractions(this.git, pluginData, pushCommand);
     }
 
     @Test
@@ -159,7 +169,7 @@ public class FinishHotfixActionTest {
         action.afterMainBuildInternal();
 
         //Check
-        verifyNoMoreInteractions(gitClient, pluginData);
+        verifyNoMoreInteractions(this.git, pluginData);
     }
 
 }
