@@ -3,7 +3,6 @@ package org.jenkinsci.plugins.gitflow.action;
 import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 
 import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.gitflow.cause.TestReleaseCause;
@@ -25,10 +24,10 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
     private static final String ACTION_NAME = "Test Release";
 
-    private static final MessageFormat MSG_PATTERN_CHECKED_OUT_RELEASE_BRANCH = new MessageFormat("Gitflow - {0}: Checked out release branch {1}");
-    private static final MessageFormat MSG_PATTERN_UPDATED_RELEASE_VERSION = new MessageFormat("Gitflow - {0}: Updated project files to release version {1}");
-    private static final MessageFormat MSG_PATTERN_CREATED_RELEASE_TAG = new MessageFormat("Gitflow - {0}: Created release version tag {1}");
-    private static final MessageFormat MSG_PATTERN_UPDATED_FIXES_VERSION = new MessageFormat("Gitflow - {0}: Updated project files to fixes development version {1}");
+    private static final String MSG_PATTERN_CHECKED_OUT_RELEASE_BRANCH = "Gitflow - %s: Checked out release branch %s%n";
+    private static final String MSG_PATTERN_UPDATED_RELEASE_VERSION = "Gitflow - %s: Updated project files to release version %s%n";
+    private static final String MSG_PATTERN_CREATED_RELEASE_TAG = "Gitflow - %s: Created release version tag %s%n";
+    private static final String MSG_PATTERN_UPDATED_FIXES_VERSION = "Gitflow - %s: Updated project files to fixes development version %s%n";
 
     /**
      * Initialises a new <i>Publish Release</i> action.
@@ -58,14 +57,14 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         final String releaseBranch = this.gitflowCause.getReleaseBranch();
         final ObjectId releaseBranchRev = this.git.getHeadRev(this.git.getRemoteUrl("origin"), releaseBranch);
         this.git.checkoutBranch(releaseBranch, releaseBranchRev.getName());
-        this.consoleLogger.println(formatPattern(MSG_PATTERN_CHECKED_OUT_RELEASE_BRANCH, ACTION_NAME, releaseBranch));
+        this.consoleLogger.printf(MSG_PATTERN_CHECKED_OUT_RELEASE_BRANCH, ACTION_NAME, releaseBranch);
 
         // Update the project files to the minor release number
         final String fixesReleaseVersion = this.gitflowCause.getFixesReleaseVersion();
         this.addFilesToGitStage(this.buildTypeAction.updateVersion(fixesReleaseVersion));
         final String msgUpdatedReleaseVersion = formatPattern(MSG_PATTERN_UPDATED_RELEASE_VERSION, ACTION_NAME, fixesReleaseVersion);
         this.git.commit(msgUpdatedReleaseVersion);
-        this.consoleLogger.println(msgUpdatedReleaseVersion);
+        this.consoleLogger.print(msgUpdatedReleaseVersion);
 
         // Tell the main build that it will perform a release build.
         this.buildTypeAction.prepareForReleaseBuild();
@@ -103,7 +102,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         final String tagName = getGitflowBuildWrapperDescriptor().getVersionTagPrefix() + fixesReleaseVersion;
         final String msgCreatedReleaseTag = formatPattern(MSG_PATTERN_CREATED_RELEASE_TAG, ACTION_NAME, tagName);
         this.git.tag(tagName, msgCreatedReleaseTag);
-        this.consoleLogger.println(msgCreatedReleaseTag);
+        this.consoleLogger.print(msgCreatedReleaseTag);
 
         // Push the tag for the release version.
         this.git.push().to(this.remoteUrl).ref("refs/tags/" + tagName + ":refs/tags/" + tagName).execute();
@@ -113,7 +112,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         this.addFilesToGitStage(this.buildTypeAction.updateVersion(nextFixesDevelopmentVersion));
         final String msgUpdatedFixesVersion = formatPattern(MSG_PATTERN_UPDATED_FIXES_VERSION, ACTION_NAME, nextFixesDevelopmentVersion);
         this.git.commit(msgUpdatedFixesVersion);
-        this.consoleLogger.println(msgUpdatedFixesVersion);
+        this.consoleLogger.print(msgUpdatedFixesVersion);
 
         // Push the project files with the minor version for the next release.
         this.git.push().to(this.remoteUrl).ref("refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch).execute();

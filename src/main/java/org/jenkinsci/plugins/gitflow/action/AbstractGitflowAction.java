@@ -5,7 +5,6 @@ import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildW
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -41,11 +40,12 @@ import hudson.plugins.git.Branch;
  */
 public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C extends AbstractGitflowCause> extends AbstractActionBase<B> {
 
-    private static final MessageFormat MSG_PATTERN_CLEANED_UP_WORKING_DIRECTORY = new MessageFormat("Gitflow - {0}: Cleaned up working/checkout directory");
-    private static final MessageFormat MSG_PATTERN_CREATED_BRANCH_BASED_ON_OTHER = new MessageFormat("Gitflow - {0}: Created a new branch {1} based on {2}");
-    private static final MessageFormat MSG_PATTERN_DELETED_BRANCH = new MessageFormat("Gitflow - {0}: Deleted branch {1}");
-    private static final MessageFormat MSG_PATTERN_ABORTING_TO_OMIT_MAIN_BUILD = new MessageFormat("Gitflow - {0}: Intentionally aborting to omit the main build");
-    private static final MessageFormat MSG_PATTERN_RESULT_TO_UNSTABLE = new MessageFormat("Gitflow - {0}: Changing result of successful build to unstable, because there are unstable branches: {0}");
+    private static final String MSG_ABORTING_TO_OMIT_MAIN_BUILD = "Intentionally aborting to omit the main build";
+    private static final String MSG_PATTERN_ABORTING_TO_OMIT_MAIN_BUILD = "Gitflow - %s: " + MSG_ABORTING_TO_OMIT_MAIN_BUILD + "%n";
+    private static final String MSG_PATTERN_CLEANED_UP_WORKING_DIRECTORY = "Gitflow - %s: Cleaned up working/checkout directory%n";
+    private static final String MSG_PATTERN_CREATED_BRANCH_BASED_ON_OTHER = "Gitflow - %s: Created a new branch %s based on %s%n";
+    private static final String MSG_PATTERN_DELETED_BRANCH = "Gitflow - %s: Deleted branch %s%n";
+    private static final String MSG_PATTERN_RESULT_TO_UNSTABLE = "Gitflow - %s: Changing result of successful build to unstable, because there are unstable branches: %s%n";
 
     private static final Function<Branch, String> BRANCH_TO_NAME_FUNCTION = new Function<Branch, String>() {
 
@@ -176,7 +176,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
         if (buildResult.isBetterThan(Result.UNSTABLE) && getGitflowBuildWrapperDescriptor().isMarkSuccessfulBuildUnstableOnBrokenBranches()) {
             final Map<Result, Collection<RemoteBranch>> unstableBranchesGroupedByResult = this.gitflowPluginData.getUnstableRemoteBranchesGroupedByResult();
             if (MapUtils.isNotEmpty(unstableBranchesGroupedByResult)) {
-                this.consoleLogger.println(formatPattern(MSG_PATTERN_RESULT_TO_UNSTABLE, this.getActionName(), unstableBranchesGroupedByResult.toString()));
+                this.consoleLogger.printf(MSG_PATTERN_RESULT_TO_UNSTABLE, this.getActionName(), unstableBranchesGroupedByResult.toString());
                 this.build.setResult(Result.UNSTABLE);
             }
         }
@@ -221,14 +221,14 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
      */
     protected void cleanCheckout() throws InterruptedException {
         this.git.clean();
-        this.consoleLogger.println(formatPattern(MSG_PATTERN_CLEANED_UP_WORKING_DIRECTORY, this.getActionName()));
+        this.consoleLogger.printf(MSG_PATTERN_CLEANED_UP_WORKING_DIRECTORY, this.getActionName());
     }
 
     protected void createBranch(final String newBranchName, final String releaseBranch) throws InterruptedException {
 
         // Create a new hotfix branch.
         this.git.checkoutBranch(newBranchName, "origin/" + releaseBranch);
-        this.consoleLogger.println(formatPattern(MSG_PATTERN_CREATED_BRANCH_BASED_ON_OTHER, this.getActionName(), newBranchName, releaseBranch));
+        this.consoleLogger.printf(MSG_PATTERN_CREATED_BRANCH_BASED_ON_OTHER, this.getActionName(), newBranchName, releaseBranch);
 
         // Push the new hotfix branch.
         this.git.push().to(this.remoteUrl).ref("refs/heads/" + newBranchName + ":refs/heads/" + newBranchName).execute();
@@ -250,7 +250,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
             // The local branch might be missing when the action was executed in 'Dry Run' mode before.
             this.git.deleteBranch(branchName);
         }
-        this.consoleLogger.println(formatPattern(MSG_PATTERN_DELETED_BRANCH, this.getActionName(), branchName));
+        this.consoleLogger.printf(MSG_PATTERN_DELETED_BRANCH, this.getActionName(), branchName);
         this.git.push().to(this.remoteUrl).ref(":refs/heads/" + branchName).execute();
 
         // Remove the recorded data of the deleted remote branch.
@@ -266,10 +266,9 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
      * @throws InterruptedException always thrown to omit the main build.
      */
     protected void omitMainBuild() throws InterruptedException {
-        final String msgAbortingToOmitMainBuild = formatPattern(MSG_PATTERN_ABORTING_TO_OMIT_MAIN_BUILD, this.getActionName());
-        this.consoleLogger.println(msgAbortingToOmitMainBuild);
+        this.consoleLogger.printf(MSG_PATTERN_ABORTING_TO_OMIT_MAIN_BUILD, this.getActionName());
         Executor.currentExecutor().interrupt(SUCCESS);
-        throw new InterruptedException(msgAbortingToOmitMainBuild);
+        throw new InterruptedException(MSG_ABORTING_TO_OMIT_MAIN_BUILD);
     }
 
     /**

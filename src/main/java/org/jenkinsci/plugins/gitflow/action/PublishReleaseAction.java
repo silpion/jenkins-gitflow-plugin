@@ -11,7 +11,6 @@ import static org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand.
 import static org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand.StrategyOption.THEIRS;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,8 +40,8 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
 
     private static final String ACTION_NAME = "Publish Release";
 
-    private static final MessageFormat MSG_PATTERN_CHECKOUT_BRANCH = new MessageFormat("Gitflow - {0}: Checked out branch {1}");
-    private static final MessageFormat MSG_PATTERN_MERGED_LAST_FIXES_RELEASE = new MessageFormat("Gitflow - {0}: Merged last fixes release {1} to branch {2}");
+    private static final String MSG_PATTERN_CHECKOUT_BRANCH = "Gitflow - %s: Checked out branch %s%n";
+    private static final String MSG_PATTERN_MERGED_LAST_FIXES_RELEASE = "Gitflow - %s: Merged last fixes release %s to branch %s%n";
 
     /**
      * Initialises a new <i>Publish Release</i> action.
@@ -124,7 +123,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         // Checkout the target branch.
         final ObjectId targetBranchRev = this.git.getHeadRev(this.git.getRemoteUrl("origin"), targetBranch);
         this.git.checkoutBranch(targetBranch, targetBranchRev.getName());
-        this.consoleLogger.println(formatPattern(MSG_PATTERN_CHECKOUT_BRANCH, ACTION_NAME, targetBranch));
+        this.consoleLogger.printf(MSG_PATTERN_CHECKOUT_BRANCH, ACTION_NAME, targetBranch);
 
         // Merge the last fixes release (from the release branch) to the target branch.
         final ObjectId lastFixesReleaseCommit = ObjectId.fromString(this.gitflowCause.getLastFixesReleaseCommit());
@@ -132,7 +131,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         final String lastFixesReleaseVersion = this.gitflowCause.getLastFixesReleaseVersion();
         final String msgMergedLastFixesRelease = formatPattern(MSG_PATTERN_MERGED_LAST_FIXES_RELEASE, ACTION_NAME, lastFixesReleaseVersion, targetBranch);
         this.git.commit(msgMergedLastFixesRelease);
-        this.consoleLogger.println(msgMergedLastFixesRelease);
+        this.consoleLogger.print(msgMergedLastFixesRelease);
 
         // Push the master branch with the new merge commit.
         this.git.push().to(this.remoteUrl).ref("refs/heads/" + targetBranch + ":refs/heads/" + targetBranch).execute();

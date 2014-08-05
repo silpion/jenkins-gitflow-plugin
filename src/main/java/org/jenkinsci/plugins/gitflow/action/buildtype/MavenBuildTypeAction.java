@@ -4,7 +4,6 @@ import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildW
 
 import java.io.File;
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -40,8 +39,7 @@ public class MavenBuildTypeAction extends AbstractBuildTypeAction<MavenModuleSet
             + " - The builds are declared unstable when there are unstable branches (see global configuration).%n"
             + " - The option 'Deploy even if the build is unstable' of the post build action 'Deploy artifacts to Maven repository' is not activated (see job configuration).%n";
 
-    private static final MessageFormat CMD_PATTERN_SET_POM_VERSION = new MessageFormat("org.codehaus.mojo:versions-maven-plugin:2.1:set"
-                                                                                       + " -DnewVersion={0} -DgenerateBackupPoms=false");
+    private static final String CMD_PATTERN_SET_POM_VERSION = "org.codehaus.mojo:versions-maven-plugin:2.1:set -DnewVersion=%s -DgenerateBackupPoms=false";
 
     private static final String SLASH_POM_XML = "/pom.xml";
 
