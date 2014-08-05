@@ -1,7 +1,7 @@
 package org.jenkinsci.plugins.gitflow.action;
 
 import java.io.PrintStream;
-import java.text.MessageFormat;
+import java.util.Formatter;
 
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
@@ -33,16 +33,15 @@ public abstract class AbstractActionBase<B extends AbstractBuild<?, ?>> {
     }
 
     /**
-     * Formats a message pattern, substituting its placeholders with the provided arguments (see {@link java.text.MessageFormat}).
+     * Creates and returns a formatted string using the specified format string and arguments.
      * It may not only format messages, but any string pattern (like e.g. a command pattern).
-     * <p/>
-     * This is a convenience method for the {@code format} methods of the {@link java.text.MessageFormat} class.
      *
      * @param messageFormat the string pattern to be formatted.
      * @param messageArguments the format arguments.
      * @return the formatted string.
+     * @see Formatter#format(String, Object...)
      */
-    protected static String formatPattern(final MessageFormat messageFormat, final String... messageArguments) {
-        return messageFormat.format(messageArguments);
+    protected static String formatPattern(final String messageFormat, final Object... messageArguments) {
+        return new Formatter().format(messageFormat, messageArguments).toString();
     }
 }

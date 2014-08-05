@@ -30,17 +30,26 @@ public class UnknownBuildTypeAction extends AbstractBuildTypeAction<AbstractBuil
         super(build, launcher, listener);
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getCurrentVersion() {
         return "unknown";
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<String> updateVersion(final String version) throws IOException, InterruptedException {
         this.consoleLogger.println(MSG_CANNOT_CHANGE_VERSION);
         return Collections.emptyList();
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public void prepareForReleaseBuild() throws IOException {
+        // Nothing to do.
+    }
+
+    /** {@inheritDoc} */
     @Override
     public void preventArchivePublication(final Map<String, String> buildEnvVars) {
         // Nothing to do.

@@ -32,7 +32,7 @@ public abstract class AbstractGitflowPluginTest {
         // Build wrapper descriptors are always provided by a statically retrieved Jenkins instance.
         mockStatic(Jenkins.class);
         when(Jenkins.getInstance()).thenReturn(this.jenkins);
-        when(this.jenkins.getDescriptor(GitflowBuildWrapper.class)).thenReturn(this.getGitflowBuildWrapperDescriptor());
+        when(this.jenkins.getDescriptorOrDie(GitflowBuildWrapper.class)).thenReturn(this.getGitflowBuildWrapperDescriptor());
 
         // The result status for interrupted builds can be set using a statically retrieved Executor instance.
         mockStatic(Executor.class);
