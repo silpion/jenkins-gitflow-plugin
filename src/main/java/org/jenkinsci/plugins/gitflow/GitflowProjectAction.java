@@ -21,6 +21,8 @@ import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.PermalinkProjectAction;
@@ -34,11 +36,11 @@ import hudson.util.NullStream;
  */
 public class GitflowProjectAction implements PermalinkProjectAction {
 
-    private static final String DEFAULT_STRING = "Please enter a valid version number...";
+    protected static final String DEFAULT_STRING = "Please enter a valid version number...";
 
     private final AbstractProject<?, ?> job;
 
-    private final HashMap<String, RemoteBranch> remoteBranches = new HashMap<String, RemoteBranch>();
+    private final Map<String, RemoteBranch> remoteBranches;
 
     /**
      * Initialises a new {@link GitflowProjectAction}.
@@ -49,6 +51,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         this.job = job;
 
         // Try to get the action object that holds the data for the Gitflow plugin and extract the recorded remote branch information.
+        this.remoteBranches = new HashMap<String, RemoteBranch>();
         for (AbstractBuild<?, ?> lastBuild = job.getLastBuild(); lastBuild != null; lastBuild = lastBuild.getPreviousBuild()) {
             final GitflowPluginData gitflowPluginData = lastBuild.getAction(GitflowPluginData.class);
             if (gitflowPluginData != null) {
@@ -68,6 +71,12 @@ public class GitflowProjectAction implements PermalinkProjectAction {
                 break;
             }
         }
+    }
+
+    @VisibleForTesting
+    GitflowProjectAction(final AbstractProject<?, ?> job, final Map<String, RemoteBranch> remoteBranches) {
+        this.job = job;
+        this.remoteBranches = remoteBranches;
     }
 
     private static GitClientDelegate createGitClient(final AbstractProject<?, ?> job) {
@@ -155,6 +164,50 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         }
 
         return releaseBranches;
+    }
+
+    public String computeHotfixReleaseVersion() throws IOException {
+        final RemoteBranch masterBranch = this.remoteBranches.get("origin/" + getGitflowBuildWrapperDescriptor().getMasterBranch());
+        if (masterBranch == null) {
+            return DEFAULT_STRING;
+        } else {
+            return masterBranch.getBaseReleaseVersion();
+        }
+    }
+
+    public String computePublishedFixesReleaseVersion() throws IOException {
+        final RemoteBranch masterBranch = this.remoteBranches.get("origin/" + getGitflowBuildWrapperDescriptor().getMasterBranch());
+        if (masterBranch == null)
+            return DEFAULT_STRING;
+        else {
+            return masterBranch.getLastReleaseVersion();
+        }
+    }
+
+    public String computeNextHotfixDevelopmentVersion() throws IOException {
+        final StringBuilder nextHotfixDevelopmentVersionBuilder = new StringBuilder();
+
+        final RemoteBranch masterBranch = this.remoteBranches.get("origin/" + getGitflowBuildWrapperDescriptor().getMasterBranch());
+        if (masterBranch == null) {
+            nextHotfixDevelopmentVersionBuilder.append(DEFAULT_STRING);
+        } else {
+            final String lastReleaseVersion = masterBranch.getLastReleaseVersion();
+            final String baseReleaseVersion = masterBranch.getBaseReleaseVersion();
+
+            nextHotfixDevelopmentVersionBuilder.append(baseReleaseVersion);
+            nextHotfixDevelopmentVersionBuilder.append(".");
+
+            if (StringUtils.equals(lastReleaseVersion, baseReleaseVersion)) {
+                nextHotfixDevelopmentVersionBuilder.append("1");
+            } else {
+                final String patchVersion = StringUtils.removeStart(lastReleaseVersion, baseReleaseVersion + ".");
+                nextHotfixDevelopmentVersionBuilder.append(Integer.valueOf(patchVersion).intValue() + 1);
+            }
+
+            nextHotfixDevelopmentVersionBuilder.append("-SNAPSHOT");
+        }
+
+        return nextHotfixDevelopmentVersionBuilder.toString();
     }
 
     public String computeReleaseVersion(final String releaseBranch) {

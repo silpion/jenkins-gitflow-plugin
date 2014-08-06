@@ -226,25 +226,38 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
         this.consoleLogger.printf(MSG_PATTERN_CLEANED_UP_WORKING_DIRECTORY, this.getActionName());
     }
 
-    protected void createBranch(final String newBranchName, final String releaseBranch) throws InterruptedException {
+    /**
+     * Creates a new branch based on a reference branch.
+     *
+     * @param newBranchName the name of the new branch.
+     * @param refBranchName the name of the reference branch.
+     * @throws InterruptedException if the build is interrupted during execution.
+     */
+    protected void createBranch(final String newBranchName, final String refBranchName) throws InterruptedException {
 
-        // Create a new hotfix branch.
-        this.git.checkoutBranch(newBranchName, "origin/" + releaseBranch);
-        this.consoleLogger.printf(MSG_PATTERN_CREATED_BRANCH_BASED_ON_OTHER, this.getActionName(), newBranchName, releaseBranch);
+        // Create a new branch.
+        this.git.checkoutBranch(newBranchName, "origin/" + refBranchName);
+        this.consoleLogger.printf(MSG_PATTERN_CREATED_BRANCH_BASED_ON_OTHER, this.getActionName(), newBranchName, refBranchName);
 
-        // Push the new hotfix branch.
+        // Push the new branch.
         this.git.push().to(this.remoteUrl).ref("refs/heads/" + newBranchName + ":refs/heads/" + newBranchName).execute();
 
         // Record the data for the new remote branch.
-        final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getRemoteBranch("origin", releaseBranch);
+        final RemoteBranch remoteBranchRef = this.gitflowPluginData.getRemoteBranch("origin", refBranchName);
         final RemoteBranch remoteBranchNew = this.gitflowPluginData.getOrAddRemoteBranch("origin", newBranchName);
-        remoteBranchNew.setLastBuildResult(remoteBranchRelease.getLastBuildResult());
-        remoteBranchNew.setLastBuildVersion(remoteBranchRelease.getLastBuildVersion());
-        remoteBranchNew.setBaseReleaseVersion(remoteBranchRelease.getBaseReleaseVersion());
-        remoteBranchNew.setLastReleaseVersion(remoteBranchRelease.getLastReleaseVersion());
-        remoteBranchNew.setLastReleaseVersionCommit(remoteBranchRelease.getLastReleaseVersionCommit());
+        remoteBranchNew.setLastBuildResult(remoteBranchRef.getLastBuildResult());
+        remoteBranchNew.setLastBuildVersion(remoteBranchRef.getLastBuildVersion());
+        remoteBranchNew.setBaseReleaseVersion(remoteBranchRef.getBaseReleaseVersion());
+        remoteBranchNew.setLastReleaseVersion(remoteBranchRef.getLastReleaseVersion());
+        remoteBranchNew.setLastReleaseVersionCommit(remoteBranchRef.getLastReleaseVersionCommit());
     }
 
+    /**
+     * Deletes a branch.
+     *
+     * @param branchName the name of the branch.
+     * @throws InterruptedException if the build is interrupted during execution.
+     */
     protected void deleteBranch(final String branchName) throws InterruptedException {
 
         // Delete the remote branch locally and remotely.

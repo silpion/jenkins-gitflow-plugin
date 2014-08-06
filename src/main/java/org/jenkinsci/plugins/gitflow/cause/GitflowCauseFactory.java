@@ -39,6 +39,8 @@ public class GitflowCauseFactory {
             gitflowCause = new PublishReleaseCause(submittedActionConent, dryRun);
         } else if ("finishRelease".equals(action)) {
             gitflowCause = new FinishReleaseCause(submittedActionConent, dryRun);
+        } else if ("startHotfix".equals(action)){
+            gitflowCause = new StartHotfixCause(submittedActionConent, dryRun);
         } else {
             // Only an IOException causes the build to fail properly.
             throw new IOException("Unknown Gitflow action " + action);
