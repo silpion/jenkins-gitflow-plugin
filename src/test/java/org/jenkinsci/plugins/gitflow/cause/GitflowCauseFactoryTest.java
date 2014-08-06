@@ -14,7 +14,7 @@ public class GitflowCauseFactoryTest {
     public void testStartHotFix() throws Exception {
 
         JSONObject action = new JSONObject();
-        action.element(StartHotFixCause.PARAM_HOTFIX_NAME, "testName");
+        action.element(StartHotFixCause.PARAM_HOTFIX_RELEASE_VERSION, "testName");
         action.element(StartHotFixCause.PARAM_NEXT_HOTFIX_DEVELOPMENT_VERSION, "1.1-SNAPSHOT");
         action.element("value", "startHotfix");
 
