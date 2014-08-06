@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.gitflow;
+package org.jenkinsci.plugins.gitflow.it.action;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -19,6 +19,7 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.jenkinsci.plugins.gitclient.Git;
 import org.jenkinsci.plugins.gitclient.GitClient;
+import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 import org.junit.Before;
@@ -45,7 +46,7 @@ import hudson.plugins.git.GitSCM;
  *
  * @author Hannes Osius, Silpion IT-Solutions GmbH
  */
-public class StartHotFixIT {
+public class StartHotfixIT {
 
     @Rule
     public JenkinsRule j = new JenkinsRule();
@@ -106,7 +107,7 @@ public class StartHotFixIT {
         j.submit(page.getFormByName("performGitflowRelease"));
 
         j.waitUntilNoActivity();
-        assertThat("StartHotFixAction failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
+        assertThat("StartHotfixAction failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         //check the Git-Repro
         File repository = folder.newFolder();
@@ -161,7 +162,7 @@ public class StartHotFixIT {
         j.submit(page.getFormByName("performGitflowRelease"));
 
         j.waitUntilNoActivity();
-        assertThat("StartHotFixAction failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
+        assertThat("StartHotfixAction failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         //check the Git-Repro
         File repository = folder.newFolder();
@@ -206,7 +207,7 @@ public class StartHotFixIT {
         j.submit(page.getFormByName("performGitflowRelease"));
 
         j.waitUntilNoActivity();
-        assertThat("StartHotFixAction failed", mavenProject.getLastBuild().getResult(), is(Result.FAILURE));
+        assertThat("StartHotfixAction failed", mavenProject.getLastBuild().getResult(), is(Result.FAILURE));
 
         //check the Git-Repro
         File repository = folder.newFolder();

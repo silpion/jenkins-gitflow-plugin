@@ -7,7 +7,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
-import org.jenkinsci.plugins.gitflow.cause.StartHotFixCause;
+import org.jenkinsci.plugins.gitflow.cause.StartHotfixCause;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,13 +41,13 @@ public class GitflowActionFactoryTest {
     }
 
     @Test
-    public void testNewInstanceStartHotFixAction() throws Exception {
+    public void testNewInstanceStartHotfixAction() throws Exception {
 
-        StartHotFixCause startHotFixCause = mock(StartHotFixCause.class);//new StartHotFixCause("name", "next", false);
-        when(build.getCause(AbstractGitflowCause.class)).thenReturn(startHotFixCause);
+        StartHotfixCause startHotfixCause = mock(StartHotfixCause.class);
+        when(build.getCause(AbstractGitflowCause.class)).thenReturn(startHotfixCause);
 
         AbstractGitflowAction<?, ?> abstractGitflowAction = GitflowActionFactory.newInstance(build, launcher, listener);
-        assertThat(abstractGitflowAction, is(instanceOf(StartHotFixAction.class)));
+        assertThat(abstractGitflowAction, is(instanceOf(StartHotfixAction.class)));
 
     }
 }

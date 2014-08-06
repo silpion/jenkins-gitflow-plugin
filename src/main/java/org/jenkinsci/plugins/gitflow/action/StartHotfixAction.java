@@ -5,7 +5,7 @@ import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildW
 
 import java.io.IOException;
 
-import org.jenkinsci.plugins.gitflow.cause.StartHotFixCause;
+import org.jenkinsci.plugins.gitflow.cause.StartHotfixCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 
@@ -19,9 +19,9 @@ import hudson.model.BuildListener;
  * @param <B> the build in progress.
  * @author Hannes Osius, Silpion IT-Solutions GmbH - osius@silpion.de
  */
-public class StartHotFixAction<B extends AbstractBuild<?, ?>> extends AbstractGitflowAction<B, StartHotFixCause> {
+public class StartHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGitflowAction<B, StartHotfixCause> {
 
-    private static final String ACTION_NAME = "Start HotFix";
+    private static final String ACTION_NAME = "Start Hotfix";
 
     private static final String MSG_PATTERN_UPDATED_HOTFIX_VERSION = "Gitflow - %s: Updated project files to hotfix version %s%n";
 
@@ -32,12 +32,12 @@ public class StartHotFixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
      * @param launcher can be used to launch processes for this build - even if the build runs remotely.
      * @param listener can be used to send any message.
      * @param git the Git client used to execute commands for the Gitflow actions.
-     * @param startHotFixCause the cause for the new action.
+     * @param startHotfixCause the cause for the new action.
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    public <BC extends B> StartHotFixAction(BC build, Launcher launcher, BuildListener listener, GitClientDelegate git, StartHotFixCause startHotFixCause) throws IOException, InterruptedException {
-        super(build, launcher, listener, git, startHotFixCause);
+    public <BC extends B> StartHotfixAction(BC build, Launcher launcher, BuildListener listener, GitClientDelegate git, StartHotfixCause startHotfixCause) throws IOException, InterruptedException {
+        super(build, launcher, listener, git, startHotfixCause);
     }
 
     /** {@inheritDoc} */

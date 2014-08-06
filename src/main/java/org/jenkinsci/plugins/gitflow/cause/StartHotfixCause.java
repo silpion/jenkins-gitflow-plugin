@@ -7,7 +7,7 @@ import net.sf.json.JSONObject;
  *
  * @author Hannes Osius, Silpion IT-Solutions GmbH - osius@silpion.de
  */
-public class StartHotFixCause extends AbstractGitflowCause {
+public class StartHotfixCause extends AbstractGitflowCause {
 
     public static final String PARAM_HOTFIX_RELEASE_VERSION = "hotfixReleaseVersion";
     public static final String PARAM_NEXT_HOTFIX_DEVELOPMENT_VERSION = "nextHotfixDevelopmentVersion";
@@ -21,7 +21,7 @@ public class StartHotFixCause extends AbstractGitflowCause {
      * @param structuredActionConent the structured content for the selected action to be instanciated.
      * @param dryRun is the build dryRun or not
      */
-    public StartHotFixCause(JSONObject structuredActionConent, boolean dryRun) {
+    public StartHotfixCause(JSONObject structuredActionConent, boolean dryRun) {
         this(structuredActionConent.getString(PARAM_HOTFIX_RELEASE_VERSION), structuredActionConent.getString(PARAM_NEXT_HOTFIX_DEVELOPMENT_VERSION), dryRun);
     }
 
@@ -32,7 +32,7 @@ public class StartHotFixCause extends AbstractGitflowCause {
      * @param nextHotfixDevelopmentVersion the suggestion for the next hotfix development version.
      * @param dryRun is the build dryRun or not
      */
-    public StartHotFixCause(String hotfixReleaseVersion, String nextHotfixDevelopmentVersion, boolean dryRun) {
+    public StartHotfixCause(String hotfixReleaseVersion, String nextHotfixDevelopmentVersion, boolean dryRun) {
         super(dryRun);
 
         this.hotfixReleaseVersion = hotfixReleaseVersion;

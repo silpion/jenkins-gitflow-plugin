@@ -11,11 +11,11 @@ import net.sf.json.JSONObject;
 public class GitflowCauseFactoryTest {
 
     @Test
-    public void testStartHotFix() throws Exception {
+    public void testStartHotfix() throws Exception {
 
         JSONObject action = new JSONObject();
-        action.element(StartHotFixCause.PARAM_HOTFIX_RELEASE_VERSION, "testName");
-        action.element(StartHotFixCause.PARAM_NEXT_HOTFIX_DEVELOPMENT_VERSION, "1.1-SNAPSHOT");
+        action.element(StartHotfixCause.PARAM_HOTFIX_RELEASE_VERSION, "testName");
+        action.element(StartHotfixCause.PARAM_NEXT_HOTFIX_DEVELOPMENT_VERSION, "1.1-SNAPSHOT");
         action.element("value", "startHotfix");
 
         JSONObject jsonObject = new JSONObject();
@@ -24,6 +24,6 @@ public class GitflowCauseFactoryTest {
         jsonObject.element("action", action);
 
         AbstractGitflowCause cause = GitflowCauseFactory.newInstance(jsonObject);
-        assertThat(cause, is(instanceOf(StartHotFixCause.class)));
+        assertThat(cause, is(instanceOf(StartHotfixCause.class)));
     }
 }
