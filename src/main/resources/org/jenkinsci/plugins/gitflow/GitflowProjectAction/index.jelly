@@ -98,12 +98,15 @@
                         </f:dropdownList>
                     </f:radioBlock>
                     <f:radioBlock name="action" value="startHotfix" title="Start Hotfix" checked="false">
-                       <f:entry title="Release Version">
-                          <f:textbox name="hotfixName" value="" />
-                       </f:entry>
-                       <f:entry title="Release Fixes Development Version">
-                          <f:textbox name="nextHotfixDevelopmentVersion" value="${it.computeNextHotfixVersion()}" />
-                       </f:entry>
+                        <f:entry title="Hotfix Release Version">
+                            <f:readOnlyTextbox name="hotfixReleaseVersion" value="${it.computeHotfixReleaseVersion()}" />
+                        </f:entry>
+                        <f:entry title="Published Fixes Release Version">
+                            <f:readOnlyTextbox name="publishedFixesReleaseVersion" value="${it.computePublishedFixesReleaseVersion()}" />
+                        </f:entry>
+                        <f:entry title="Next Hotfix Development Version">
+                            <f:textbox name="nextHotfixDevelopmentVersion" value="${it.computeNextHotfixDevelopmentVersion()}" />
+                        </f:entry>
                     </f:radioBlock>
                     <f:radioBlock name="action" value="finishHotfix" title="Finish Hotfix" checked="false">
                         <f:entry>

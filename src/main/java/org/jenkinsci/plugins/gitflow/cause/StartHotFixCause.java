@@ -9,10 +9,10 @@ import net.sf.json.JSONObject;
  */
 public class StartHotFixCause extends AbstractGitflowCause {
 
-    public static final String PARAM_HOTFIX_NAME = "hotfixName";
+    public static final String PARAM_HOTFIX_RELEASE_VERSION = "hotfixReleaseVersion";
     public static final String PARAM_NEXT_HOTFIX_DEVELOPMENT_VERSION = "nextHotfixDevelopmentVersion";
 
-    private final String name;
+    private final String hotfixReleaseVersion;
     private final String nextHotfixDevelopmentVersion;
 
     /**
@@ -22,25 +22,25 @@ public class StartHotFixCause extends AbstractGitflowCause {
      * @param dryRun is the build dryRun or not
      */
     public StartHotFixCause(JSONObject structuredActionConent, boolean dryRun) {
-        this(structuredActionConent.getString(PARAM_HOTFIX_NAME), structuredActionConent.getString(PARAM_NEXT_HOTFIX_DEVELOPMENT_VERSION), dryRun);
+        this(structuredActionConent.getString(PARAM_HOTFIX_RELEASE_VERSION), structuredActionConent.getString(PARAM_NEXT_HOTFIX_DEVELOPMENT_VERSION), dryRun);
     }
 
     /**
      * Creates a cause instance for the <i>Gitflow</i> build.
      *
-     * @param name the name of the Hotfix.
+     * @param hotfixReleaseVersion the release version of the Hotfix.
      * @param nextHotfixDevelopmentVersion the suggestion for the next hotfix development version.
      * @param dryRun is the build dryRun or not
      */
-    public StartHotFixCause(String name, String nextHotfixDevelopmentVersion, boolean dryRun) {
+    public StartHotFixCause(String hotfixReleaseVersion, String nextHotfixDevelopmentVersion, boolean dryRun) {
         super(dryRun);
 
-        this.name = name;
+        this.hotfixReleaseVersion = hotfixReleaseVersion;
         this.nextHotfixDevelopmentVersion = nextHotfixDevelopmentVersion;
     }
 
-    public String getName() {
-        return name;
+    public String getHotfixReleaseVersion() {
+        return this.hotfixReleaseVersion;
     }
 
     public String getNextHotfixDevelopmentVersion() {
@@ -49,9 +49,6 @@ public class StartHotFixCause extends AbstractGitflowCause {
 
     @Override
     public String getVersionForBadge() {
-        //TODO
-        return null;
+        return this.hotfixReleaseVersion;
     }
 }
-
-

@@ -1,9 +1,9 @@
 package org.jenkinsci.plugins.gitflow.action;
 
+import static hudson.model.Result.SUCCESS;
 import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.jenkinsci.plugins.gitflow.cause.StartHotFixCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
@@ -12,7 +12,6 @@ import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
-import hudson.model.Result;
 
 /**
  * This class executes the required steps for the Gitflow action <i>Start Hotfix</i>.
@@ -24,7 +23,6 @@ public class StartHotFixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
     private static final String ACTION_NAME = "Start HotFix";
 
-    private static final String MSG_PATTERN_CREATED_HOTFIX_BRANCH = "Gitflow - %s: Created hotfix branch %s%n";
     private static final String MSG_PATTERN_UPDATED_HOTFIX_VERSION = "Gitflow - %s: Updated project files to hotfix version %s%n";
 
     /**
@@ -42,42 +40,43 @@ public class StartHotFixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         super(build, launcher, listener, git, startHotFixCause);
     }
 
+    /** {@inheritDoc} */
     @Override
     protected String getActionName() {
         return ACTION_NAME;
     }
 
+    /** {@inheritDoc} */
     @Override
     protected void beforeMainBuildInternal() throws IOException, InterruptedException {
+
         // Create a new hotfix branch based on the master branch.
-        String ref = "origin/" + getGitflowBuildWrapperDescriptor().getMasterBranch();
-        git.checkoutBranch(getHotfixBranchName(), ref);
-        this.consoleLogger.printf(MSG_PATTERN_CREATED_HOTFIX_BRANCH, ACTION_NAME, this.getHotfixBranchName());
+        final String hotfixBranch = getGitflowBuildWrapperDescriptor().getHotfixBranchPrefix() + this.gitflowCause.getHotfixReleaseVersion();
+        final String masterBranch = getGitflowBuildWrapperDescriptor().getMasterBranch();
+        this.createBranch(hotfixBranch, masterBranch);
 
         // Update the version numbers in the project files to the hotfix version.
-        String hotfixVersion = gitflowCause.getNextHotfixDevelopmentVersion();
-        List<String> changesFiles = buildTypeAction.updateVersion(hotfixVersion);
-        addFilesToGitStage(changesFiles);
-        final String msgUpadtedReleaseVersion = formatPattern(MSG_PATTERN_UPDATED_HOTFIX_VERSION, ACTION_NAME, hotfixVersion);
-        git.commit(msgUpadtedReleaseVersion);
+        final String nextHotfixDevelopmentVersion = this.gitflowCause.getNextHotfixDevelopmentVersion();
+        this.addFilesToGitStage(this.buildTypeAction.updateVersion(nextHotfixDevelopmentVersion));
+        final String msgUpadtedReleaseVersion = formatPattern(MSG_PATTERN_UPDATED_HOTFIX_VERSION, ACTION_NAME, nextHotfixDevelopmentVersion);
+        this.git.commit(msgUpadtedReleaseVersion);
         this.consoleLogger.print(msgUpadtedReleaseVersion);
+
+        // Push the new hotfix branch to the remote repo.
+        this.git.push().to(this.remoteUrl).ref("refs/heads/" + hotfixBranch + ":refs/heads/" + hotfixBranch).execute();
+
+        // Record the remote branch data.
+        final RemoteBranch remoteBranch = this.gitflowPluginData.getOrAddRemoteBranch("origin", hotfixBranch);
+        remoteBranch.setLastBuildResult(SUCCESS);
+        remoteBranch.setLastBuildVersion(nextHotfixDevelopmentVersion);
+
+        // Abort the job, because there's no need to execute the main build.
+        this.omitMainBuild();
     }
 
+    /** {@inheritDoc} */
     @Override
     protected void afterMainBuildInternal() throws IOException, InterruptedException {
-        if (build.getResult() == Result.SUCCESS) {
-            // Push the new hotfix branch to the remote repo.
-            this.git.push().to(remoteUrl).ref("refs/heads/" + getHotfixBranchName() + ":refs/heads/" + getHotfixBranchName()).execute();
-        }
-        //Record the build Data
-        RemoteBranch remoteBranch = gitflowPluginData.getOrAddRemoteBranch("origin", getHotfixBranchName());
-        remoteBranch.setLastBuildResult(build.getResult());
-        remoteBranch.setLastBuildVersion(gitflowCause.getNextHotfixDevelopmentVersion());
-    }
-
-    private String getHotfixBranchName() {
-        return getGitflowBuildWrapperDescriptor().getHotfixBranchPrefix() + gitflowCause.getName();
+        // Nothing to do.
     }
 }
-
-
