@@ -6,7 +6,9 @@ import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
 import org.jenkinsci.plugins.gitflow.cause.FinishReleaseCause;
 import org.jenkinsci.plugins.gitflow.cause.FinishHotfixCause;
 import org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause;
+import org.jenkinsci.plugins.gitflow.cause.StartHotfixCause;
 import org.jenkinsci.plugins.gitflow.cause.StartReleaseCause;
+import org.jenkinsci.plugins.gitflow.cause.TestHotfixCause;
 import org.jenkinsci.plugins.gitflow.cause.TestReleaseCause;
 import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 
@@ -41,6 +43,10 @@ public class GitflowActionFactory {
             gitflowAction = new PublishReleaseAction<B>(build, launcher, listener, git, (PublishReleaseCause) gitflowCause);
         } else if (gitflowCause instanceof FinishReleaseCause) {
             gitflowAction = new FinishReleaseAction<B>(build, launcher, listener, git, (FinishReleaseCause) gitflowCause);
+        } else if (gitflowCause instanceof StartHotfixCause) {
+            gitflowAction = new StartHotfixAction<B>(build, launcher, listener, git, (StartHotfixCause) gitflowCause);
+        } else if (gitflowCause instanceof TestHotfixCause) {
+            gitflowAction = new TestHotfixAction<B>(build, launcher, listener, git, (TestHotfixCause) gitflowCause);
         } else if (gitflowCause instanceof FinishHotfixCause) {
             gitflowAction = new FinishHotfixAction<B>(build, launcher, listener, git, (FinishHotfixCause) gitflowCause);
         } else {
