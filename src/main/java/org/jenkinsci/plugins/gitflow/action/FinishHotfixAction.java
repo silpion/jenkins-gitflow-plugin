@@ -1,17 +1,13 @@
 package org.jenkinsci.plugins.gitflow.action;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitflow.cause.FinishHotfixCause;
 import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
-import hudson.model.Result;
 
 /**
  * This class executes the required steps for the Gitflow action <i>Finish Hotfix</i>.
@@ -49,32 +45,15 @@ public class FinishHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractG
     @Override
     protected void beforeMainBuildInternal() throws IOException, InterruptedException {
 
-        ObjectId hotfixBranchRev = git.getHeadRev(git.getRemoteUrl("origin"), "master");
-        git.checkout(hotfixBranchRev.getName());
+        // Finish Release: just delete the release branch.
+        this.deleteBranch(this.gitflowCause.getHotfixBranche());
 
+        // Abort the job, because there's no need to execute the main build.
+        this.omitMainBuild();
     }
 
     @Override
     protected void afterMainBuildInternal() throws IOException, InterruptedException {
-        if (this.build.getResult() == Result.SUCCESS) {
-            this.consoleLogger.printf(MSG_PATTERN_REMOVE_HOTFIX_BRANCH, ACTION_NAME, this.gitflowCause.getHotfixBranche());
-
-            //TODO remove local branch
-            //the command is "git branch -d -r origin/gitflowCause.getHotfixBranche()"
-            //but the git client has no command with "-d -r"
-            // if (remove local branch == SUCCESS) the remove the remote branch
-
-            //remove remote branch
-            this.git.push().to(getRemoteURI("origin")).ref(":" + gitflowCause.getHotfixBranche()).execute();
-        }
-    }
-
-    private URIish getRemoteURI(String remote) throws IOException{
-        // Create remote URL.
-        try {
-            return new URIish(remote);
-        } catch (final URISyntaxException urise) {
-            throw new IOException("Cannot create remote URL", urise);
-        }
+        // Nothing to do.
     }
 }

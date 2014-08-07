@@ -1,5 +1,9 @@
 package org.jenkinsci.plugins.gitflow.cause;
 
+import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
+
+import org.apache.commons.lang.StringUtils;
+
 import net.sf.json.JSONObject;
 
 /**
@@ -31,8 +35,7 @@ public class FinishHotfixCause extends AbstractGitflowCause {
 
     @Override
     public String getVersionForBadge() {
-        //TODO
-        return null;
+        return StringUtils.removeStart(this.getHotfixBranche(), getGitflowBuildWrapperDescriptor().getHotfixBranchPrefix());
     }
 
     public String getHotfixBranche() {
