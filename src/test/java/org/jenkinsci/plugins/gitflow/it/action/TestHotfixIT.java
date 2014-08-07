@@ -113,7 +113,7 @@ public class TestHotfixIT {
                 }
             }
         }
-        for (HtmlElement htmlElement : page.getElementsByName("hotfixReleaseVersion")) {
+        for (HtmlElement htmlElement : page.getElementsByName("fixesHotfixReleaseVersion")) {
             if (htmlElement.isDisplayed()){
                 if (htmlElement instanceof HtmlTextInput) {
                     HtmlTextInput textInput = (HtmlTextInput) htmlElement;

@@ -11,7 +11,7 @@ public class TestHotfixCause extends AbstractGitflowCause {
 
     public static final String PARAM_HOTFIX = "testHotfix";
     public static final String PARAM_HOTFIX_BRANCH = "hotfixBranch";
-    public static final String PARAM_HOTFIX_RELEASE_VERSION = "hotfixReleaseVersion";
+    public static final String PARAM_HOTFIX_RELEASE_VERSION = "fixesHotfixReleaseVersion";
     public static final String PARAM_NEXT_HOTFIX_RELEASE_VERSION = "nextHotfixReleaseVersion";
 
     private String hotfixBranch;
