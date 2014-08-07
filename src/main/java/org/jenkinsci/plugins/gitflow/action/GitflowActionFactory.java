@@ -7,6 +7,7 @@ import org.jenkinsci.plugins.gitflow.cause.FinishReleaseCause;
 import org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause;
 import org.jenkinsci.plugins.gitflow.cause.StartHotfixCause;
 import org.jenkinsci.plugins.gitflow.cause.StartReleaseCause;
+import org.jenkinsci.plugins.gitflow.cause.TestHotfixCause;
 import org.jenkinsci.plugins.gitflow.cause.TestReleaseCause;
 import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 
@@ -43,6 +44,8 @@ public class GitflowActionFactory {
             gitflowAction = new FinishReleaseAction<B>(build, launcher, listener, git, (FinishReleaseCause) gitflowCause);
         } else if (gitflowCause instanceof StartHotfixCause) {
             gitflowAction = new StartHotfixAction<B>(build, launcher, listener, git, (StartHotfixCause) gitflowCause);
+        } else if (gitflowCause instanceof TestHotfixCause) {
+            gitflowAction = new TestHotfixAction<B>(build, launcher, listener, git, (TestHotfixCause) gitflowCause);
         } else {
             // Only an IOException causes the build to fail properly.
             throw new IOException("Unknown Gitflow cause " + gitflowCause.getClass().getName());
