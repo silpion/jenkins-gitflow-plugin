@@ -59,12 +59,12 @@ public class GitflowProjectAction implements PermalinkProjectAction {
 
                 // The action form should only offer actions on the recorded remote branches that still exist.
                 // NOTE that proper error handling for Git client problems is not possible here. That's why the methods
-                // 'createGitClient' and 'isExistingRemoteBranch' swallow exceptions instead of handling them in any way.
+                // 'createGitClient' and 'isExistingBlessedRemoteBranch' swallow exceptions instead of handling them in any way.
                 final GitClientDelegate git = createGitClient(job);
                 for (final RemoteBranch remoteBranch : gitflowPluginData.getRemoteBranches()) {
                     final String remoteAlias = remoteBranch.getRemoteAlias();
                     final String branchName = remoteBranch.getBranchName();
-                    if (git == null || isExistingRemoteBranch(git, remoteAlias, branchName)) {
+                    if (git == null || isExistingBlessedRemoteBranch(git, remoteAlias, branchName)) {
                         this.remoteBranches.put(remoteAlias + "/" + branchName, remoteBranch);
                     }
                 }
@@ -90,9 +90,9 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         }
     }
 
-    private static boolean isExistingRemoteBranch(final GitClientDelegate git, final String remoteAlias, final String branchName) {
+    private static boolean isExistingBlessedRemoteBranch(final GitClientDelegate git, final String remoteAlias, final String branchName) {
         try {
-            return git.getHeadRev(git.getRemoteUrl(remoteAlias), branchName) != null;
+            return "origin".equals(remoteAlias) && git.getHeadRev(git.getRemoteUrl(remoteAlias), branchName) != null;
         } catch (final Exception ignored) {
             // NOTE that proper error handling for Git client problems is not possible here.
             // That's why exceptions are swallowed instead of being handled in any way.
