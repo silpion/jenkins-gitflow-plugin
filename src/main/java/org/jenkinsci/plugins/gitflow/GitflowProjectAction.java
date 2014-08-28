@@ -16,11 +16,14 @@ import javax.servlet.ServletException;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
 import org.jenkinsci.plugins.gitflow.cause.GitflowCauseFactory;
+import org.jenkinsci.plugins.gitflow.cause.StartReleaseCause;
 import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
+
+import net.sf.json.JSONObject;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -39,9 +42,19 @@ public class GitflowProjectAction implements PermalinkProjectAction {
 
     protected static final String DEFAULT_STRING = "Please enter a valid version number...";
 
+    private static final String JSON_PARAM_ACTION = "action";
+    private static final String JSON_PARAM_VALUE = "value";
+    private static final String JSON_PARAM_DRY_RUN = "dryRun";
+
+    private static final String JSON_PARAM_RELEASE_VERSION = "releaseVersion";
+    private static final String JSON_PARAM_NEXT_DEVELOPMENT_VERSION = "nextDevelopmentVersion";
+    private static final String JSON_PARAM_RELEASE_NEXT_DEVELOPMENT_VERSION = "releaseNextDevelopmentVersion";
+
     private final AbstractProject<?, ?> job;
 
     private final Map<String, RemoteBranch> remoteBranches;
+
+    private StartReleaseCause startReleaseCause;
 
     /**
      * Initialises a new {@link GitflowProjectAction}.
@@ -65,7 +78,13 @@ public class GitflowProjectAction implements PermalinkProjectAction {
                     final String remoteAlias = remoteBranch.getRemoteAlias();
                     final String branchName = remoteBranch.getBranchName();
                     if (git == null || isExistingBlessedRemoteBranch(git, remoteAlias, branchName)) {
-                        this.remoteBranches.put(remoteAlias + "/" + branchName, remoteBranch);
+
+                        final String branchType = GitflowBuildWrapper.getGitflowBuildWrapperDescriptor().getBranchType(branchName);
+                        if ("develop".equals(branchType)) {
+                            this.startReleaseCause = new StartReleaseCause(remoteBranch);
+                        } else {
+                            this.remoteBranches.put(remoteAlias + "/" + branchName, remoteBranch);
+                        }
                     }
                 }
 
@@ -118,37 +137,6 @@ public class GitflowProjectAction implements PermalinkProjectAction {
 
     public String getUrlName() {
         return "gitflow";
-    }
-
-    public String computeReleaseVersion() throws IOException {
-        final RemoteBranch developBranch = this.remoteBranches.get("origin/" + getGitflowBuildWrapperDescriptor().getDevelopBranch());
-        if (developBranch == null) {
-            return DEFAULT_STRING;
-        } else {
-            return StringUtils.removeEnd(developBranch.getLastBuildVersion(), "-SNAPSHOT");
-        }
-    }
-
-    public String computeReleaseNextDevelopmentVersion() throws IOException {
-        final String releaseVersion = this.computeReleaseVersion();
-        if (StringUtils.equals(releaseVersion, DEFAULT_STRING)) {
-            return DEFAULT_STRING;
-        } else {
-            return releaseVersion + ".1-SNAPSHOT";
-        }
-    }
-
-    public String computeNextDevelopmentVersion() throws IOException {
-        final String releaseVersion = this.computeReleaseVersion();
-        if (StringUtils.equals(releaseVersion, DEFAULT_STRING)) {
-            return DEFAULT_STRING;
-        } else {
-            final String latestMinorVersion = StringUtils.substringAfterLast(releaseVersion, ".");
-            final int nextMinorVersion = Integer.valueOf(latestMinorVersion).intValue() + 1;
-
-            final String baseVersion = StringUtils.substringBeforeLast(releaseVersion, ".");
-            return baseVersion + "." + nextMinorVersion + "-SNAPSHOT";
-        }
     }
 
     public SortedSet<String> computeReleaseBranches() throws IOException {
@@ -264,13 +252,31 @@ public class GitflowProjectAction implements PermalinkProjectAction {
 
         // TODO Validate that the versions for the selected action are not empty and don't equal DEFAULT_STRING.
 
-        // Create the cause object for the selected action.
-        final AbstractGitflowCause gitflowCause = GitflowCauseFactory.newInstance(request.getSubmittedForm());
+        // Identify the cause object for the selected action and overwrite the fields that can be changed by the user.
+        final JSONObject submittedForm = request.getSubmittedForm();
+        final JSONObject submittedAction = submittedForm.getJSONObject(JSON_PARAM_ACTION);
+        final String action = submittedAction.getString(JSON_PARAM_VALUE);
+        final AbstractGitflowCause gitflowCause;
+        if ("startRelease".equals(action)) {
+            this.startReleaseCause.setReleaseVersion(submittedAction.getString(JSON_PARAM_RELEASE_VERSION));
+            this.startReleaseCause.setReleaseNextDevelopmentVersion(submittedAction.getString(JSON_PARAM_RELEASE_NEXT_DEVELOPMENT_VERSION));
+            this.startReleaseCause.setNextDevelopmentVersion(submittedAction.getString(JSON_PARAM_NEXT_DEVELOPMENT_VERSION));
+            gitflowCause = this.startReleaseCause;
+        } else {
+            // TODO Old implementation, will be removed!
+            gitflowCause = GitflowCauseFactory.newInstance(submittedForm);
+        }
+        gitflowCause.setDryRun(submittedForm.getBoolean(JSON_PARAM_DRY_RUN));
 
         // Start a build.
         this.job.scheduleBuild(0, gitflowCause);
 
         // Return to the main page of the job.
         response.sendRedirect(request.getContextPath() + '/' + this.job.getUrl());
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public StartReleaseCause getStartReleaseCause() {
+        return this.startReleaseCause;
     }
 }

@@ -4,31 +4,33 @@
         <l:main-panel>
             <f:form method="post" action="submit" name="performGitflowRelease">
                 <f:section title="Gitflow">
-                    <f:radioBlock name="action" value="startFeature" title="Start Feature" checked="false">
+
+                    <j:set var="startReleaseCause" value="${it.startReleaseCause}" />
+                    <j:if test="${startReleaseCause == null}">
                         <f:entry>
-                            TODO Add form field entries to configure the
-                            <i>Start Feature</i>
-                            action.
+                            <span style="color:red; font-weight: bold">Warning:</span>
+                            <br />
+                            The existence of the develop branch is essential for the Gitflow, but builds for this branch haven't been recorded so far.
+                            <br />
+                            Ensure that a develop branch exists in the repository and trigger a build for this job, that build the develop branch.
+                            <hr />
                         </f:entry>
-                    </f:radioBlock>
-                    <f:radioBlock name="action" value="finishFeature" title="Finish Feature" checked="false">
-                        <f:entry>
-                            TODO Add form field entries to configure the
-                            <i>Finish Feature</i>
-                            action.
-                        </f:entry>
-                    </f:radioBlock>
-                    <f:radioBlock name="action" value="startRelease" title="Start Release" checked="false">
-                        <f:entry title="Release Version">
-                            <f:textbox name="releaseVersion" value="${it.computeReleaseVersion()}" />
-                        </f:entry>
-                        <f:entry title="Release Fixes Development Version">
-                            <f:textbox name="releaseNextDevelopmentVersion" value="${it.computeReleaseNextDevelopmentVersion()}" />
-                        </f:entry>
-                        <f:entry title="Next Release Development Version">
-                            <f:textbox name="nextDevelopmentVersion" value="${it.computeNextDevelopmentVersion()}" />
-                        </f:entry>
-                    </f:radioBlock>
+                    </j:if>
+
+                    <j:if test="${startReleaseCause != null}">
+                        <f:radioBlock name="action" value="startRelease" title="Start Next Release" checked="false">
+                            <f:entry title="Release Version">
+                                <f:textbox name="releaseVersion" value="${startReleaseCause.releaseVersion}" />
+                            </f:entry>
+                            <f:entry title="Release Fixes Development Version">
+                                <f:textbox name="releaseNextDevelopmentVersion" value="${startReleaseCause.releaseNextDevelopmentVersion}" />
+                            </f:entry>
+                            <f:entry title="Next Release Development Version">
+                                <f:textbox name="nextDevelopmentVersion" value="${startReleaseCause.nextDevelopmentVersion}" />
+                            </f:entry>
+                        </f:radioBlock>
+                    </j:if>
+
                     <f:radioBlock name="action" value="testRelease" title="Test Release" checked="false">
                         <f:dropdownList name="release" title="Release">
                             <j:forEach var="releaseBranch" items="${it.computeReleaseBranches()}">
@@ -138,9 +140,12 @@
                             </j:forEach>
                         </f:dropdownList>
                     </f:radioBlock>
-                    <f:entry>
-                        <f:checkbox name="dryRun" title="Dry Run" checked="false" />
+
+                    <f:entry title="Dry Run">
+                        <f:checkbox name="dryRun" title="Don't push Git commits and don't publish/deploy artifacts." checked="false" />
                     </f:entry>
+                    <f:entry />
+
                 </f:section>
                 <tr>
                     <td colspan="4" align="left">
