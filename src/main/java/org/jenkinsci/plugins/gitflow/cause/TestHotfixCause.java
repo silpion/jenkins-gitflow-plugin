@@ -32,7 +32,7 @@ public class TestHotfixCause extends AbstractGitflowCause {
     }
 
     public TestHotfixCause(String hotfixBranch, String hotfixReleaseVersion, String nextHotfixReleaseVersion, boolean dryRun) {
-        super(dryRun);
+        this.setDryRun(dryRun);
         this.hotfixBranch = hotfixBranch;
         this.hotfixReleaseVersion = hotfixReleaseVersion;
         this.nextHotfixReleaseVersion = nextHotfixReleaseVersion;

@@ -36,7 +36,7 @@ public class PublishReleaseCause extends AbstractGitflowCause {
      * @param dryRun is the build dryRun or not
      */
     public PublishReleaseCause(final JSONObject structuredActionConent, final boolean dryRun) {
-        super(dryRun);
+        this.setDryRun(dryRun);
 
         final JSONObject releaseContent = structuredActionConent.getJSONObject(PARAM_RELEASE);
         this.releaseBranch = releaseContent.getString(PARAM_RELEASE_BRANCH);

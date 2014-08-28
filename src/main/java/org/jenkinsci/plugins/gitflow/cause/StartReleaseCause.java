@@ -24,7 +24,7 @@ public class StartReleaseCause extends AbstractGitflowCause {
      * @param dryRun is the build dryRun or not
      */
     public StartReleaseCause(final JSONObject structuredActionConent, final boolean dryRun) {
-        super(dryRun);
+        this.setDryRun(dryRun);
 
         this.releaseVersion = structuredActionConent.getString(PARAM_RELEASE_VERSION);
         this.releaseNextDevelopmentVersion = structuredActionConent.getString(PARAM_RELEASE_NEXT_DEVELOPMENT_VERSION);

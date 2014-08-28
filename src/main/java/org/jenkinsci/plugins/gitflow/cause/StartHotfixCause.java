@@ -33,7 +33,7 @@ public class StartHotfixCause extends AbstractGitflowCause {
      * @param dryRun is the build dryRun or not
      */
     public StartHotfixCause(String hotfixReleaseVersion, String nextHotfixDevelopmentVersion, boolean dryRun) {
-        super(dryRun);
+        this.setDryRun(dryRun);
 
         this.hotfixReleaseVersion = hotfixReleaseVersion;
         this.nextHotfixDevelopmentVersion = nextHotfixDevelopmentVersion;

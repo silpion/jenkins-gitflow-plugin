@@ -29,7 +29,7 @@ public class FinishHotfixCause extends AbstractGitflowCause {
     }
 
     public FinishHotfixCause(String hotfixBranche, boolean dryRun) {
-        super(dryRun);
+        this.setDryRun(dryRun);
         this.hotfixBranche = hotfixBranche;
     }
 
