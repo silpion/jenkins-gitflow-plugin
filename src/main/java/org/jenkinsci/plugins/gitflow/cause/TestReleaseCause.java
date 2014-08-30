@@ -1,36 +1,31 @@
 package org.jenkinsci.plugins.gitflow.cause;
 
-import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 
 /**
- * The {@link hudson.model.Cause} object for the <i>Test Release</i> action to be executed.
+ * The {@link hudson.model.Cause Cause} object for the <i>Test Release</i> action to be executed.
  *
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
-public class TestReleaseCause extends AbstractGitflowCause {
+public class TestReleaseCause extends AbstractReleaseBranchCause {
 
-    private static final String PARAM_RELEASE = "release";
-    private static final String PARAM_RELEASE_BRANCH = "releaseBranch";
-    private static final String PARAM_FIXES_RELEASE_VERSION = "fixesReleaseVersion";
-    private static final String PARAM_NEXT_FIXES_DEVELOPMENT_VERSION = "nextFixesDevelopmentVersion";
-
-    private final String releaseBranch;
-    private final String fixesReleaseVersion;
-    private final String nextFixesDevelopmentVersion;
+    private String fixesReleaseVersion;
+    private String nextFixesDevelopmentVersion;
 
     /**
      * Creates a cause instance for the <i>Gitflow</i> build.
      *
-     * @param structuredActionConent the structured content for the selected action to be instanciated.
-     * @param dryRun is the build dryRun or not
+     * @param releaseBranch the <i>release</i> branch containing base data for the cause.
      */
-    public TestReleaseCause(final JSONObject structuredActionConent, final boolean dryRun) {
-        this.setDryRun(dryRun);
+    public TestReleaseCause(final RemoteBranch releaseBranch) {
+        super(releaseBranch);
 
-        final JSONObject releaseContent = structuredActionConent.getJSONObject(PARAM_RELEASE);
-        this.releaseBranch = releaseContent.getString(PARAM_RELEASE_BRANCH);
-        this.fixesReleaseVersion = releaseContent.getString(PARAM_FIXES_RELEASE_VERSION);
-        this.nextFixesDevelopmentVersion = releaseContent.getString(PARAM_NEXT_FIXES_DEVELOPMENT_VERSION);
+        this.fixesReleaseVersion = StringUtils.removeEnd(releaseBranch.getLastBuildVersion(), "-SNAPSHOT");
+
+        final String baseVersion = StringUtils.substringBeforeLast(this.fixesReleaseVersion, ".");
+        final int newPatchNumber = Integer.valueOf(StringUtils.substringAfterLast(this.fixesReleaseVersion, ".")).intValue() + 1;
+        this.nextFixesDevelopmentVersion = baseVersion + "." + newPatchNumber + "-SNAPSHOT";
     }
 
     @Override
@@ -38,15 +33,19 @@ public class TestReleaseCause extends AbstractGitflowCause {
         return this.fixesReleaseVersion;
     }
 
-    public String getReleaseBranch() {
-        return this.releaseBranch;
-    }
-
     public String getFixesReleaseVersion() {
         return this.fixesReleaseVersion;
     }
 
+    public void setFixesReleaseVersion(final String fixesReleaseVersion) {
+        this.fixesReleaseVersion = fixesReleaseVersion;
+    }
+
     public String getNextFixesDevelopmentVersion() {
         return this.nextFixesDevelopmentVersion;
+    }
+
+    public void setNextFixesDevelopmentVersion(final String nextFixesDevelopmentVersion) {
+        this.nextFixesDevelopmentVersion = nextFixesDevelopmentVersion;
     }
 }

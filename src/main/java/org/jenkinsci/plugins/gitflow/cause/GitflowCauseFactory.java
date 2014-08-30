@@ -31,13 +31,7 @@ public class GitflowCauseFactory {
         final boolean dryRun = submittedForm.getBoolean(PARAM_DRY_RUN);
 
         // Instanciate the cause object for the submitted action.
-        if ("testRelease".equals(action)) {
-            gitflowCause = new TestReleaseCause(submittedActionConent, dryRun);
-        } else if ("publishRelease".equals(action)) {
-            gitflowCause = new PublishReleaseCause(submittedActionConent, dryRun);
-        } else if ("finishRelease".equals(action)) {
-            gitflowCause = new FinishReleaseCause(submittedActionConent, dryRun);
-        } else if ("startHotfix".equals(action)){
+        if ("startHotfix".equals(action)){
             gitflowCause = new StartHotfixCause(submittedActionConent, dryRun);
         } else if ("testHotfix".equals(action)) {
             gitflowCause = new TestHotfixCause(submittedActionConent, dryRun);

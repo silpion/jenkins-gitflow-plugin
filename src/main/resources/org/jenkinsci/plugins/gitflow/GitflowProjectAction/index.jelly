@@ -4,6 +4,7 @@
         <l:main-panel>
             <f:form method="post" action="submit" name="performGitflowRelease">
                 <f:section title="Gitflow">
+                    <f:entry />
 
                     <j:set var="startReleaseCause" value="${it.startReleaseCause}" />
                     <j:if test="${startReleaseCause == null}">
@@ -13,9 +14,68 @@
                             The existence of the develop branch is essential for the Gitflow, but builds for this branch haven't been recorded so far.
                             <br />
                             Ensure that a develop branch exists in the repository and trigger a build for this job, that build the develop branch.
-                            <hr />
                         </f:entry>
+                        <f:entry />
                     </j:if>
+
+                    <j:set var="releaseBranchCauseGroups" value="${it.releaseBranchCauseGroups}" />
+                    <j:forEach var="releaseBranchCauseGroup" items="${releaseBranchCauseGroups}">
+                        <f:entry title="Release ${releaseBranchCauseGroup.releaseVersion} - Branch: ${releaseBranchCauseGroup.branchName}">
+
+                            <j:set var="testReleaseCause" value="${releaseBranchCauseGroup.testReleaseCause}" />
+                            <f:radioBlock name="action" value="testRelease" title="Test Release ${releaseBranchCauseGroup.releaseVersion}" checked="false">
+                                <f:invisibleEntry>
+                                    <input name="releaseVersion" value="${releaseBranchCauseGroup.releaseVersion}" type="hidden" />
+                                </f:invisibleEntry>
+                                <f:entry title="Fixes Release Version">
+                                    <f:textbox name="fixesReleaseVersion" value="${testReleaseCause.fixesReleaseVersion}" />
+                                </f:entry>
+                                <f:entry title="Next Fixes Development Version">
+                                    <f:textbox name="nextFixesDevelopmentVersion" value="${testReleaseCause.nextFixesDevelopmentVersion}" />
+                                </f:entry>
+                            </f:radioBlock>
+
+                            <j:set var="publishReleaseCause" value="${releaseBranchCauseGroup.publishReleaseCause}" />
+                            <f:radioBlock name="action" value="publishRelease" title="Publish Release ${releaseBranchCauseGroup.releaseVersion}" checked="false">
+                                <f:invisibleEntry>
+                                    <input name="releaseVersion" value="${releaseBranchCauseGroup.releaseVersion}" type="hidden" />
+                                </f:invisibleEntry>
+                                <f:entry title="Last Fixes Release Version">
+                                    ${publishReleaseCause.lastFixesReleaseVersion} (Commit ${publishReleaseCause.lastFixesReleaseCommit})
+                                </f:entry>
+                                <f:entry title="Merge to develop">
+                                    <f:checkbox name="mergeToDevelop" checked="${publishReleaseCause.mergeToDevelop}"
+                                        title="(Using merge strategy 'recursive-ours' to prevent conflicts, but some conflicting changes may be lost.)" />
+                                </f:entry>
+                                <f:entry title="Included Action">
+                                    <select name="includedAction">
+                                        <f:option value="NONE" selected="${publishReleaseCause.includedAction == 'NONE'}">
+                                            None (keep release branch)
+                                        </f:option>
+                                        <f:option value="FINISH_RELEASE" selected="${publishReleaseCause.includedAction == 'FINISH_RELEASE'}">
+                                            Finish Release ${releaseBranchCauseGroup.releaseVersion} (Delete release branch - NOTE: Merge to develop must be checked)
+                                        </f:option>
+                                        <f:option value="START_HOTFIX" selected="${publishReleaseCause.includedAction == 'START_HOTFIX'}">
+                                            Finish Release ${releaseBranchCauseGroup.releaseVersion} and Start Hotfix ${releaseBranchCauseGroup.releaseVersion} (Rename release branch)
+                                        </f:option>
+                                    </select>
+                                </f:entry>
+                            </f:radioBlock>
+
+                            <j:set var="finishReleaseCause" value="${releaseBranchCauseGroup.finishReleaseCause}" />
+                            <f:radioBlock name="action" value="finishRelease" title="Finish Release ${releaseBranchCauseGroup.releaseVersion}" checked="false">
+                                <f:invisibleEntry>
+                                    <input name="releaseVersion" value="${releaseBranchCauseGroup.releaseVersion}" type="hidden" />
+                                </f:invisibleEntry>
+                                <f:entry title="Included Action">
+                                    <f:checkbox name="includeStartHotfixAction" checked="${finishReleaseCause.includeStartHotfixAction}"
+                                        title="Start Hotfix ${releaseBranchCauseGroup.releaseVersion} (Don't delete release branch, reanme to hotfix branch)" />
+                                </f:entry>
+                            </f:radioBlock>
+
+                        </f:entry>
+                        <f:entry />
+                    </j:forEach>
 
                     <j:if test="${startReleaseCause != null}">
                         <f:radioBlock name="action" value="startRelease" title="Start Next Release" checked="false">
@@ -29,76 +89,9 @@
                                 <f:textbox name="nextDevelopmentVersion" value="${startReleaseCause.nextDevelopmentVersion}" />
                             </f:entry>
                         </f:radioBlock>
+                        <f:entry />
                     </j:if>
 
-                    <f:radioBlock name="action" value="testRelease" title="Test Release" checked="false">
-                        <f:dropdownList name="release" title="Release">
-                            <j:forEach var="releaseBranch" items="${it.computeReleaseBranches()}">
-                                <f:dropdownListBlock value="${it.computeReleaseVersion(releaseBranch)}" title="${it.computeReleaseVersion(releaseBranch)}" selected="false">
-                                    <f:entry title="Release Branch">
-                                        <f:readOnlyTextbox name="releaseBranch" value="${releaseBranch}" />
-                                    </f:entry>
-                                    <f:entry title="Fixes Release Version">
-                                        <f:textbox name="fixesReleaseVersion" value="${it.computeFixesReleaseVersion(releaseBranch)}" />
-                                    </f:entry>
-                                    <f:entry title="Next Fixes Development Version">
-                                        <f:textbox name="nextFixesDevelopmentVersion" value="${it.computeNextFixesDevelopmentVersion(releaseBranch)}" />
-                                    </f:entry>
-                                </f:dropdownListBlock>
-                            </j:forEach>
-                        </f:dropdownList>
-                    </f:radioBlock>
-                    <f:radioBlock name="action" value="publishRelease" title="Publish Release" checked="false">
-                        <f:dropdownList name="release" title="Release">
-                            <j:forEach var="releaseBranch" items="${it.computeReleaseBranches()}">
-                                <f:dropdownListBlock value="${it.computeReleaseVersion(releaseBranch)}" title="${it.computeReleaseVersion(releaseBranch)}" selected="false">
-                                    <f:entry title="Release Branch">
-                                        <f:readOnlyTextbox name="releaseBranch" value="${releaseBranch}" />
-                                    </f:entry>
-                                    <f:entry title="Last Fixes Release Version">
-                                        <f:readOnlyTextbox name="lastFixesReleaseVersion" value="${it.computeLastFixesReleaseVersion(releaseBranch)}" />
-                                    </f:entry>
-                                    <f:entry title="Last Fixes Release Commit">
-                                        <f:readOnlyTextbox name="lastFixesReleaseCommit" value="${it.computeLastFixesReleaseCommit(releaseBranch)}" />
-                                    </f:entry>
-                                    <f:entry title="Merge to develop">
-                                        <f:checkbox name="mergeToDevelop" checked="false"
-                                            title="(Using merge strategy 'recursive-ours' to prevent conflicts, but some conflicting changes may be lost.)" />
-                                    </f:entry>
-                                    <f:entry title="Included Action">
-                                        <select name="includedAction">
-                                            <option value="NONE">None (keep release branch)</option>
-                                            <option value="FINISH_RELEASE">
-                                                Finish Release ${it.computeReleaseVersion(releaseBranch)}
-                                                <br />
-                                                (Delete release branch - NOTE: Merge to develop must be checked)
-                                            </option>
-                                            <option value="START_HOTFIX" selected="selected">
-                                                Finish Release ${it.computeReleaseVersion(releaseBranch)} and
-                                                Start Hotfix ${it.computeReleaseVersion(releaseBranch)}
-                                                <br />
-                                                (Rename release branch)
-                                            </option>
-                                        </select>
-                                    </f:entry>
-                                </f:dropdownListBlock>
-                            </j:forEach>
-                        </f:dropdownList>
-                    </f:radioBlock>
-                    <f:radioBlock name="action" value="finishRelease" title="Finish Release" checked="false">
-                        <f:dropdownList name="release" title="Release">
-                            <j:forEach var="releaseBranch" items="${it.computeReleaseBranches()}">
-                                <f:dropdownListBlock value="${it.computeReleaseVersion(releaseBranch)}" title="${it.computeReleaseVersion(releaseBranch)}" selected="false">
-                                    <f:entry title="Release Branch">
-                                        <f:readOnlyTextbox name="releaseBranch" value="${releaseBranch}" />
-                                    </f:entry>
-                                    <f:entry title="Included Action">
-                                        <f:checkbox name="includeStartHotfixAction" title="Start Hotfix ${it.computeReleaseVersion(releaseBranch)} (Don't delete release branch, reanme to hotfix branch)" checked="true" />
-                                    </f:entry>
-                                </f:dropdownListBlock>
-                            </j:forEach>
-                        </f:dropdownList>
-                    </f:radioBlock>
                     <f:radioBlock name="action" value="startHotfix" title="Start Hotfix" checked="false">
                         <f:entry title="Hotfix Release Version">
                             <f:readOnlyTextbox name="hotfixReleaseVersion" value="${it.computeHotfixReleaseVersion()}" />
