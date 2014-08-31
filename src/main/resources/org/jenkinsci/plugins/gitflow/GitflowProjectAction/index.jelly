@@ -92,17 +92,22 @@
                         <f:entry />
                     </j:if>
 
-                    <f:radioBlock name="action" value="startHotfix" title="Start Hotfix" checked="false">
-                        <f:entry title="Hotfix Release Version">
-                            <f:readOnlyTextbox name="hotfixReleaseVersion" value="${it.computeHotfixReleaseVersion()}" />
-                        </f:entry>
-                        <f:entry title="Published Fixes Release Version">
-                            <f:readOnlyTextbox name="publishedFixesReleaseVersion" value="${it.computePublishedFixesReleaseVersion()}" />
-                        </f:entry>
-                        <f:entry title="Next Hotfix Development Version">
-                            <f:textbox name="nextHotfixDevelopmentVersion" value="${it.computeNextHotfixDevelopmentVersion()}" />
-                        </f:entry>
-                    </f:radioBlock>
+                    <j:set var="startHotfixCause" value="${it.startHotfixCause}" />
+                    <j:if test="${startHotfixCause != null}">
+                        <f:radioBlock name="action" value="startHotfix" title="Start Hotfix" checked="false">
+                            <f:entry title="Hotfix Release Version">
+                                ${startHotfixCause.hotfixReleaseVersion}
+                            </f:entry>
+                            <f:entry title="Published Fixes Release Version">
+                                ${startHotfixCause.publishedFixesReleaseVersion}
+                            </f:entry>
+                            <f:entry title="Next Hotfix Development Version">
+                                <f:textbox name="nextHotfixDevelopmentVersion" value="${startHotfixCause.nextHotfixDevelopmentVersion}" />
+                            </f:entry>
+                        </f:radioBlock>
+                        <f:entry />
+                    </j:if>
+
                     <f:radioBlock name="action" value="testHotfix" title="Test Hotfix" checked="false">
                         <f:dropdownList name="testHotfix" title="Hotfix">
                             <j:forEach var="hotfixBranch" items="${it.computeHotfixBranches()}">

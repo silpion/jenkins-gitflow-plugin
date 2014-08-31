@@ -21,6 +21,7 @@ import org.jenkinsci.plugins.gitflow.cause.FinishReleaseCause;
 import org.jenkinsci.plugins.gitflow.cause.GitflowCauseFactory;
 import org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause;
 import org.jenkinsci.plugins.gitflow.cause.ReleaseBranchCauseGroup;
+import org.jenkinsci.plugins.gitflow.cause.StartHotfixCause;
 import org.jenkinsci.plugins.gitflow.cause.StartReleaseCause;
 import org.jenkinsci.plugins.gitflow.cause.TestReleaseCause;
 import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
@@ -46,20 +47,19 @@ import hudson.util.NullStream;
  */
 public class GitflowProjectAction implements PermalinkProjectAction {
 
-    protected static final String DEFAULT_STRING = "Please enter a valid version number...";
+    @VisibleForTesting static final String JSON_PARAM_ACTION = "action";
+    @VisibleForTesting static final String JSON_PARAM_VALUE = "value";
+    @VisibleForTesting static final String JSON_PARAM_DRY_RUN = "dryRun";
 
-    private static final String JSON_PARAM_ACTION = "action";
-    private static final String JSON_PARAM_VALUE = "value";
-    private static final String JSON_PARAM_DRY_RUN = "dryRun";
-
-    private static final String JSON_PARAM_RELEASE_VERSION = "releaseVersion";
-    private static final String JSON_PARAM_NEXT_DEVELOPMENT_VERSION = "nextDevelopmentVersion";
-    private static final String JSON_PARAM_RELEASE_NEXT_DEVELOPMENT_VERSION = "releaseNextDevelopmentVersion";
-    private static final String JSON_PARAM_FIXES_RELEASE_VERSION = "fixesReleaseVersion";
-    private static final String JSON_PARAM_NEXT_FIXES_DEVELOPMENT_VERSION = "nextFixesDevelopmentVersion";
-    private static final String JSON_PARAM_MERGE_TO_DEVELOP = "mergeToDevelop";
-    private static final String JSON_PARAM_INCLUDED_ACTION = "includedAction";
-    private static final String JSON_PARAM_INCLUDE_START_HOTFIX_ACTION = "includeStartHotfixAction";
+    @VisibleForTesting static final String JSON_PARAM_RELEASE_VERSION = "releaseVersion";
+    @VisibleForTesting static final String JSON_PARAM_NEXT_DEVELOPMENT_VERSION = "nextDevelopmentVersion";
+    @VisibleForTesting static final String JSON_PARAM_RELEASE_NEXT_DEVELOPMENT_VERSION = "releaseNextDevelopmentVersion";
+    @VisibleForTesting static final String JSON_PARAM_FIXES_RELEASE_VERSION = "fixesReleaseVersion";
+    @VisibleForTesting static final String JSON_PARAM_NEXT_FIXES_DEVELOPMENT_VERSION = "nextFixesDevelopmentVersion";
+    @VisibleForTesting static final String JSON_PARAM_MERGE_TO_DEVELOP = "mergeToDevelop";
+    @VisibleForTesting static final String JSON_PARAM_INCLUDED_ACTION = "includedAction";
+    @VisibleForTesting static final String JSON_PARAM_INCLUDE_START_HOTFIX_ACTION = "includeStartHotfixAction";
+    @VisibleForTesting static final String JSON_PARAM_NEXT_HOTFIX_DEVELOPMENT_VERSION = "nextHotfixDevelopmentVersion";
 
     private static final Comparator<String> VERSION_NUMBER_COMPARATOR = new Comparator<String>() {
 
@@ -91,6 +91,8 @@ public class GitflowProjectAction implements PermalinkProjectAction {
     private StartReleaseCause startReleaseCause;
     private Map<String, ReleaseBranchCauseGroup> releaseBranchCauseGroupsByVersion = new TreeMap<String, ReleaseBranchCauseGroup>(VERSION_NUMBER_COMPARATOR);
 
+    private StartHotfixCause startHotfixCause;
+
     /**
      * Initialises a new {@link GitflowProjectAction}.
      *
@@ -120,6 +122,8 @@ public class GitflowProjectAction implements PermalinkProjectAction {
                         } else if ("release".equals(branchType)) {
                             final ReleaseBranchCauseGroup releaseBranchCauseGroup = new ReleaseBranchCauseGroup(remoteBranch);
                             this.releaseBranchCauseGroupsByVersion.put(releaseBranchCauseGroup.getReleaseVersion(), releaseBranchCauseGroup);
+                        } else if ("master".equals(branchType)) {
+                            this.startHotfixCause = new StartHotfixCause(remoteBranch);
                         } else {
                             this.remoteBranches.put(remoteAlias + "/" + branchName, remoteBranch);
                         }
@@ -129,12 +133,8 @@ public class GitflowProjectAction implements PermalinkProjectAction {
                 break;
             }
         }
-    }
 
-    @VisibleForTesting
-    GitflowProjectAction(final AbstractProject<?, ?> job, final Map<String, RemoteBranch> remoteBranches) {
-        this.job = job;
-        this.remoteBranches = remoteBranches;
+        // TODO Set startHotfixCause to null when the hotfix branch for the published release already exists.
     }
 
     private static GitClientDelegate createGitClient(final AbstractProject<?, ?> job) {
@@ -200,55 +200,6 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         return filterBranches;
     }
 
-    public String computeHotfixReleaseVersion() throws IOException {
-        final RemoteBranch masterBranch = this.remoteBranches.get("origin/" + getGitflowBuildWrapperDescriptor().getMasterBranch());
-        if (masterBranch == null) {
-            return DEFAULT_STRING;
-        } else {
-            return masterBranch.getBaseReleaseVersion();
-        }
-    }
-
-    public String computePublishedFixesReleaseVersion() throws IOException {
-        final RemoteBranch masterBranch = this.remoteBranches.get("origin/" + getGitflowBuildWrapperDescriptor().getMasterBranch());
-        if (masterBranch == null)
-            return DEFAULT_STRING;
-        else {
-            return masterBranch.getLastReleaseVersion();
-        }
-    }
-
-    public String computeNextHotfixDevelopmentVersion() throws IOException {
-        final StringBuilder nextHotfixDevelopmentVersionBuilder = new StringBuilder();
-
-        final RemoteBranch masterBranch = this.remoteBranches.get("origin/" + getGitflowBuildWrapperDescriptor().getMasterBranch());
-        if (masterBranch == null) {
-            nextHotfixDevelopmentVersionBuilder.append(DEFAULT_STRING);
-        } else {
-            final String lastReleaseVersion = masterBranch.getLastReleaseVersion();
-            final String baseReleaseVersion = masterBranch.getBaseReleaseVersion();
-
-            nextHotfixDevelopmentVersionBuilder.append(baseReleaseVersion);
-            nextHotfixDevelopmentVersionBuilder.append(".");
-
-            if (StringUtils.equals(lastReleaseVersion, baseReleaseVersion)) {
-                nextHotfixDevelopmentVersionBuilder.append("1");
-            } else {
-                final String patchVersion = StringUtils.removeStart(lastReleaseVersion, baseReleaseVersion + ".");
-                nextHotfixDevelopmentVersionBuilder.append(Integer.valueOf(patchVersion).intValue() + 1);
-            }
-
-            nextHotfixDevelopmentVersionBuilder.append("-SNAPSHOT");
-        }
-
-        return nextHotfixDevelopmentVersionBuilder.toString();
-    }
-
-    public String computeReleaseVersion(final String releaseBranch) {
-        final String releaseBranchPrefix = getGitflowBuildWrapperDescriptor().getReleaseBranchPrefix();
-        return StringUtils.removeStart(releaseBranch, releaseBranchPrefix);
-    }
-
     public String computeFixesReleaseVersion(final String releaseBranch) throws IOException {
         final String versionForBranch = this.remoteBranches.get("origin/" + releaseBranch).getLastBuildVersion();
         return StringUtils.removeEnd(versionForBranch, "-SNAPSHOT");
@@ -265,11 +216,6 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         nextFixesDevelopmentVersionBuilder.append("-SNAPSHOT");
 
         return nextFixesDevelopmentVersionBuilder.toString();
-    }
-
-    @SuppressWarnings("UnusedDeclaration")
-    public String computeHotfixBranch(final String releaseBranch) {
-        return getGitflowBuildWrapperDescriptor().getHotfixBranchPrefix() + this.computeReleaseVersion(releaseBranch);
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -301,6 +247,9 @@ public class GitflowProjectAction implements PermalinkProjectAction {
             final FinishReleaseCause finishReleaseCause = this.releaseBranchCauseGroupsByVersion.get(submittedAction.getString(JSON_PARAM_RELEASE_VERSION)).getFinishReleaseCause();
             finishReleaseCause.setIncludeStartHotfixAction(submittedAction.getBoolean(JSON_PARAM_INCLUDE_START_HOTFIX_ACTION));
             gitflowCause = finishReleaseCause;
+        } else if ("startHotfix".equals(action)) {
+            this.startHotfixCause.setNextHotfixDevelopmentVersion(submittedAction.getString(JSON_PARAM_NEXT_HOTFIX_DEVELOPMENT_VERSION));
+            gitflowCause = this.startHotfixCause;
         } else {
             // TODO Old implementation, will be removed!
             gitflowCause = GitflowCauseFactory.newInstance(submittedForm);
@@ -322,5 +271,10 @@ public class GitflowProjectAction implements PermalinkProjectAction {
     @SuppressWarnings("UnusedDeclaration")
     public Collection<ReleaseBranchCauseGroup> getReleaseBranchCauseGroups() {
         return this.releaseBranchCauseGroupsByVersion.values();
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public StartHotfixCause getStartHotfixCause() {
+        return this.startHotfixCause;
     }
 }

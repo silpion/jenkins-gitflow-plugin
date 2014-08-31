@@ -1,54 +1,62 @@
 package org.jenkinsci.plugins.gitflow.cause;
 
-import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
+import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 
 /**
- * The {@link hudson.model.Cause} object for the <i>Start Hotfix</i> action to be executed.
+ * The {@link hudson.model.Cause Cause} object for the <i>Start Hotfix</i> action to be executed.
  *
  * @author Hannes Osius, Silpion IT-Solutions GmbH - osius@silpion.de
  */
 public class StartHotfixCause extends AbstractGitflowCause {
 
-    public static final String PARAM_HOTFIX_RELEASE_VERSION = "hotfixReleaseVersion";
-    public static final String PARAM_NEXT_HOTFIX_DEVELOPMENT_VERSION = "nextHotfixDevelopmentVersion";
-
     private final String hotfixReleaseVersion;
-    private final String nextHotfixDevelopmentVersion;
+    private final String publishedFixesReleaseVersion;
+
+    private String nextHotfixDevelopmentVersion;
 
     /**
      * Creates a cause instance for the <i>Gitflow</i> build.
      *
-     * @param structuredActionConent the structured content for the selected action to be instanciated.
-     * @param dryRun is the build dryRun or not
+     * @param masterBranch the <i>develop</i> branch containing base data for the cause.
      */
-    public StartHotfixCause(JSONObject structuredActionConent, boolean dryRun) {
-        this(structuredActionConent.getString(PARAM_HOTFIX_RELEASE_VERSION), structuredActionConent.getString(PARAM_NEXT_HOTFIX_DEVELOPMENT_VERSION), dryRun);
+    public StartHotfixCause(final RemoteBranch masterBranch) {
+        assert "master".equals(GitflowBuildWrapper.getGitflowBuildWrapperDescriptor().getBranchType(masterBranch.getBranchName()));
+
+        this.hotfixReleaseVersion = masterBranch.getBaseReleaseVersion();
+        this.publishedFixesReleaseVersion = masterBranch.getLastReleaseVersion();
+
+        final int patchVersion;
+        if (StringUtils.equals(this.publishedFixesReleaseVersion, this.hotfixReleaseVersion)) {
+            patchVersion = 1;
+        } else {
+            final String previousPatchVersion = StringUtils.removeStart(this.publishedFixesReleaseVersion, this.hotfixReleaseVersion + ".");
+            patchVersion = Integer.valueOf(previousPatchVersion).intValue() + 1;
+        }
+
+        this.nextHotfixDevelopmentVersion = this.hotfixReleaseVersion + "." + patchVersion + "-SNAPSHOT";
     }
 
-    /**
-     * Creates a cause instance for the <i>Gitflow</i> build.
-     *
-     * @param hotfixReleaseVersion the release version of the Hotfix.
-     * @param nextHotfixDevelopmentVersion the suggestion for the next hotfix development version.
-     * @param dryRun is the build dryRun or not
-     */
-    public StartHotfixCause(String hotfixReleaseVersion, String nextHotfixDevelopmentVersion, boolean dryRun) {
-        this.setDryRun(dryRun);
-
-        this.hotfixReleaseVersion = hotfixReleaseVersion;
-        this.nextHotfixDevelopmentVersion = nextHotfixDevelopmentVersion;
+    /** {@inheritDoc} */
+    @Override
+    public String getVersionForBadge() {
+        return this.hotfixReleaseVersion;
     }
 
     public String getHotfixReleaseVersion() {
         return this.hotfixReleaseVersion;
     }
 
-    public String getNextHotfixDevelopmentVersion() {
-        return nextHotfixDevelopmentVersion;
+    public String getPublishedFixesReleaseVersion() {
+        return this.publishedFixesReleaseVersion;
     }
 
-    @Override
-    public String getVersionForBadge() {
-        return this.hotfixReleaseVersion;
+    public String getNextHotfixDevelopmentVersion() {
+        return this.nextHotfixDevelopmentVersion;
+    }
+
+    public void setNextHotfixDevelopmentVersion(final String nextHotfixDevelopmentVersion) {
+        this.nextHotfixDevelopmentVersion = nextHotfixDevelopmentVersion;
     }
 }

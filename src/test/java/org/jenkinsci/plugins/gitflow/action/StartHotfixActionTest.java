@@ -65,29 +65,37 @@ public class StartHotfixActionTest extends AbstractGitflowActionTest<StartHotfix
     public void setUp() throws Exception {
         super.setUp();
 
+        // Mock calls to build wrapper descriptor.
+        when(this.gitflowBuildWrapperDescriptor.getBranchType("master")).thenReturn("master");
+        when(this.gitflowBuildWrapperDescriptor.getMasterBranch()).thenReturn("master");
+        when(this.gitflowBuildWrapperDescriptor.getHotfixBranchPrefix()).thenReturn("hotfix/");
+
         // Mock the call to the BuildTypeAction.
         final List<String> changeFiles = Arrays.asList("pom.xml", "child1/pom.xml", "child2/pom.xml", "child3/pom.xml");
         mockStatic(BuildTypeActionFactory.class);
         when(BuildTypeActionFactory.newInstance(this.build, this.launcher, this.listener)).thenReturn(this.buildTypeAction);
-        when(this.buildTypeAction.updateVersion("1.0.2-Snapshot")).thenReturn(changeFiles);
+        when(this.buildTypeAction.updateVersion("1.0.2-SNAPSHOT")).thenReturn(changeFiles);
 
         // Mock calls to the GitflowPluginData object.
         when(this.gitflowPluginData.getRemoteBranch("origin", "master")).thenReturn(new RemoteBranch("origin", "master"));
-        when(this.gitflowPluginData.getOrAddRemoteBranch("origin", "hotfix/VeryHotfix")).thenReturn(this.remoteBranchHotfix);
+        when(this.gitflowPluginData.getOrAddRemoteBranch("origin", "hotfix/1.0")).thenReturn(this.remoteBranchHotfix);
         when(this.build.getAction(GitflowPluginData.class)).thenReturn(this.gitflowPluginData);
 
         // Instanciate the test subject.
-        final StartHotfixCause cause = new StartHotfixCause("VeryHotfix", "1.0.2-Snapshot", false);
+        final StartHotfixCause cause = new StartHotfixCause(createRemoteBranch("master", "1.0", "1.0.1"));
         this.testAction = new StartHotfixAction<AbstractBuild<?, ?>>(this.build, this.launcher, this.listener, this.git, cause);
 
         // Mock calls to Git client.
         when(this.git.push()).thenReturn(this.pushCommand);
         when(this.pushCommand.ref(anyString())).thenReturn(this.pushCommand);
         when(this.pushCommand.to(any(URIish.class))).thenReturn(this.pushCommand);
+    }
 
-        // Mock calls to build wrapper descriptor.
-        when(this.gitflowBuildWrapperDescriptor.getMasterBranch()).thenReturn("master");
-        when(this.gitflowBuildWrapperDescriptor.getHotfixBranchPrefix()).thenReturn("hotfix/");
+    private static RemoteBranch createRemoteBranch(final String branchName, final String baseReleaseVersion, final String lastReleaseVersion) {
+        final RemoteBranch masterBranch = new RemoteBranch("origin", branchName);
+        masterBranch.setBaseReleaseVersion(baseReleaseVersion);
+        masterBranch.setLastReleaseVersion(lastReleaseVersion);
+        return masterBranch;
     }
 
     /** {@inheritDoc} */
@@ -118,7 +126,7 @@ public class StartHotfixActionTest extends AbstractGitflowActionTest<StartHotfix
 
         //Check
         verify(this.git).setGitflowActionName(this.testAction.getActionName());
-        verify(this.git).checkoutBranch("hotfix/VeryHotfix", "origin/master");
+        verify(this.git).checkoutBranch("hotfix/1.0", "origin/master");
         verify(this.git).add("pom.xml");
         verify(this.git).add("child1/pom.xml");
         verify(this.git).add("child2/pom.xml");
@@ -128,13 +136,13 @@ public class StartHotfixActionTest extends AbstractGitflowActionTest<StartHotfix
 
         verify(this.gitflowPluginData).setDryRun(false);
         verify(this.gitflowPluginData).getRemoteBranch("origin", "master");
-        verify(this.gitflowPluginData, atLeastOnce()).getOrAddRemoteBranch("origin", "hotfix/VeryHotfix");
+        verify(this.gitflowPluginData, atLeastOnce()).getOrAddRemoteBranch("origin", "hotfix/1.0");
 
         verify(this.remoteBranchHotfix, atLeastOnce()).setLastBuildResult(Result.SUCCESS);
-        verify(this.remoteBranchHotfix, atLeastOnce()).setLastBuildVersion("1.0.2-Snapshot");
+        verify(this.remoteBranchHotfix, atLeastOnce()).setLastBuildVersion("1.0.2-SNAPSHOT");
 
         verify(this.pushCommand, atLeastOnce()).to(this.urIishArgumentCaptor.capture());
-        verify(this.pushCommand, atLeastOnce()).ref("refs/heads/hotfix/VeryHotfix:refs/heads/hotfix/VeryHotfix");
+        verify(this.pushCommand, atLeastOnce()).ref("refs/heads/hotfix/1.0:refs/heads/hotfix/1.0");
         verify(this.pushCommand, atLeastOnce()).execute();
         assertThat(this.urIishArgumentCaptor.getValue().getPath(), is("origin"));
 
