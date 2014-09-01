@@ -15,6 +15,7 @@ import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitclient.PushCommand;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
 import org.jenkinsci.plugins.gitflow.cause.FinishHotfixCause;
+import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,7 +49,7 @@ public class FinishHotfixActionTest extends AbstractGitflowActionTest<FinishHotf
         super.setUp();
 
         // Instanciate the test subject.
-        final FinishHotfixCause cause = new FinishHotfixCause("hotfix/foobar", false);
+        final FinishHotfixCause cause = new FinishHotfixCause(new RemoteBranch("origin", "hotfix/foobar"));
         this.testAction = new FinishHotfixAction<AbstractBuild<?, ?>>(this.build, this.launcher, this.listener, this.git, cause);
 
         // Mock calls to Git client.

@@ -108,36 +108,33 @@
                         <f:entry />
                     </j:if>
 
-                    <f:radioBlock name="action" value="testHotfix" title="Test Hotfix" checked="false">
-                        <f:dropdownList name="testHotfix" title="Hotfix">
-                            <j:forEach var="hotfixBranch" items="${it.computeHotfixBranches()}">
-                                <f:dropdownListBlock value="${it.computeHotfixVersion(hotfixBranch)}" title="${it.computeHotfixVersion(hotfixBranch)}"
-                                    selected="false">
-                                    <f:entry title="Hotfix Branch">
-                                        <f:readOnlyTextbox name="hotfixBranch" value="${hotfixBranch}" />
-                                    </f:entry>
-                                    <f:entry title="Fixes Hotfix Release Version">
-                                        <f:textbox name="fixesHotfixReleaseVersion" value="${it.computeFixesReleaseVersion(hotfixBranch)}" />
-                                    </f:entry>
-                                    <f:entry title="Next Hotfix development Version">
-                                        <f:textbox name="nextHotfixReleaseVersion" value="${it.computeNextFixesDevelopmentVersion(hotfixBranch)}" />
-                                    </f:entry>
-                               </f:dropdownListBlock>
-                            </j:forEach>
-                        </f:dropdownList>
-                    </f:radioBlock>
-                    <f:radioBlock name="action" value="finishHotfix" title="Finish Hotfix" checked="false">
-                        <f:dropdownList name="finishHotfix" title="Hotfix">
-                            <j:forEach var="hotfixBranch" items="${it.computeHotfixBranches()}">
-                                <f:dropdownListBlock value="${it.computeHotfixVersion(hotfixBranch)}" title="${it.computeHotfixVersion(hotfixBranch)}"
-                                    selected="false">
-                                    <f:entry title="Hotfix Branch">
-                                        <f:readOnlyTextbox name="hotfixBranch" value="${hotfixBranch}" />
-                                    </f:entry>
-                                </f:dropdownListBlock>
-                            </j:forEach>
-                        </f:dropdownList>
-                    </f:radioBlock>
+                    <j:set var="hotfixBranchCauseGroups" value="${it.hotfixBranchCauseGroups}" />
+                    <j:forEach var="hotfixBranchCauseGroup" items="${hotfixBranchCauseGroups}">
+                        <f:entry title="Hotfix ${hotfixBranchCauseGroup.hotfixVersion} - Branch: ${hotfixBranchCauseGroup.branchName}">
+
+                            <j:set var="testHotfixCause" value="${hotfixBranchCauseGroup.testHotfixCause}" />
+                            <f:radioBlock name="action" value="testHotfix" title="Test Hotfix ${hotfixBranchCauseGroup.hotfixVersion}" checked="false">
+                                <f:invisibleEntry>
+                                    <input name="hotfixVersion" value="${hotfixBranchCauseGroup.hotfixVersion}" type="hidden" />
+                                </f:invisibleEntry>
+                                <f:entry title="Hotfix Release Version">
+                                    <f:textbox name="hotfixReleaseVersion" value="${testHotfixCause.hotfixReleaseVersion}" />
+                                </f:entry>
+                                <f:entry title="Next Hotfix Development Version">
+                                    <f:textbox name="nextHotfixDevelopmentVersion" value="${testHotfixCause.nextHotfixDevelopmentVersion}" />
+                                </f:entry>
+                            </f:radioBlock>
+
+                            <j:set var="finishHotfixCause" value="${hotfixBranchCauseGroup.finishHotfixCause}" />
+                            <f:radioBlock name="action" value="finishHotfix" title="Finish Hotfix ${hotfixBranchCauseGroup.hotfixVersion}" checked="false">
+                                <f:invisibleEntry>
+                                    <input name="hotfixVersion" value="${hotfixBranchCauseGroup.hotfixVersion}" type="hidden" />
+                                </f:invisibleEntry>
+                            </f:radioBlock>
+
+                            <f:entry />
+                        </f:entry>
+                    </j:forEach>
 
                     <f:entry title="Dry Run">
                         <f:checkbox name="dryRun" title="Don't push Git commits and don't publish/deploy artifacts." checked="false" />

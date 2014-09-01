@@ -3,42 +3,26 @@ package org.jenkinsci.plugins.gitflow.cause;
 import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
 
 import org.apache.commons.lang.StringUtils;
-
-import net.sf.json.JSONObject;
+import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 
 /**
  * The {@link hudson.model.Cause} object for the <i>Finish Hotfix</i> action to be executed.
  *
  * @author Hannes Osius, Silpion IT-Solutions GmbH - osius@silpion.de
  */
-public class FinishHotfixCause extends AbstractGitflowCause {
-
-    public static final String PARAM_HOTFIX = "finishHotfix";
-    public static final String PARAM_HOTFIX_BRANCH = "hotfixBranch";
-
-    private final String hotfixBranche;
+public class FinishHotfixCause extends AbstractHotfixBranchCause {
 
     /**
      * Creates a cause instance for the <i>Gitflow</i> build.
      *
-     * @param structuredActionConent the structured content for the selected action to be instanciated.
-     * @param dryRun is the build dryRun or not
+     * @param hotfixBranch the <i>hotfix</i> branch containing base data for the cause.
      */
-    public FinishHotfixCause(JSONObject structuredActionConent, boolean dryRun) {
-        this(structuredActionConent.getJSONObject(PARAM_HOTFIX).getString(PARAM_HOTFIX_BRANCH), dryRun);
-    }
-
-    public FinishHotfixCause(String hotfixBranche, boolean dryRun) {
-        this.setDryRun(dryRun);
-        this.hotfixBranche = hotfixBranche;
+    public FinishHotfixCause(final RemoteBranch hotfixBranch) {
+        super(hotfixBranch);
     }
 
     @Override
     public String getVersionForBadge() {
-        return StringUtils.removeStart(this.getHotfixBranche(), getGitflowBuildWrapperDescriptor().getHotfixBranchPrefix());
-    }
-
-    public String getHotfixBranche() {
-        return hotfixBranche;
+        return StringUtils.removeStart(this.getHotfixBranch(), getGitflowBuildWrapperDescriptor().getHotfixBranchPrefix());
     }
 }

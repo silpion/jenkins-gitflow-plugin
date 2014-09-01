@@ -108,7 +108,7 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
         this.git.push().to(this.remoteUrl).ref("refs/tags/" + tagName + ":refs/tags/" + tagName).execute();
 
         // Update and commit the project files to the next version for the next hotfix
-        String nextHotfixVersion = gitflowCause.getNextHotfixReleaseVersion();
+        String nextHotfixVersion = this.gitflowCause.getNextHotfixDevelopmentVersion();
         addFilesToGitStage(buildTypeAction.updateVersion(nextHotfixVersion));
         final String msgUpdatedFixesVersion = formatPattern(MSG_PATTERN_UPDATED_NEXT_HOTFIX_VERSION, ACTION_NAME, nextHotfixVersion);
         git.commit(msgUpdatedFixesVersion);

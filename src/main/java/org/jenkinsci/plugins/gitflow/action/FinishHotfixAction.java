@@ -19,8 +19,6 @@ public class FinishHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractG
 
     private static final String ACTION_NAME = "Finish Hotfix";
 
-    private static final String MSG_PATTERN_REMOVE_HOTFIX_BRANCH = "Gitflow - %s: Remove hotfix branch %s%n";
-
     /**
      * Initialises a new <i>Finish Hotfix</i> action.
      *
@@ -46,7 +44,7 @@ public class FinishHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractG
     protected void beforeMainBuildInternal() throws IOException, InterruptedException {
 
         // Finish Release: just delete the release branch.
-        this.deleteBranch(this.gitflowCause.getHotfixBranche());
+        this.deleteBranch(this.gitflowCause.getHotfixBranch());
 
         // Abort the job, because there's no need to execute the main build.
         this.omitMainBuild();
