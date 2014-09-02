@@ -9,8 +9,8 @@ import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
  */
 public class PublishReleaseCause extends AbstractReleaseBranchCause {
 
-    private String lastFixesReleaseVersion;
-    private String lastFixesReleaseCommit;
+    private String lastPatchReleaseVersion;
+    private String lastPatchReleaseCommit;
     private boolean mergeToDevelop = false;
     private IncludedAction includedAction = IncludedAction.START_HOTFIX;
 
@@ -22,21 +22,21 @@ public class PublishReleaseCause extends AbstractReleaseBranchCause {
     public PublishReleaseCause(final RemoteBranch releaseBranch) {
         super(releaseBranch);
 
-        this.lastFixesReleaseVersion = releaseBranch.getLastReleaseVersion();
-        this.lastFixesReleaseCommit = releaseBranch.getLastReleaseVersionCommit().getName();
+        this.lastPatchReleaseVersion = releaseBranch.getLastReleaseVersion();
+        this.lastPatchReleaseCommit = releaseBranch.getLastReleaseVersionCommit().getName();
     }
 
     @Override
     public String getVersionForBadge() {
-        return this.lastFixesReleaseVersion;
+        return this.lastPatchReleaseVersion;
     }
 
-    public String getLastFixesReleaseVersion() {
-        return this.lastFixesReleaseVersion;
+    public String getLastPatchReleaseVersion() {
+        return this.lastPatchReleaseVersion;
     }
 
-    public String getLastFixesReleaseCommit() {
-        return this.lastFixesReleaseCommit;
+    public String getLastPatchReleaseCommit() {
+        return this.lastPatchReleaseCommit;
     }
 
     public boolean isMergeToDevelop() {

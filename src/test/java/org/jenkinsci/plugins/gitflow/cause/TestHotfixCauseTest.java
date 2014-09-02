@@ -29,22 +29,22 @@ public class TestHotfixCauseTest extends AbstractGitflowPluginTest {
 
     @Test
     public void testConstructorForHotfixReleaseVersion() throws Exception {
-        assertEquals("1.0.1", new TestHotfixCause(createRemoteBranch("hotfix/1.0", "1.0.1-SNAPSHOT")).getHotfixReleaseVersion());
-        assertEquals("1.0.2", new TestHotfixCause(createRemoteBranch("hotfix/1.0", "1.0.2-SNAPSHOT")).getHotfixReleaseVersion());
-        assertEquals("1.0.9", new TestHotfixCause(createRemoteBranch("hotfix/1.0", "1.0.9-SNAPSHOT")).getHotfixReleaseVersion());
-        assertEquals("1.5.0", new TestHotfixCause(createRemoteBranch("hotfix/1.5", "1.5.0-SNAPSHOT")).getHotfixReleaseVersion());
-        assertEquals("2.18.39", new TestHotfixCause(createRemoteBranch("hotfix/2.18", "2.18.39-SNAPSHOT")).getHotfixReleaseVersion());
-        assertEquals("2.9.99", new TestHotfixCause(createRemoteBranch("hotfix/2.9", "2.9.99-SNAPSHOT")).getHotfixReleaseVersion());
+        assertEquals("1.0.1", new TestHotfixCause(createRemoteBranch("hotfix/1.0", "1.0.1-SNAPSHOT")).getPatchReleaseVersion());
+        assertEquals("1.0.2", new TestHotfixCause(createRemoteBranch("hotfix/1.0", "1.0.2-SNAPSHOT")).getPatchReleaseVersion());
+        assertEquals("1.0.9", new TestHotfixCause(createRemoteBranch("hotfix/1.0", "1.0.9-SNAPSHOT")).getPatchReleaseVersion());
+        assertEquals("1.5.0", new TestHotfixCause(createRemoteBranch("hotfix/1.5", "1.5.0-SNAPSHOT")).getPatchReleaseVersion());
+        assertEquals("2.18.39", new TestHotfixCause(createRemoteBranch("hotfix/2.18", "2.18.39-SNAPSHOT")).getPatchReleaseVersion());
+        assertEquals("2.9.99", new TestHotfixCause(createRemoteBranch("hotfix/2.9", "2.9.99-SNAPSHOT")).getPatchReleaseVersion());
     }
 
     @Test
     public void testConstructorForNextHotfixDevelopmentVersion() throws Exception {
-        assertEquals("1.0.2-SNAPSHOT", new TestHotfixCause(createRemoteBranch("hotfix/1.0", "1.0.1-SNAPSHOT")).getNextHotfixDevelopmentVersion());
-        assertEquals("1.0.3-SNAPSHOT", new TestHotfixCause(createRemoteBranch("hotfix/1.0", "1.0.2-SNAPSHOT")).getNextHotfixDevelopmentVersion());
-        assertEquals("1.0.10-SNAPSHOT", new TestHotfixCause(createRemoteBranch("hotfix/1.0", "1.0.9-SNAPSHOT")).getNextHotfixDevelopmentVersion());
-        assertEquals("1.5.1-SNAPSHOT", new TestHotfixCause(createRemoteBranch("hotfix/1.5", "1.5.0-SNAPSHOT")).getNextHotfixDevelopmentVersion());
-        assertEquals("2.18.40-SNAPSHOT", new TestHotfixCause(createRemoteBranch("hotfix/2.18", "2.18.39-SNAPSHOT")).getNextHotfixDevelopmentVersion());
-        assertEquals("2.9.100-SNAPSHOT", new TestHotfixCause(createRemoteBranch("hotfix/2.9", "2.9.99-SNAPSHOT")).getNextHotfixDevelopmentVersion());
+        assertEquals("1.0.2-SNAPSHOT", new TestHotfixCause(createRemoteBranch("hotfix/1.0", "1.0.1-SNAPSHOT")).getNextPatchDevelopmentVersion());
+        assertEquals("1.0.3-SNAPSHOT", new TestHotfixCause(createRemoteBranch("hotfix/1.0", "1.0.2-SNAPSHOT")).getNextPatchDevelopmentVersion());
+        assertEquals("1.0.10-SNAPSHOT", new TestHotfixCause(createRemoteBranch("hotfix/1.0", "1.0.9-SNAPSHOT")).getNextPatchDevelopmentVersion());
+        assertEquals("1.5.1-SNAPSHOT", new TestHotfixCause(createRemoteBranch("hotfix/1.5", "1.5.0-SNAPSHOT")).getNextPatchDevelopmentVersion());
+        assertEquals("2.18.40-SNAPSHOT", new TestHotfixCause(createRemoteBranch("hotfix/2.18", "2.18.39-SNAPSHOT")).getNextPatchDevelopmentVersion());
+        assertEquals("2.9.100-SNAPSHOT", new TestHotfixCause(createRemoteBranch("hotfix/2.9", "2.9.99-SNAPSHOT")).getNextPatchDevelopmentVersion());
     }
 
     private static RemoteBranch createRemoteBranch(final String branchName, final String lastBuildVersion) {

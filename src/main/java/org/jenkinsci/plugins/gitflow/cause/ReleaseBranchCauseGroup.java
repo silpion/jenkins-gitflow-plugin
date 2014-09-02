@@ -47,6 +47,11 @@ public class ReleaseBranchCauseGroup {
     }
 
     @SuppressWarnings("UnusedDeclaration")
+    public String getReleaseVersionDotfree() {
+        return this.releaseVersion.replaceAll("\\.", "_");
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
     public TestReleaseCause getTestReleaseCause() {
         return this.testReleaseCause;
     }

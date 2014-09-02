@@ -23,7 +23,7 @@ public class StartHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
     private static final String ACTION_NAME = "Start Hotfix";
 
-    private static final String MSG_PATTERN_UPDATED_HOTFIX_VERSION = "Gitflow - %s: Updated project files to hotfix version %s%n";
+    private static final String MSG_PATTERN_UPDATED_NEXT_PATCH_DEVELOPMENT_VERSION = "Gitflow - %s: Updated project files to next patch development version %s%n";
 
     /**
      * Initialises a new <i>Start Hotfix</i> action.
@@ -51,14 +51,14 @@ public class StartHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
     protected void beforeMainBuildInternal() throws IOException, InterruptedException {
 
         // Create a new hotfix branch based on the master branch.
-        final String hotfixBranch = getGitflowBuildWrapperDescriptor().getHotfixBranchPrefix() + this.gitflowCause.getHotfixReleaseVersion();
+        final String hotfixBranch = getGitflowBuildWrapperDescriptor().getHotfixBranchPrefix() + this.gitflowCause.getHotfixVersion();
         final String masterBranch = getGitflowBuildWrapperDescriptor().getMasterBranch();
         this.createBranch(hotfixBranch, masterBranch);
 
         // Update the version numbers in the project files to the hotfix version.
-        final String nextHotfixDevelopmentVersion = this.gitflowCause.getNextHotfixDevelopmentVersion();
-        this.addFilesToGitStage(this.buildTypeAction.updateVersion(nextHotfixDevelopmentVersion));
-        final String msgUpadtedReleaseVersion = formatPattern(MSG_PATTERN_UPDATED_HOTFIX_VERSION, ACTION_NAME, nextHotfixDevelopmentVersion);
+        final String nextPatchDevelopmentVersion = this.gitflowCause.getNextPatchDevelopmentVersion();
+        this.addFilesToGitStage(this.buildTypeAction.updateVersion(nextPatchDevelopmentVersion));
+        final String msgUpadtedReleaseVersion = formatPattern(MSG_PATTERN_UPDATED_NEXT_PATCH_DEVELOPMENT_VERSION, ACTION_NAME, nextPatchDevelopmentVersion);
         this.git.commit(msgUpadtedReleaseVersion);
         this.consoleLogger.print(msgUpadtedReleaseVersion);
 
@@ -68,7 +68,7 @@ public class StartHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         // Record the remote branch data.
         final RemoteBranch remoteBranch = this.gitflowPluginData.getOrAddRemoteBranch("origin", hotfixBranch);
         remoteBranch.setLastBuildResult(SUCCESS);
-        remoteBranch.setLastBuildVersion(nextHotfixDevelopmentVersion);
+        remoteBranch.setLastBuildVersion(nextPatchDevelopmentVersion);
 
         // Abort the job, because there's no need to execute the main build.
         this.omitMainBuild();

@@ -12,8 +12,8 @@ import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 public class StartReleaseCause extends AbstractGitflowCause {
 
     private String releaseVersion;
-    private String releaseNextDevelopmentVersion;
-    private String nextDevelopmentVersion;
+    private String nextPatchDevelopmentVersion;
+    private String nextReleaseDevelopmentVersion;
 
     /**
      * Creates a cause instance for the <i>Gitflow</i> build.
@@ -24,12 +24,12 @@ public class StartReleaseCause extends AbstractGitflowCause {
         assert "develop".equals(GitflowBuildWrapper.getGitflowBuildWrapperDescriptor().getBranchType(developBranch.getBranchName()));
 
         this.releaseVersion = StringUtils.removeEnd(developBranch.getLastBuildVersion(), "-SNAPSHOT");
-        this.releaseNextDevelopmentVersion = this.releaseVersion + ".1-SNAPSHOT";
+        this.nextPatchDevelopmentVersion = this.releaseVersion + ".1-SNAPSHOT";
 
         final String majorVersion = StringUtils.substringBeforeLast(this.releaseVersion, ".");
         final String latestMinorVersion = StringUtils.substringAfterLast(this.releaseVersion, ".");
         final int nextMinorVersion = Integer.valueOf(latestMinorVersion).intValue() + 1;
-        this.nextDevelopmentVersion = majorVersion + "." + nextMinorVersion + "-SNAPSHOT";
+        this.nextReleaseDevelopmentVersion = majorVersion + "." + nextMinorVersion + "-SNAPSHOT";
     }
 
     @Override
@@ -45,19 +45,19 @@ public class StartReleaseCause extends AbstractGitflowCause {
         this.releaseVersion = releaseVersion;
     }
 
-    public String getReleaseNextDevelopmentVersion() {
-        return this.releaseNextDevelopmentVersion;
+    public String getNextPatchDevelopmentVersion() {
+        return this.nextPatchDevelopmentVersion;
     }
 
-    public void setReleaseNextDevelopmentVersion(final String releaseNextDevelopmentVersion) {
-        this.releaseNextDevelopmentVersion = releaseNextDevelopmentVersion;
+    public void setNextPatchDevelopmentVersion(final String nextPatchDevelopmentVersion) {
+        this.nextPatchDevelopmentVersion = nextPatchDevelopmentVersion;
     }
 
-    public String getNextDevelopmentVersion() {
-        return this.nextDevelopmentVersion;
+    public String getNextReleaseDevelopmentVersion() {
+        return this.nextReleaseDevelopmentVersion;
     }
 
-    public void setNextDevelopmentVersion(final String nextDevelopmentVersion) {
-        this.nextDevelopmentVersion = nextDevelopmentVersion;
+    public void setNextReleaseDevelopmentVersion(final String nextReleaseDevelopmentVersion) {
+        this.nextReleaseDevelopmentVersion = nextReleaseDevelopmentVersion;
     }
 }

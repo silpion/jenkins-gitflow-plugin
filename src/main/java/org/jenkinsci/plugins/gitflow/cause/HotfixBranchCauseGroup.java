@@ -45,6 +45,11 @@ public class HotfixBranchCauseGroup {
     }
 
     @SuppressWarnings("UnusedDeclaration")
+    public String getHotfixVersionDotfree() {
+        return this.hotfixVersion.replaceAll("\\.", "_");
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
     public TestHotfixCause getTestHotfixCause() {
         return this.testHotfixCause;
     }

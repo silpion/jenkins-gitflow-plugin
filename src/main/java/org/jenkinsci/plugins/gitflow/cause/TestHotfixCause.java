@@ -10,8 +10,8 @@ import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
  */
 public class TestHotfixCause extends AbstractHotfixBranchCause {
 
-    private String hotfixReleaseVersion;
-    private String nextHotfixDevelopmentVersion;
+    private String patchReleaseVersion;
+    private String nextPatchDevelopmentVersion;
 
     /**
      * Creates a cause instance for the <i>Gitflow</i> build.
@@ -21,31 +21,31 @@ public class TestHotfixCause extends AbstractHotfixBranchCause {
     public TestHotfixCause(final RemoteBranch hotfixBranch) {
         super(hotfixBranch);
 
-        this.hotfixReleaseVersion = StringUtils.removeEnd(hotfixBranch.getLastBuildVersion(), "-SNAPSHOT");
+        this.patchReleaseVersion = StringUtils.removeEnd(hotfixBranch.getLastBuildVersion(), "-SNAPSHOT");
 
-        final String baseVersion = StringUtils.substringBeforeLast(this.hotfixReleaseVersion, ".");
-        final int newPatchNumber = Integer.valueOf(StringUtils.substringAfterLast(this.hotfixReleaseVersion, ".")).intValue() + 1;
-        this.nextHotfixDevelopmentVersion = baseVersion + "." + newPatchNumber + "-SNAPSHOT";
+        final String baseVersion = StringUtils.substringBeforeLast(this.patchReleaseVersion, ".");
+        final int newPatchNumber = Integer.valueOf(StringUtils.substringAfterLast(this.patchReleaseVersion, ".")).intValue() + 1;
+        this.nextPatchDevelopmentVersion = baseVersion + "." + newPatchNumber + "-SNAPSHOT";
     }
 
     @Override
     public String getVersionForBadge() {
-        return this.hotfixReleaseVersion;
+        return this.patchReleaseVersion;
     }
 
-    public String getHotfixReleaseVersion() {
-        return this.hotfixReleaseVersion;
+    public String getPatchReleaseVersion() {
+        return this.patchReleaseVersion;
     }
 
-    public void setHotfixReleaseVersion(final String hotfixReleaseVersion) {
-        this.hotfixReleaseVersion = hotfixReleaseVersion;
+    public void setPatchReleaseVersion(final String patchReleaseVersion) {
+        this.patchReleaseVersion = patchReleaseVersion;
     }
 
-    public String getNextHotfixDevelopmentVersion() {
-        return this.nextHotfixDevelopmentVersion;
+    public String getNextPatchDevelopmentVersion() {
+        return this.nextPatchDevelopmentVersion;
     }
 
-    public void setNextHotfixDevelopmentVersion(final String nextHotfixDevelopmentVersion) {
-        this.nextHotfixDevelopmentVersion = nextHotfixDevelopmentVersion;
+    public void setNextPatchDevelopmentVersion(final String nextPatchDevelopmentVersion) {
+        this.nextPatchDevelopmentVersion = nextPatchDevelopmentVersion;
     }
 }

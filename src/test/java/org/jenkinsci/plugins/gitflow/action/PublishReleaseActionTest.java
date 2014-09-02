@@ -52,7 +52,7 @@ public class PublishReleaseActionTest extends AbstractGitflowActionTest<PublishR
 
         // Mock relevant method calls.
         when(this.gitflowBuildWrapperDescriptor.getMasterBranch()).thenReturn("master");
-        when(this.cause.getLastFixesReleaseCommit()).thenReturn(ObjectId.zeroId().getName());
+        when(this.cause.getLastPatchReleaseCommit()).thenReturn(ObjectId.zeroId().getName());
         when(this.git.getHeadRev(anyString(), anyString())).thenReturn(ObjectId.zeroId());
         when(this.cause.getReleaseBranch()).thenReturn("release/1.0");
 

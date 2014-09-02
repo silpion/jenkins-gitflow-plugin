@@ -43,21 +43,27 @@ import hudson.util.NullStream;
  */
 public class GitflowProjectAction implements PermalinkProjectAction {
 
-    @VisibleForTesting static final String JSON_PARAM_ACTION = "action";
-    @VisibleForTesting static final String JSON_PARAM_VALUE = "value";
-    @VisibleForTesting static final String JSON_PARAM_DRY_RUN = "dryRun";
+    @VisibleForTesting static final String KEY_ACTION = "action";
+    @VisibleForTesting static final String KEY_VALUE = "value";
+    @VisibleForTesting static final String KEY_DRY_RUN = "dryRun";
 
-    @VisibleForTesting static final String JSON_PARAM_RELEASE_VERSION = "releaseVersion";
-    @VisibleForTesting static final String JSON_PARAM_NEXT_DEVELOPMENT_VERSION = "nextDevelopmentVersion";
-    @VisibleForTesting static final String JSON_PARAM_RELEASE_NEXT_DEVELOPMENT_VERSION = "releaseNextDevelopmentVersion";
-    @VisibleForTesting static final String JSON_PARAM_FIXES_RELEASE_VERSION = "fixesReleaseVersion";
-    @VisibleForTesting static final String JSON_PARAM_NEXT_FIXES_DEVELOPMENT_VERSION = "nextFixesDevelopmentVersion";
-    @VisibleForTesting static final String JSON_PARAM_MERGE_TO_DEVELOP = "mergeToDevelop";
-    @VisibleForTesting static final String JSON_PARAM_INCLUDED_ACTION = "includedAction";
-    @VisibleForTesting static final String JSON_PARAM_INCLUDE_START_HOTFIX_ACTION = "includeStartHotfixAction";
-    @VisibleForTesting static final String JSON_PARAM_NEXT_HOTFIX_DEVELOPMENT_VERSION = "nextHotfixDevelopmentVersion";
-    @VisibleForTesting static final String JSON_PARAM_HOTFIX_VERSION = "hotfixVersion";
-    @VisibleForTesting static final String JSON_PARAM_HOTFIX_RELEASE_VERSION = "hotfixReleaseVersion";
+    @VisibleForTesting static final String KEY_PREFIX_START_RELEASE = "startRelease";
+    @VisibleForTesting static final String KEY_PREFIX_TEST_RELEASE = "testRelease";
+    @VisibleForTesting static final String KEY_PREFIX_PUBLISH_RELEASE = "publishRelease";
+    @VisibleForTesting static final String KEY_PREFIX_FINISH_RELEASE = "finishRelease";
+    @VisibleForTesting static final String KEY_PREFIX_START_HOTFIX = "startHotfix";
+    @VisibleForTesting static final String KEY_PREFIX_TEST_HOTFIX = "testHotfix";
+    @VisibleForTesting static final String KEY_PREFIX_PUBLISH_HOTFIX = "publishHotfix";
+    @VisibleForTesting static final String KEY_PREFIX_FINISH_HOTFIX = "finishHotfix";
+
+    @VisibleForTesting static final String KEY_POSTFIX_RELEASE_VERSION = "releaseVersion";
+    @VisibleForTesting static final String KEY_POSTFIX_HOTFIX_VERSION = "hotfixVersion";
+    @VisibleForTesting static final String KEY_POSTFIX_NEXT_RELEASE_DEVELOPMENT_VERSION = "nextReleaseDevelopmentVersion";
+    @VisibleForTesting static final String KEY_POSTFIX_NEXT_PATCH_DEVELOPMENT_VERSION = "nextPatchDevelopmentVersion";
+    @VisibleForTesting static final String KEY_POSTFIX_PATCH_RELEASE_VERSION = "patchReleaseVersion";
+    @VisibleForTesting static final String KEY_POSTFIX_MERGE_TO_DEVELOP = "mergeToDevelop";
+    @VisibleForTesting static final String KEY_POSTFIX_INCLUDED_ACTION = "includedAction";
+    @VisibleForTesting static final String KEY_POSTFIX_INCLUDE_START_HOTFIX_ACTION = "includeStartHotfixAction";
 
     private static final Comparator<String> VERSION_NUMBER_COMPARATOR = new Comparator<String>() {
 
@@ -135,7 +141,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         }
 
         // Set startHotfixCause to null when the hotfix branch for the published release already exists.
-        if (this.startHotfixCause != null && this.hotfixBranchCauseGroupsByVersion.containsKey(this.startHotfixCause.getHotfixReleaseVersion())) {
+        if (this.startHotfixCause != null && this.hotfixBranchCauseGroupsByVersion.containsKey(this.startHotfixCause.getHotfixVersion())) {
             this.startHotfixCause = null;
         }
     }
@@ -187,43 +193,54 @@ public class GitflowProjectAction implements PermalinkProjectAction {
 
         // Identify the cause object for the selected action and overwrite the fields that can be changed by the user.
         final JSONObject submittedForm = request.getSubmittedForm();
-        final JSONObject submittedAction = submittedForm.getJSONObject(JSON_PARAM_ACTION);
-        final String action = submittedAction.getString(JSON_PARAM_VALUE);
+        final JSONObject submittedAction = submittedForm.getJSONObject(KEY_ACTION);
+        final String action = submittedAction.getString(KEY_VALUE);
         final AbstractGitflowCause gitflowCause;
-        if ("startRelease".equals(action)) {
-            this.startReleaseCause.setReleaseVersion(submittedAction.getString(JSON_PARAM_RELEASE_VERSION));
-            this.startReleaseCause.setReleaseNextDevelopmentVersion(submittedAction.getString(JSON_PARAM_RELEASE_NEXT_DEVELOPMENT_VERSION));
-            this.startReleaseCause.setNextDevelopmentVersion(submittedAction.getString(JSON_PARAM_NEXT_DEVELOPMENT_VERSION));
+        if (KEY_PREFIX_START_RELEASE.equals(action)) {
+            this.startReleaseCause.setReleaseVersion(submittedAction.getString(KEY_PREFIX_START_RELEASE + "_" + KEY_POSTFIX_RELEASE_VERSION));
+            this.startReleaseCause.setNextPatchDevelopmentVersion(submittedAction.getString(KEY_PREFIX_START_RELEASE + "_" + KEY_POSTFIX_NEXT_PATCH_DEVELOPMENT_VERSION));
+            this.startReleaseCause.setNextReleaseDevelopmentVersion(submittedAction.getString(KEY_PREFIX_START_RELEASE + "_" + KEY_POSTFIX_NEXT_RELEASE_DEVELOPMENT_VERSION));
             gitflowCause = this.startReleaseCause;
-        } else if ("testRelease".equals(action)) {
-            final TestReleaseCause testReleaseCause = this.releaseBranchCauseGroupsByVersion.get(submittedAction.getString(JSON_PARAM_RELEASE_VERSION)).getTestReleaseCause();
-            testReleaseCause.setFixesReleaseVersion(submittedAction.getString(JSON_PARAM_FIXES_RELEASE_VERSION));
-            testReleaseCause.setNextFixesDevelopmentVersion(submittedAction.getString(JSON_PARAM_NEXT_FIXES_DEVELOPMENT_VERSION));
+        } else if (action.startsWith(KEY_PREFIX_TEST_RELEASE)) {
+            final ReleaseBranchCauseGroup causeGroup = this.releaseBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_TEST_RELEASE + "_" + KEY_POSTFIX_RELEASE_VERSION));
+            final String releaseVersionDotfree = causeGroup.getReleaseVersionDotfree();
+            final TestReleaseCause testReleaseCause = causeGroup.getTestReleaseCause();
+            testReleaseCause.setPatchReleaseVersion(submittedAction.getString(KEY_PREFIX_TEST_RELEASE + "_" + releaseVersionDotfree + "_" + KEY_POSTFIX_PATCH_RELEASE_VERSION));
+            testReleaseCause.setNextPatchDevelopmentVersion(submittedAction.getString(KEY_PREFIX_TEST_RELEASE + "_" + releaseVersionDotfree + "_" + KEY_POSTFIX_NEXT_PATCH_DEVELOPMENT_VERSION));
             gitflowCause = testReleaseCause;
-        } else if ("publishRelease".equals(action)) {
-            final PublishReleaseCause publishReleaseCause = this.releaseBranchCauseGroupsByVersion.get(submittedAction.getString(JSON_PARAM_RELEASE_VERSION)).getPublishReleaseCause();
-            publishReleaseCause.setMergeToDevelop(submittedAction.getBoolean(JSON_PARAM_MERGE_TO_DEVELOP));
-            publishReleaseCause.setIncludedAction(submittedAction.getString(JSON_PARAM_INCLUDED_ACTION));
+        } else if (action.startsWith(KEY_PREFIX_PUBLISH_RELEASE)) {
+            final ReleaseBranchCauseGroup causeGroup = this.releaseBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_PUBLISH_RELEASE + "_" + KEY_POSTFIX_RELEASE_VERSION));
+            final String releaseVersionDotfree = causeGroup.getReleaseVersionDotfree();
+            final PublishReleaseCause publishReleaseCause = causeGroup.getPublishReleaseCause();
+            publishReleaseCause.setMergeToDevelop(submittedAction.getBoolean(KEY_PREFIX_PUBLISH_RELEASE + "_" + releaseVersionDotfree + "_" + KEY_POSTFIX_MERGE_TO_DEVELOP));
+            publishReleaseCause.setIncludedAction(submittedAction.getString(KEY_PREFIX_PUBLISH_RELEASE + "_" + releaseVersionDotfree + "_" + KEY_POSTFIX_INCLUDED_ACTION));
             gitflowCause = publishReleaseCause;
-        } else if ("finishRelease".equals(action)) {
-            final FinishReleaseCause finishReleaseCause = this.releaseBranchCauseGroupsByVersion.get(submittedAction.getString(JSON_PARAM_RELEASE_VERSION)).getFinishReleaseCause();
-            finishReleaseCause.setIncludeStartHotfixAction(submittedAction.getBoolean(JSON_PARAM_INCLUDE_START_HOTFIX_ACTION));
+        } else if (action.startsWith(KEY_PREFIX_FINISH_RELEASE)) {
+            final ReleaseBranchCauseGroup causeGroup = this.releaseBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_FINISH_RELEASE + "_" + KEY_POSTFIX_RELEASE_VERSION));
+            final FinishReleaseCause finishReleaseCause = causeGroup.getFinishReleaseCause();
+            final String releaseVersionDotfree = causeGroup.getReleaseVersionDotfree();
+            finishReleaseCause.setIncludeStartHotfixAction(submittedAction.getBoolean(KEY_PREFIX_FINISH_RELEASE + "_" + releaseVersionDotfree + "_" + KEY_POSTFIX_INCLUDE_START_HOTFIX_ACTION));
             gitflowCause = finishReleaseCause;
-        } else if ("startHotfix".equals(action)) {
-            this.startHotfixCause.setNextHotfixDevelopmentVersion(submittedAction.getString(JSON_PARAM_NEXT_HOTFIX_DEVELOPMENT_VERSION));
+        } else if (KEY_PREFIX_START_HOTFIX.equals(action)) {
+            this.startHotfixCause.setNextPatchDevelopmentVersion(submittedAction.getString(KEY_PREFIX_START_HOTFIX + "_" + KEY_POSTFIX_NEXT_PATCH_DEVELOPMENT_VERSION));
             gitflowCause = this.startHotfixCause;
-        } else if ("testHotfix".equals(action)) {
-            final TestHotfixCause testHotfixCause = this.hotfixBranchCauseGroupsByVersion.get(submittedAction.getString(JSON_PARAM_HOTFIX_VERSION)).getTestHotfixCause();
-            testHotfixCause.setHotfixReleaseVersion(submittedAction.getString(JSON_PARAM_HOTFIX_RELEASE_VERSION));
-            testHotfixCause.setNextHotfixDevelopmentVersion(submittedAction.getString(JSON_PARAM_NEXT_HOTFIX_DEVELOPMENT_VERSION));
+        } else if (action.startsWith(KEY_PREFIX_TEST_HOTFIX)) {
+            final HotfixBranchCauseGroup causeGroup = this.hotfixBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_TEST_HOTFIX + "_" + KEY_POSTFIX_HOTFIX_VERSION));
+            final TestHotfixCause testHotfixCause = causeGroup.getTestHotfixCause();
+            final String hotfixVersionDotfree = causeGroup.getHotfixVersionDotfree();
+            testHotfixCause.setPatchReleaseVersion(submittedAction.getString(KEY_PREFIX_TEST_HOTFIX + "_" + hotfixVersionDotfree + "_" + KEY_POSTFIX_PATCH_RELEASE_VERSION));
+            testHotfixCause.setNextPatchDevelopmentVersion(submittedAction.getString(KEY_PREFIX_TEST_HOTFIX + "_" + hotfixVersionDotfree + "_" + KEY_POSTFIX_NEXT_PATCH_DEVELOPMENT_VERSION));
             gitflowCause = testHotfixCause;
-        } else if ("finishHotfix".equals(action)) {
-            gitflowCause = this.hotfixBranchCauseGroupsByVersion.get(submittedAction.getString(JSON_PARAM_HOTFIX_VERSION)).getFinishHotfixCause();
+        } else if (action.startsWith(KEY_PREFIX_PUBLISH_HOTFIX)) {
+            final String hotfixVersion = submittedAction.getString(KEY_PREFIX_PUBLISH_HOTFIX + "_" + KEY_POSTFIX_HOTFIX_VERSION);
+            throw new IllegalArgumentException("Gitflow action " + action + " is not implemented so far");
+        } else if (action.startsWith(KEY_PREFIX_FINISH_HOTFIX)) {
+            gitflowCause = this.hotfixBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_FINISH_HOTFIX + "_" + KEY_POSTFIX_HOTFIX_VERSION)).getFinishHotfixCause();
         } else {
             // Only an IOException causes the build to fail properly.
             throw new IOException("Unknown Gitflow action " + action);
         }
-        gitflowCause.setDryRun(submittedForm.getBoolean(JSON_PARAM_DRY_RUN));
+        gitflowCause.setDryRun(submittedForm.getBoolean(KEY_DRY_RUN));
 
         // Start a build.
         this.job.scheduleBuild(0, gitflowCause);

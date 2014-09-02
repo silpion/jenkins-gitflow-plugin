@@ -11,10 +11,10 @@ import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
  */
 public class StartHotfixCause extends AbstractGitflowCause {
 
-    private final String hotfixReleaseVersion;
-    private final String publishedFixesReleaseVersion;
+    private final String hotfixVersion;
+    private final String publishedPatchReleaseVersion;
 
-    private String nextHotfixDevelopmentVersion;
+    private String nextPatchDevelopmentVersion;
 
     /**
      * Creates a cause instance for the <i>Gitflow</i> build.
@@ -24,39 +24,39 @@ public class StartHotfixCause extends AbstractGitflowCause {
     public StartHotfixCause(final RemoteBranch masterBranch) {
         assert "master".equals(GitflowBuildWrapper.getGitflowBuildWrapperDescriptor().getBranchType(masterBranch.getBranchName()));
 
-        this.hotfixReleaseVersion = masterBranch.getBaseReleaseVersion();
-        this.publishedFixesReleaseVersion = masterBranch.getLastReleaseVersion();
+        this.hotfixVersion = masterBranch.getBaseReleaseVersion();
+        this.publishedPatchReleaseVersion = masterBranch.getLastReleaseVersion();
 
         final int patchVersion;
-        if (StringUtils.equals(this.publishedFixesReleaseVersion, this.hotfixReleaseVersion)) {
+        if (StringUtils.equals(this.publishedPatchReleaseVersion, this.hotfixVersion)) {
             patchVersion = 1;
         } else {
-            final String previousPatchVersion = StringUtils.removeStart(this.publishedFixesReleaseVersion, this.hotfixReleaseVersion + ".");
+            final String previousPatchVersion = StringUtils.removeStart(this.publishedPatchReleaseVersion, this.hotfixVersion + ".");
             patchVersion = Integer.valueOf(previousPatchVersion).intValue() + 1;
         }
 
-        this.nextHotfixDevelopmentVersion = this.hotfixReleaseVersion + "." + patchVersion + "-SNAPSHOT";
+        this.nextPatchDevelopmentVersion = this.hotfixVersion + "." + patchVersion + "-SNAPSHOT";
     }
 
     /** {@inheritDoc} */
     @Override
     public String getVersionForBadge() {
-        return this.hotfixReleaseVersion;
+        return this.hotfixVersion;
     }
 
-    public String getHotfixReleaseVersion() {
-        return this.hotfixReleaseVersion;
+    public String getHotfixVersion() {
+        return this.hotfixVersion;
     }
 
-    public String getPublishedFixesReleaseVersion() {
-        return this.publishedFixesReleaseVersion;
+    public String getPublishedPatchReleaseVersion() {
+        return this.publishedPatchReleaseVersion;
     }
 
-    public String getNextHotfixDevelopmentVersion() {
-        return this.nextHotfixDevelopmentVersion;
+    public String getNextPatchDevelopmentVersion() {
+        return this.nextPatchDevelopmentVersion;
     }
 
-    public void setNextHotfixDevelopmentVersion(final String nextHotfixDevelopmentVersion) {
-        this.nextHotfixDevelopmentVersion = nextHotfixDevelopmentVersion;
+    public void setNextPatchDevelopmentVersion(final String nextPatchDevelopmentVersion) {
+        this.nextPatchDevelopmentVersion = nextPatchDevelopmentVersion;
     }
 }

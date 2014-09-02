@@ -1,5 +1,14 @@
 package org.jenkinsci.plugins.gitflow;
 
+import static org.jenkinsci.plugins.gitflow.GitflowProjectAction.KEY_ACTION;
+import static org.jenkinsci.plugins.gitflow.GitflowProjectAction.KEY_DRY_RUN;
+import static org.jenkinsci.plugins.gitflow.GitflowProjectAction.KEY_POSTFIX_HOTFIX_VERSION;
+import static org.jenkinsci.plugins.gitflow.GitflowProjectAction.KEY_POSTFIX_NEXT_PATCH_DEVELOPMENT_VERSION;
+import static org.jenkinsci.plugins.gitflow.GitflowProjectAction.KEY_POSTFIX_PATCH_RELEASE_VERSION;
+import static org.jenkinsci.plugins.gitflow.GitflowProjectAction.KEY_PREFIX_FINISH_HOTFIX;
+import static org.jenkinsci.plugins.gitflow.GitflowProjectAction.KEY_PREFIX_START_HOTFIX;
+import static org.jenkinsci.plugins.gitflow.GitflowProjectAction.KEY_PREFIX_TEST_HOTFIX;
+import static org.jenkinsci.plugins.gitflow.GitflowProjectAction.KEY_VALUE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -113,11 +122,11 @@ public class GitflowProjectActionTest extends AbstractGitflowPluginTest {
         when(this.gitflowPluginData.getRemoteBranches()).thenReturn(Collections.singletonList(createRemoteBranch("master", null, null, null)));
 
         final JSONObject actionObject = new JSONObject();
-        actionObject.element(GitflowProjectAction.JSON_PARAM_VALUE, "startHotfix");
-        actionObject.element(GitflowProjectAction.JSON_PARAM_NEXT_HOTFIX_DEVELOPMENT_VERSION, "1.1.1-SNAPSHOT");
+        actionObject.element(KEY_VALUE, "startHotfix");
+        actionObject.element(KEY_PREFIX_START_HOTFIX + "_" + KEY_POSTFIX_NEXT_PATCH_DEVELOPMENT_VERSION, "1.1.1-SNAPSHOT");
         final JSONObject formObject = new JSONObject();
-        formObject.element(GitflowProjectAction.JSON_PARAM_ACTION, actionObject);
-        formObject.element(GitflowProjectAction.JSON_PARAM_DRY_RUN, Boolean.FALSE);
+        formObject.element(KEY_ACTION, actionObject);
+        formObject.element(KEY_DRY_RUN, Boolean.FALSE);
 
         final StaplerRequest staplerRequest = mock(StaplerRequest.class);
         when(staplerRequest.getSubmittedForm()).thenReturn(formObject);
@@ -133,7 +142,7 @@ public class GitflowProjectActionTest extends AbstractGitflowPluginTest {
 
         final ArgumentCaptor<StartHotfixCause> startHotfixCauseArgumentCaptor = ArgumentCaptor.forClass(StartHotfixCause.class);
         verify(this.job).scheduleBuild(anyInt(), startHotfixCauseArgumentCaptor.capture());
-        assertEquals("1.1.1-SNAPSHOT", startHotfixCauseArgumentCaptor.getValue().getNextHotfixDevelopmentVersion());
+        assertEquals("1.1.1-SNAPSHOT", startHotfixCauseArgumentCaptor.getValue().getNextPatchDevelopmentVersion());
     }
 
     @Test
@@ -142,13 +151,13 @@ public class GitflowProjectActionTest extends AbstractGitflowPluginTest {
         when(this.gitflowPluginData.getRemoteBranches()).thenReturn(Collections.singletonList(createRemoteBranch("hotfix/1.1", "1.1.4-SNAPSHOT", null, null)));
 
         final JSONObject actionObject = new JSONObject();
-        actionObject.element(GitflowProjectAction.JSON_PARAM_VALUE, "testHotfix");
-        actionObject.element(GitflowProjectAction.JSON_PARAM_HOTFIX_VERSION, "1.1");
-        actionObject.element(GitflowProjectAction.JSON_PARAM_HOTFIX_RELEASE_VERSION, "1.1.1");
-        actionObject.element(GitflowProjectAction.JSON_PARAM_NEXT_HOTFIX_DEVELOPMENT_VERSION, "1.1.2-SNAPSHOT");
+        actionObject.element(KEY_VALUE, "testHotfix");
+        actionObject.element(KEY_PREFIX_TEST_HOTFIX + "_" + KEY_POSTFIX_HOTFIX_VERSION, "1.1");
+        actionObject.element(KEY_PREFIX_TEST_HOTFIX + "_" + "1_1" + "_" + KEY_POSTFIX_PATCH_RELEASE_VERSION, "1.1.1");
+        actionObject.element(KEY_PREFIX_TEST_HOTFIX + "_" + "1_1" + "_" + KEY_POSTFIX_NEXT_PATCH_DEVELOPMENT_VERSION, "1.1.2-SNAPSHOT");
         final JSONObject formObject = new JSONObject();
-        formObject.element(GitflowProjectAction.JSON_PARAM_ACTION, actionObject);
-        formObject.element(GitflowProjectAction.JSON_PARAM_DRY_RUN, Boolean.FALSE);
+        formObject.element(KEY_ACTION, actionObject);
+        formObject.element(KEY_DRY_RUN, Boolean.FALSE);
 
         final StaplerRequest staplerRequest = mock(StaplerRequest.class);
         when(staplerRequest.getSubmittedForm()).thenReturn(formObject);
@@ -164,8 +173,8 @@ public class GitflowProjectActionTest extends AbstractGitflowPluginTest {
 
         final ArgumentCaptor<TestHotfixCause> testHotfixCauseArgumentCaptor = ArgumentCaptor.forClass(TestHotfixCause.class);
         verify(this.job).scheduleBuild(anyInt(), testHotfixCauseArgumentCaptor.capture());
-        assertEquals("1.1.1", testHotfixCauseArgumentCaptor.getValue().getHotfixReleaseVersion());
-        assertEquals("1.1.2-SNAPSHOT", testHotfixCauseArgumentCaptor.getValue().getNextHotfixDevelopmentVersion());
+        assertEquals("1.1.1", testHotfixCauseArgumentCaptor.getValue().getPatchReleaseVersion());
+        assertEquals("1.1.2-SNAPSHOT", testHotfixCauseArgumentCaptor.getValue().getNextPatchDevelopmentVersion());
     }
 
     @Test
@@ -174,11 +183,11 @@ public class GitflowProjectActionTest extends AbstractGitflowPluginTest {
         when(this.gitflowPluginData.getRemoteBranches()).thenReturn(Collections.singletonList(createRemoteBranch("hotfix/1.1", "1.1.4-SNAPSHOT", null, null)));
 
         final JSONObject actionObject = new JSONObject();
-        actionObject.element(GitflowProjectAction.JSON_PARAM_VALUE, "finishHotfix");
-        actionObject.element(GitflowProjectAction.JSON_PARAM_HOTFIX_VERSION, "1.1");
+        actionObject.element(KEY_VALUE, "finishHotfix");
+        actionObject.element(KEY_PREFIX_FINISH_HOTFIX + "_" + KEY_POSTFIX_HOTFIX_VERSION, "1.1");
         final JSONObject formObject = new JSONObject();
-        formObject.element(GitflowProjectAction.JSON_PARAM_ACTION, actionObject);
-        formObject.element(GitflowProjectAction.JSON_PARAM_DRY_RUN, Boolean.FALSE);
+        formObject.element(KEY_ACTION, actionObject);
+        formObject.element(KEY_DRY_RUN, Boolean.FALSE);
 
         final StaplerRequest staplerRequest = mock(StaplerRequest.class);
         when(staplerRequest.getSubmittedForm()).thenReturn(formObject);

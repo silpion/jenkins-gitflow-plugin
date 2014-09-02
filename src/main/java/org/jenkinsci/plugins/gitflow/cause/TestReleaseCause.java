@@ -10,8 +10,8 @@ import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
  */
 public class TestReleaseCause extends AbstractReleaseBranchCause {
 
-    private String fixesReleaseVersion;
-    private String nextFixesDevelopmentVersion;
+    private String patchReleaseVersion;
+    private String nextPatchDevelopmentVersion;
 
     /**
      * Creates a cause instance for the <i>Gitflow</i> build.
@@ -21,31 +21,31 @@ public class TestReleaseCause extends AbstractReleaseBranchCause {
     public TestReleaseCause(final RemoteBranch releaseBranch) {
         super(releaseBranch);
 
-        this.fixesReleaseVersion = StringUtils.removeEnd(releaseBranch.getLastBuildVersion(), "-SNAPSHOT");
+        this.patchReleaseVersion = StringUtils.removeEnd(releaseBranch.getLastBuildVersion(), "-SNAPSHOT");
 
-        final String baseVersion = StringUtils.substringBeforeLast(this.fixesReleaseVersion, ".");
-        final int newPatchNumber = Integer.valueOf(StringUtils.substringAfterLast(this.fixesReleaseVersion, ".")).intValue() + 1;
-        this.nextFixesDevelopmentVersion = baseVersion + "." + newPatchNumber + "-SNAPSHOT";
+        final String baseVersion = StringUtils.substringBeforeLast(this.patchReleaseVersion, ".");
+        final int newPatchNumber = Integer.valueOf(StringUtils.substringAfterLast(this.patchReleaseVersion, ".")).intValue() + 1;
+        this.nextPatchDevelopmentVersion = baseVersion + "." + newPatchNumber + "-SNAPSHOT";
     }
 
     @Override
     public String getVersionForBadge() {
-        return this.fixesReleaseVersion;
+        return this.patchReleaseVersion;
     }
 
-    public String getFixesReleaseVersion() {
-        return this.fixesReleaseVersion;
+    public String getPatchReleaseVersion() {
+        return this.patchReleaseVersion;
     }
 
-    public void setFixesReleaseVersion(final String fixesReleaseVersion) {
-        this.fixesReleaseVersion = fixesReleaseVersion;
+    public void setPatchReleaseVersion(final String patchReleaseVersion) {
+        this.patchReleaseVersion = patchReleaseVersion;
     }
 
-    public String getNextFixesDevelopmentVersion() {
-        return this.nextFixesDevelopmentVersion;
+    public String getNextPatchDevelopmentVersion() {
+        return this.nextPatchDevelopmentVersion;
     }
 
-    public void setNextFixesDevelopmentVersion(final String nextFixesDevelopmentVersion) {
-        this.nextFixesDevelopmentVersion = nextFixesDevelopmentVersion;
+    public void setNextPatchDevelopmentVersion(final String nextPatchDevelopmentVersion) {
+        this.nextPatchDevelopmentVersion = nextPatchDevelopmentVersion;
     }
 }
