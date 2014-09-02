@@ -7,13 +7,6 @@ package org.jenkinsci.plugins.gitflow.cause;
  */
 public class NoGitflowCause extends AbstractGitflowCause {
 
-    /**
-     * Creates a cause instance for the <i>Gitflow</i> build.
-     */
-    public NoGitflowCause() {
-        super(false);
-    }
-
     @Override
     public String getVersionForBadge() {
         return "";

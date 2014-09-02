@@ -27,8 +27,8 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
     private static final String MSG_PATTERN_CREATED_RELEASE_BRANCH = "Gitflow - %s: Created release branch %s%n";
     private static final String MSG_PATTERN_UPDATED_RELEASE_VERSION = "Gitflow - %s: Updated project files to release version %s%n";
     private static final String MSG_PATTERN_CREATED_RELEASE_TAG = "Gitflow - %s: Created release version tag %s%n";
-    private static final String MSG_PATTERN_UPDATED_FIXES_VERSION = "Gitflow - %s: Updated project files to fixes development version %s%n";
-    private static final String MSG_PATTERN_UPDATED_NEXT_VERSION = "Gitflow - %s: Updated project files on %s branch to next development version %s%n";
+    private static final String MSG_PATTERN_UPDATED_NEXT_PATCH_DEVELOPMENT_VERSION = "Gitflow - %s: Updated project files to next patch development version %s%n";
+    private static final String MSG_PATTERN_UPDATED_NEXT_RELEASE_DEVELOPMENT_VERSION = "Gitflow - %s: Updated project files on %s branch to next release development version %s%n";
 
     /**
      * Initialises a new <i>Start Release</i> action.
@@ -56,12 +56,12 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
 
         // Create a new release branch based on the develop branch.
         final GitflowBuildWrapper.DescriptorImpl buildWrapperDescriptor = getGitflowBuildWrapperDescriptor();
-        final String releaseBranch = buildWrapperDescriptor.getReleaseBranchPrefix() + this.gitflowCause.getReleaseVersion();
+        final String releaseVersion = this.gitflowCause.getReleaseVersion();
+        final String releaseBranch = buildWrapperDescriptor.getReleaseBranchPrefix() + releaseVersion;
         this.git.checkoutBranch(releaseBranch, "origin/" + buildWrapperDescriptor.getDevelopBranch());
         this.consoleLogger.printf(MSG_PATTERN_CREATED_RELEASE_BRANCH, ACTION_NAME, releaseBranch);
 
         // Update the version numbers in the project files to the release version.
-        final String releaseVersion = this.gitflowCause.getReleaseVersion();
         this.addFilesToGitStage(this.buildTypeAction.updateVersion(releaseVersion));
         final String msgUpadtedReleaseVersion = formatPattern(MSG_PATTERN_UPDATED_RELEASE_VERSION, ACTION_NAME, releaseVersion);
         this.git.commit(msgUpadtedReleaseVersion);
@@ -111,9 +111,9 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         this.git.push().to(this.remoteUrl).ref("refs/tags/" + tagName + ":refs/tags/" + tagName).execute();
 
         // Update the project files to the development version for the release fixes.
-        final String releaseNextDevelopmentVersion = this.gitflowCause.getReleaseNextDevelopmentVersion();
-        this.addFilesToGitStage(this.buildTypeAction.updateVersion(releaseNextDevelopmentVersion));
-        final String msgUpdatedFixesVersion = formatPattern(MSG_PATTERN_UPDATED_FIXES_VERSION, ACTION_NAME, releaseNextDevelopmentVersion);
+        final String nextPatchDevelopmentVersion = this.gitflowCause.getNextPatchDevelopmentVersion();
+        this.addFilesToGitStage(this.buildTypeAction.updateVersion(nextPatchDevelopmentVersion));
+        final String msgUpdatedFixesVersion = formatPattern(MSG_PATTERN_UPDATED_NEXT_PATCH_DEVELOPMENT_VERSION, ACTION_NAME, nextPatchDevelopmentVersion);
         this.git.commit(msgUpdatedFixesVersion);
         this.consoleLogger.print(msgUpdatedFixesVersion);
 
@@ -122,14 +122,14 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
 
         // Record the fixes development version on the release branch.
         remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
-        remoteBranchRelease.setLastBuildVersion(releaseNextDevelopmentVersion);
+        remoteBranchRelease.setLastBuildVersion(nextPatchDevelopmentVersion);
 
         // Update the project files in the develop branch to the development version for the next release.
         final String developBranch = buildWrapperDescriptor.getDevelopBranch();
         this.git.checkoutBranch(developBranch, "origin/" + developBranch);
-        final String nextDevelopmentVersion = this.gitflowCause.getNextDevelopmentVersion();
-        this.addFilesToGitStage(this.buildTypeAction.updateVersion(nextDevelopmentVersion));
-        final String msgUpdatedNextVersion = formatPattern(MSG_PATTERN_UPDATED_NEXT_VERSION, ACTION_NAME, developBranch, nextDevelopmentVersion);
+        final String nextReleaseDevelopmentVersion = this.gitflowCause.getNextReleaseDevelopmentVersion();
+        this.addFilesToGitStage(this.buildTypeAction.updateVersion(nextReleaseDevelopmentVersion));
+        final String msgUpdatedNextVersion = formatPattern(MSG_PATTERN_UPDATED_NEXT_RELEASE_DEVELOPMENT_VERSION, ACTION_NAME, developBranch, nextReleaseDevelopmentVersion);
         this.git.commit(msgUpdatedNextVersion);
         this.consoleLogger.print(msgUpdatedNextVersion);
 
@@ -140,7 +140,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         // TODO We should not offer the Start Release action when no record for the develop branch exists - the method 'getOrAddRemoteBranch' can be used then.
         final RemoteBranch remoteBranchDevelop = this.gitflowPluginData.getOrAddRemoteBranch("origin", developBranch);
         remoteBranchDevelop.setLastBuildResult(Result.SUCCESS);
-        remoteBranchDevelop.setLastBuildVersion(nextDevelopmentVersion);
+        remoteBranchDevelop.setLastBuildVersion(nextReleaseDevelopmentVersion);
 
         // TODO Might configure further branches to merge to.
     }

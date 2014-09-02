@@ -3,7 +3,6 @@ package org.jenkinsci.plugins.gitflow.it.action;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 
 import java.io.File;
 import java.io.FileReader;
@@ -16,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.jenkinsci.plugins.gitclient.Git;
@@ -30,14 +28,10 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.jvnet.hudson.test.JenkinsRule;
 
-import com.gargoylesoftware.htmlunit.html.HtmlCheckBoxInput;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlOption;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlRadioButtonInput;
-import com.gargoylesoftware.htmlunit.html.HtmlSelect;
-import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
 
 import hudson.EnvVars;
 import hudson.FilePath;
@@ -67,20 +61,17 @@ public class TestHotfixIT {
     }
 
     @Test
-    public void testStartHotfix() throws Exception {
+    public void testTestHotfix() throws Exception {
 
         File gitRepro = folder.newFolder("testrepo.git");
-        setUpGitRepo("/TestHotfixAction/testrepo.git.zip", gitRepro);
+        this.setUpGitRepo("../testrepo.git_started-hotfix-1.0.zip", gitRepro);
 
         //make a build before
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        addRemoteBranch(data, "origin", "hotfix/foobar1", Result.SUCCESS, "1.1.2-SNAPSHOT");
-        addRemoteBranch(data, "origin", "hotfix/foobar2", Result.SUCCESS, "1.1.3-SNAPSHOT");
-        addRemoteBranch(data, "origin", "hotfix/foobar3", Result.SUCCESS, "1.1-SNAPSHOT");
-        addRemoteBranch(data, "origin", "hotfix/foobar4", Result.SUCCESS, "1.1.5-SNAPSHOT");
+        addRemoteBranch(data, "origin", "hotfix/1.0", Result.SUCCESS, "1.0.2-SNAPSHOT");
 
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
@@ -89,47 +80,7 @@ public class TestHotfixIT {
         HtmlPage page = webClient.goTo(mavenProject.getUrl() + "gitflow");
 
         HtmlForm form = page.getFormByName("performGitflowRelease");
-        checkRadioButton("action", "testHotfix", page);
-
-        List<HtmlSelect> selects = form.getSelectsByName("");
-        HtmlSelect hotfixSelect = getHtmlSelect(selects, "foobar");
-
-        assertThat("HotFixSelect not found", hotfixSelect, is(notNullValue()));
-        assertThat("HotFixSelect missing Element", hotfixSelect.getOptions().size(), is(4));
-        for (HtmlOption htmlOption : hotfixSelect.getOptions()) {
-            if ("foobar3".equals(htmlOption.getValueAttribute())) {
-                htmlOption.setSelected(true);
-            } else {
-                htmlOption.setSelected(false);
-            }
-        }
-        //Check values in (nextHotfixReleaseVersion, hotfixReleaseVersion)
-        //foobar3 is select, so the Fields must be visible
-        for (HtmlElement htmlElement : page.getElementsByName("hotfixBranch")) {
-            if (htmlElement.isDisplayed()){
-                if (htmlElement instanceof HtmlTextInput) {
-                    HtmlTextInput textInput = (HtmlTextInput) htmlElement;
-                    assertThat(textInput.getText(),is("hotfix/foobar3") );
-                }
-            }
-        }
-        for (HtmlElement htmlElement : page.getElementsByName("fixesHotfixReleaseVersion")) {
-            if (htmlElement.isDisplayed()){
-                if (htmlElement instanceof HtmlTextInput) {
-                    HtmlTextInput textInput = (HtmlTextInput) htmlElement;
-                    assertThat(textInput.getText(),is("1.1") );
-                }
-            }
-        }
-        for (HtmlElement htmlElement : page.getElementsByName("nextHotfixReleaseVersion")) {
-            if (htmlElement.isDisplayed()){
-                if (htmlElement instanceof HtmlTextInput) {
-                    HtmlTextInput textInput = (HtmlTextInput) htmlElement;
-                    assertThat(textInput.getText(),is("1.2-SNAPSHOT"));
-                    textInput.setAttribute("value", "1.2.1-SNAPSHOT");
-                }
-            }
-        }
+        checkRadioButton("action", "testHotfix_1.0", page);
 
         j.submit(form);
         j.waitUntilNoActivity();
@@ -137,8 +88,7 @@ public class TestHotfixIT {
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         GitflowPluginData data1 = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        assertThat(data1.getRemoteBranch("origin", "hotfix/foobar3").getLastBuildVersion(), is("1.2.1-SNAPSHOT"));
-        assertThat(data1.getRemoteBranch("origin", "hotfix/foobar3").getLastBuildResult(), is(Result.SUCCESS));
+        assertThat(data1.getRemoteBranch("origin", "hotfix/1.0").getLastBuildVersion(), is("1.0.3-SNAPSHOT"));
 
         //check the Git-Repro
         File repository = folder.newFolder();
@@ -146,26 +96,24 @@ public class TestHotfixIT {
         gitClient.clone(gitRepro.getAbsolutePath(), "origin", false, null);
         Map<String, Branch> branches = getAllBranches(gitClient);
 
-        assertThat(branches.keySet(), containsInAnyOrder("origin/hotfix/foobar1", "origin/hotfix/foobar2", "origin/hotfix/foobar3", "origin/hotfix/foobar4",
-                                                         "origin/hotfix/foobar5", "origin/master", "origin/develop", "master", "origin/release/1.0"));
+        assertThat(branches.keySet(), containsInAnyOrder("origin/hotfix/1.0", "origin/master", "origin/develop", "master"));
 
-        gitClient.checkoutBranch("hotfix/foobar3", branches.get("origin/hotfix/foobar3").getSHA1String());
-        checkMultiModuleProject(repository, "1.2.1-SNAPSHOT", 4);
-
+        gitClient.checkoutBranch("hotfix/foobar3", branches.get("origin/hotfix/1.0").getSHA1String());
+        this.checkMultiModuleProject(repository, "1.0.3-SNAPSHOT", 4);
     }
 
     @Test
-    public void testStartHotfixDryrun() throws Exception {
+    public void testTestHotfixDryRun() throws Exception {
 
         File gitRepro = folder.newFolder("testrepo.git");
-        setUpGitRepo("/TestHotfixAction/testrepo.git.zip", gitRepro);
+        this.setUpGitRepo("../testrepo.git_started-hotfix-1.0.zip", gitRepro);
 
         //make a build before
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        addRemoteBranch(data, "origin", "hotfix/foobar3", Result.SUCCESS, "1.1-SNAPSHOT");
+        addRemoteBranch(data, "origin", "hotfix/1.0", Result.SUCCESS, "1.0.2-SNAPSHOT");
 
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
@@ -174,16 +122,7 @@ public class TestHotfixIT {
         HtmlPage page = webClient.goTo(mavenProject.getUrl() + "gitflow");
 
         HtmlForm form = page.getFormByName("performGitflowRelease");
-        checkRadioButton("action", "testHotfix", page);
-
-        List<HtmlSelect> selects = form.getSelectsByName("");
-        HtmlSelect hotfixSelect = getHtmlSelect(selects, "foobar");
-
-        assertThat("HotFixSelect not found", hotfixSelect, is(notNullValue()));
-        assertThat("HotFixSelect missing Element", hotfixSelect.getOptions().size(), is(1));
-        hotfixSelect.getOptions().get(0).setSelected(true);
-        HtmlCheckBoxInput dryRunElement = (HtmlCheckBoxInput) page.getElementsByName("dryRun").get(0);
-        dryRunElement.setChecked(true);
+        checkRadioButton("action", "testHotfix_1.0", page);
 
         j.submit(form);
         j.waitUntilNoActivity();
@@ -191,8 +130,8 @@ public class TestHotfixIT {
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         GitflowPluginData data1 = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        assertThat(data1.getRemoteBranch("origin", "hotfix/foobar3").getLastBuildVersion(), is("1.1-SNAPSHOT"));
-        assertThat(data1.getRemoteBranch("origin", "hotfix/foobar3").getLastBuildResult(), is(Result.SUCCESS));
+        assertThat(data1.getRemoteBranch("origin", "hotfix/1.0").getLastBuildVersion(), is("1.0.3-SNAPSHOT"));
+        assertThat(data1.getRemoteBranch("origin", "hotfix/1.0").getLastBuildResult(), is(Result.SUCCESS));
 
         //check the Git-Repro
         File repository = folder.newFolder();
@@ -200,18 +139,17 @@ public class TestHotfixIT {
         gitClient.clone(gitRepro.getAbsolutePath(), "origin", false, null);
         Map<String, Branch> branches = getAllBranches(gitClient);
 
-        assertThat(branches.keySet(), containsInAnyOrder("origin/hotfix/foobar1", "origin/hotfix/foobar2", "origin/hotfix/foobar3", "origin/hotfix/foobar4",
-                                                         "origin/hotfix/foobar5", "origin/master", "origin/develop", "master", "origin/release/1.0"));
+        assertThat(branches.keySet(), containsInAnyOrder("origin/hotfix/1.0", "origin/master", "origin/develop", "master"));
 
-        gitClient.checkoutBranch("hotfix/foobar3", branches.get("origin/hotfix/foobar3").getSHA1String());
-        checkMultiModuleProject(repository, "1.1-SNAPSHOT", 4);
+        gitClient.checkoutBranch("hotfix/foobar3", branches.get("origin/hotfix/1.0").getSHA1String());
+        checkMultiModuleProject(repository, "1.0.3-SNAPSHOT", 4);
     }
 
     @Test
-    public void testStartHotfixFail() throws Exception {
+    public void testTestHotfixFail() throws Exception {
 
         File gitRepro = folder.newFolder("testrepo.git");
-        setUpGitRepo("/TestHotfixAction/testrepo.git.zip", gitRepro);
+        this.setUpGitRepo("../testrepo.git_started-hotfix-1.0.zip", gitRepro);
 
         //make a build before
         mavenProject.scheduleBuild2(0).get();
@@ -227,14 +165,7 @@ public class TestHotfixIT {
         HtmlPage page = webClient.goTo(mavenProject.getUrl() + "gitflow");
 
         HtmlForm form = page.getFormByName("performGitflowRelease");
-        checkRadioButton("action", "testHotfix", page);
-
-        List<HtmlSelect> selects = form.getSelectsByName("");
-        HtmlSelect hotfixSelect = getHtmlSelect(selects, "foobar");
-
-        assertThat("HotFixSelect not found", hotfixSelect, is(notNullValue()));
-        assertThat("HotFixSelect missing Element", hotfixSelect.getOptions().size(), is(1));
-        hotfixSelect.getOptions().get(0).setSelected(true);
+        checkRadioButton("action", "testHotfix_1.0", page);
 
         mavenProject.setGoals("fail");
         j.submit(form);
@@ -243,8 +174,8 @@ public class TestHotfixIT {
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.FAILURE));
 
         GitflowPluginData data1 = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        assertThat(data1.getRemoteBranch("origin", "hotfix/foobar3").getLastBuildVersion(), is("1.1-SNAPSHOT"));
-        assertThat(data1.getRemoteBranch("origin", "hotfix/foobar3").getLastBuildResult(), is(Result.FAILURE));
+        assertThat(data1.getRemoteBranch("origin", "hotfix/1.0").getLastBuildVersion(), is("1.0.2-SNAPSHOT"));
+        assertThat(data1.getRemoteBranch("origin", "hotfix/1.0").getLastBuildResult(), is(Result.FAILURE));
 
         //check the Git-Repro
         File repository = folder.newFolder();
@@ -252,29 +183,10 @@ public class TestHotfixIT {
         gitClient.clone(gitRepro.getAbsolutePath(), "origin", false, null);
         Map<String, Branch> branches = getAllBranches(gitClient);
 
-        assertThat(branches.keySet(), containsInAnyOrder("origin/hotfix/foobar1", "origin/hotfix/foobar2", "origin/hotfix/foobar3", "origin/hotfix/foobar4",
-                                                         "origin/hotfix/foobar5", "origin/master", "origin/develop", "master", "origin/release/1.0"));
+        assertThat(branches.keySet(), containsInAnyOrder("origin/hotfix/1.0", "origin/master", "origin/develop", "master"));
 
-        gitClient.checkoutBranch("hotfix/foobar3", branches.get("origin/hotfix/foobar3").getSHA1String());
-        checkMultiModuleProject(repository, "1.1-SNAPSHOT", 4);
-    }
-
-    /**
-     * finding the HtmlSelect by the Value-Attribute.
-     *
-     * @param selects the list of Selects
-     * @param name the Name to Find
-     * @return null or the a Matching Select.
-     */
-    private HtmlSelect getHtmlSelect(final List<HtmlSelect> selects, String name) {
-        for (HtmlSelect select : selects) {
-            for (HtmlOption htmlOption : select.getOptions()) {
-                if (StringUtils.startsWith(htmlOption.getValueAttribute(), name)) {
-                    return select;
-                }
-            }
-        }
-        return null;
+        gitClient.checkoutBranch("hotfix/foobar3", branches.get("origin/hotfix/1.0").getSHA1String());
+        checkMultiModuleProject(repository, "1.0.2-SNAPSHOT", 4);
     }
 
     /**

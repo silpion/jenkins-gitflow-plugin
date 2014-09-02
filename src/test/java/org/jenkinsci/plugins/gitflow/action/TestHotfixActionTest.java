@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.matches;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
@@ -66,28 +67,34 @@ public class TestHotfixActionTest extends AbstractGitflowActionTest<TestHotfixAc
     public void setUp() throws Exception {
         super.setUp();
 
+        // Mock calls to build wrapper descriptor.
+        when(this.gitflowBuildWrapperDescriptor.getVersionTagPrefix()).thenReturn("version/");
+        when(this.gitflowBuildWrapperDescriptor.getBranchType(matches("hotfix/.*"))).thenReturn("hotfix");
+
         // Mock the BuildTypeAction.
         mockStatic(BuildTypeActionFactory.class);
         when(BuildTypeActionFactory.newInstance(build, launcher, listener)).thenReturn(buildTypeAction);
 
         // Mock calls to the GitflowPluginData object.
-        when(this.gitflowPluginData.getRemoteBranch("origin", "hotfix/foobar")).thenReturn(this.remoteBranchHotfix);
+        when(this.gitflowPluginData.getRemoteBranch("origin", "hotfix/1.2")).thenReturn(this.remoteBranchHotfix);
         when(this.build.getAction(GitflowPluginData.class)).thenReturn(this.gitflowPluginData);
 
         // Instanciate the test subject.
-        final TestHotfixCause cause = new TestHotfixCause("hotfix/foobar", "1.2.3", "1.2.4-SNAPSHOT", false);
+        final TestHotfixCause cause = new TestHotfixCause(createRemoteBranch("hotfix/1.2", "1.2.3-SNAPSHOT"));
         this.testAction = new TestHotfixAction<AbstractBuild<?, ?>>(this.build, this.launcher, this.listener, this.git, cause);
 
         // Mock calls to Git client.
         when(this.git.push()).thenReturn(this.pushCommand);
         when(this.git.getRemoteUrl("origin")).thenReturn("someOriginUrl");
-        when(this.git.getHeadRev("someOriginUrl", "hotfix/foobar")).thenReturn(ObjectId.zeroId());
+        when(this.git.getHeadRev("someOriginUrl", "hotfix/1.2")).thenReturn(ObjectId.zeroId());
         when(this.pushCommand.ref(anyString())).thenReturn(this.pushCommand);
         when(this.pushCommand.to(any(URIish.class))).thenReturn(this.pushCommand);
+    }
 
-        // Mock calls to build wrapper descriptor.
-        when(this.gitflowBuildWrapperDescriptor.getVersionTagPrefix()).thenReturn("version/");
-        when(this.gitflowBuildWrapperDescriptor.getBranchType("hotfix/foobar")).thenReturn("hotfix");
+    private static RemoteBranch createRemoteBranch(final String branchName, final String lastBuildVersion) {
+        final RemoteBranch masterBranch = new RemoteBranch("origin", branchName);
+        masterBranch.setLastBuildVersion(lastBuildVersion);
+        return masterBranch;
     }
 
     /** {@inheritDoc} */
@@ -102,8 +109,8 @@ public class TestHotfixActionTest extends AbstractGitflowActionTest<TestHotfixAc
         final Map<String, String> expectedAdditionalBuildEnvVars = new HashMap<String, String>();
 
         // Define expectations.
-        expectedAdditionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", "hotfix/foobar");
-        expectedAdditionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/hotfix/foobar");
+        expectedAdditionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", "hotfix/1.2");
+        expectedAdditionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/hotfix/1.2");
         expectedAdditionalBuildEnvVars.put("GIT_BRANCH_TYPE", "hotfix");
 
         return expectedAdditionalBuildEnvVars;
@@ -119,7 +126,7 @@ public class TestHotfixActionTest extends AbstractGitflowActionTest<TestHotfixAc
     public void testBeforeMainBuildInternal() throws Exception {
 
         //Setup
-        String hotfixBranch = "hotfix/foobar";
+        String hotfixBranch = "hotfix/1.2";
 
         List<String> changeFiles = Arrays.asList("pom.xml", "child1/pom.xml", "child2/pom.xml", "child3/pom.xml");
         when(buildTypeAction.updateVersion("1.2.3")).thenReturn(changeFiles);
@@ -147,7 +154,7 @@ public class TestHotfixActionTest extends AbstractGitflowActionTest<TestHotfixAc
     public void testAfterMainBuildInternal() throws Exception {
 
         //Setup
-        String hotfixBranch = "hotfix/foobar";
+        String hotfixBranch = "hotfix/1.2";
         String nextHotfixVersion = "1.2.4-SNAPSHOT";
 
         when(build.getResult()).thenReturn(Result.SUCCESS);
@@ -202,7 +209,7 @@ public class TestHotfixActionTest extends AbstractGitflowActionTest<TestHotfixAc
         //Check
         verify(this.git).setGitflowActionName(this.testAction.getActionName());
         verify(this.gitflowPluginData).setDryRun(false);
-        verify(this.gitflowPluginData).getRemoteBranch("origin", "hotfix/foobar");
+        verify(this.gitflowPluginData).getRemoteBranch("origin", "hotfix/1.2");
         verify(this.remoteBranchHotfix).setLastBuildResult(Result.FAILURE);
 
         verifyNoMoreInteractions(this.git, this.gitflowPluginData, this.remoteBranchHotfix);

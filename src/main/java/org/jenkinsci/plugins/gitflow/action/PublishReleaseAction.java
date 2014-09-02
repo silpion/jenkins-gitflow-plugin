@@ -41,7 +41,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
     private static final String ACTION_NAME = "Publish Release";
 
     private static final String MSG_PATTERN_CHECKOUT_BRANCH = "Gitflow - %s: Checked out branch %s%n";
-    private static final String MSG_PATTERN_MERGED_LAST_FIXES_RELEASE = "Gitflow - %s: Merged last fixes release %s to branch %s%n";
+    private static final String MSG_PATTERN_MERGED_LAST_PATCH_RELEASE = "Gitflow - %s: Merged last patch release %s to branch %s%n";
 
     /**
      * Initialises a new <i>Publish Release</i> action.
@@ -75,7 +75,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         this.mergeLastFixesRelease(masterBranch, THEIRS);
 
         // Record the version that have been merged to the master branch.
-        final String lastFixesReleaseVersion = this.gitflowCause.getLastFixesReleaseVersion();
+        final String lastFixesReleaseVersion = this.gitflowCause.getLastPatchReleaseVersion();
         final String releaseBranch = this.gitflowCause.getReleaseBranch();
         final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getOrAddRemoteBranch("origin", releaseBranch);
         final RemoteBranch remoteBranchMaster = this.gitflowPluginData.getOrAddRemoteBranch("origin", masterBranch);
@@ -83,7 +83,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         remoteBranchMaster.setLastBuildVersion(lastFixesReleaseVersion);
         remoteBranchMaster.setBaseReleaseVersion(remoteBranchRelease.getBaseReleaseVersion());
         remoteBranchMaster.setLastReleaseVersion(lastFixesReleaseVersion);
-        remoteBranchMaster.setLastReleaseVersionCommit(ObjectId.fromString(this.gitflowCause.getLastFixesReleaseCommit()));
+        remoteBranchMaster.setLastReleaseVersionCommit(ObjectId.fromString(this.gitflowCause.getLastPatchReleaseCommit()));
 
         // Set the build data with the merge commit on the master branch, so that it won't be scheduled for a new build.
         // Otherwise Jenkins might try to rebuild an already existing release and deploy it to the (Maven) repository manager.
@@ -128,10 +128,10 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         this.consoleLogger.printf(MSG_PATTERN_CHECKOUT_BRANCH, ACTION_NAME, targetBranch);
 
         // Merge the last fixes release (from the release branch) to the target branch.
-        final ObjectId lastFixesReleaseCommit = ObjectId.fromString(this.gitflowCause.getLastFixesReleaseCommit());
+        final ObjectId lastFixesReleaseCommit = ObjectId.fromString(this.gitflowCause.getLastPatchReleaseCommit());
         this.git.merge(lastFixesReleaseCommit, NO_FF, RECURSIVE, recursiveMergeStrategyOption, false);
-        final String lastFixesReleaseVersion = this.gitflowCause.getLastFixesReleaseVersion();
-        final String msgMergedLastFixesRelease = formatPattern(MSG_PATTERN_MERGED_LAST_FIXES_RELEASE, ACTION_NAME, lastFixesReleaseVersion, targetBranch);
+        final String lastFixesReleaseVersion = this.gitflowCause.getLastPatchReleaseVersion();
+        final String msgMergedLastFixesRelease = formatPattern(MSG_PATTERN_MERGED_LAST_PATCH_RELEASE, ACTION_NAME, lastFixesReleaseVersion, targetBranch);
         this.git.commit(msgMergedLastFixesRelease);
         this.consoleLogger.print(msgMergedLastFixesRelease);
 

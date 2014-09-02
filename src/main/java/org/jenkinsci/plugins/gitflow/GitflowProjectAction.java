@@ -1,26 +1,32 @@
 package org.jenkinsci.plugins.gitflow;
 
-import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.TreeMap;
 
 import javax.servlet.ServletException;
 
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
-import org.jenkinsci.plugins.gitflow.cause.GitflowCauseFactory;
+import org.jenkinsci.plugins.gitflow.cause.FinishReleaseCause;
+import org.jenkinsci.plugins.gitflow.cause.HotfixBranchCauseGroup;
+import org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause;
+import org.jenkinsci.plugins.gitflow.cause.ReleaseBranchCauseGroup;
+import org.jenkinsci.plugins.gitflow.cause.StartHotfixCause;
+import org.jenkinsci.plugins.gitflow.cause.StartReleaseCause;
+import org.jenkinsci.plugins.gitflow.cause.TestHotfixCause;
+import org.jenkinsci.plugins.gitflow.cause.TestReleaseCause;
 import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
+
+import net.sf.json.JSONObject;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -37,11 +43,58 @@ import hudson.util.NullStream;
  */
 public class GitflowProjectAction implements PermalinkProjectAction {
 
-    protected static final String DEFAULT_STRING = "Please enter a valid version number...";
+    @VisibleForTesting static final String KEY_ACTION = "action";
+    @VisibleForTesting static final String KEY_VALUE = "value";
+    @VisibleForTesting static final String KEY_DRY_RUN = "dryRun";
+
+    @VisibleForTesting static final String KEY_PREFIX_START_RELEASE = "startRelease";
+    @VisibleForTesting static final String KEY_PREFIX_TEST_RELEASE = "testRelease";
+    @VisibleForTesting static final String KEY_PREFIX_PUBLISH_RELEASE = "publishRelease";
+    @VisibleForTesting static final String KEY_PREFIX_FINISH_RELEASE = "finishRelease";
+    @VisibleForTesting static final String KEY_PREFIX_START_HOTFIX = "startHotfix";
+    @VisibleForTesting static final String KEY_PREFIX_TEST_HOTFIX = "testHotfix";
+    @VisibleForTesting static final String KEY_PREFIX_PUBLISH_HOTFIX = "publishHotfix";
+    @VisibleForTesting static final String KEY_PREFIX_FINISH_HOTFIX = "finishHotfix";
+
+    @VisibleForTesting static final String KEY_POSTFIX_RELEASE_VERSION = "releaseVersion";
+    @VisibleForTesting static final String KEY_POSTFIX_HOTFIX_VERSION = "hotfixVersion";
+    @VisibleForTesting static final String KEY_POSTFIX_NEXT_RELEASE_DEVELOPMENT_VERSION = "nextReleaseDevelopmentVersion";
+    @VisibleForTesting static final String KEY_POSTFIX_NEXT_PATCH_DEVELOPMENT_VERSION = "nextPatchDevelopmentVersion";
+    @VisibleForTesting static final String KEY_POSTFIX_PATCH_RELEASE_VERSION = "patchReleaseVersion";
+    @VisibleForTesting static final String KEY_POSTFIX_MERGE_TO_DEVELOP = "mergeToDevelop";
+    @VisibleForTesting static final String KEY_POSTFIX_INCLUDED_ACTION = "includedAction";
+    @VisibleForTesting static final String KEY_POSTFIX_INCLUDE_START_HOTFIX_ACTION = "includeStartHotfixAction";
+
+    private static final Comparator<String> VERSION_NUMBER_COMPARATOR = new Comparator<String>() {
+
+        public int compare(final String versionNumber1, final String versionNumber2) {
+            int result = 0;
+
+            final String[] versionNumberTokens1 = StringUtils.split(versionNumber1, ".");
+            final String[] versionNumberTokens2 = StringUtils.split(versionNumber2, ".");
+
+            for (int i = 0; i < Math.min(versionNumberTokens1.length, versionNumberTokens2.length); i++) {
+                result = Integer.compare(Integer.valueOf(versionNumberTokens1[i]).intValue(), Integer.valueOf(versionNumberTokens2[i]).intValue());
+                if (result != 0) {
+                    break;
+                }
+            }
+
+            if (result == 0) {
+                result = Integer.compare(versionNumberTokens1.length, versionNumberTokens2.length);
+            }
+
+            return result;
+        }
+    };
 
     private final AbstractProject<?, ?> job;
 
-    private final Map<String, RemoteBranch> remoteBranches;
+    private StartReleaseCause startReleaseCause;
+    private Map<String, ReleaseBranchCauseGroup> releaseBranchCauseGroupsByVersion = new TreeMap<String, ReleaseBranchCauseGroup>(VERSION_NUMBER_COMPARATOR);
+
+    private StartHotfixCause startHotfixCause;
+    private Map<String, HotfixBranchCauseGroup> hotfixBranchCauseGroupsByVersion = new TreeMap<String, HotfixBranchCauseGroup>(VERSION_NUMBER_COMPARATOR);
 
     /**
      * Initialises a new {@link GitflowProjectAction}.
@@ -52,32 +105,45 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         this.job = job;
 
         // Try to get the action object that holds the data for the Gitflow plugin and extract the recorded remote branch information.
-        this.remoteBranches = new HashMap<String, RemoteBranch>();
         for (AbstractBuild<?, ?> lastBuild = job.getLastBuild(); lastBuild != null; lastBuild = lastBuild.getPreviousBuild()) {
             final GitflowPluginData gitflowPluginData = lastBuild.getAction(GitflowPluginData.class);
             if (gitflowPluginData != null) {
 
                 // The action form should only offer actions on the recorded remote branches that still exist.
                 // NOTE that proper error handling for Git client problems is not possible here. That's why the methods
-                // 'createGitClient' and 'isExistingRemoteBranch' swallow exceptions instead of handling them in any way.
+                // 'createGitClient' and 'isExistingBlessedRemoteBranch' swallow exceptions instead of handling them in any way.
                 final GitClientDelegate git = createGitClient(job);
                 for (final RemoteBranch remoteBranch : gitflowPluginData.getRemoteBranches()) {
                     final String remoteAlias = remoteBranch.getRemoteAlias();
                     final String branchName = remoteBranch.getBranchName();
-                    if (git == null || isExistingRemoteBranch(git, remoteAlias, branchName)) {
-                        this.remoteBranches.put(remoteAlias + "/" + branchName, remoteBranch);
+                    if (git == null || isExistingBlessedRemoteBranch(git, remoteAlias, branchName)) {
+
+                        final String branchType = GitflowBuildWrapper.getGitflowBuildWrapperDescriptor().getBranchType(branchName);
+                        if ("develop".equals(branchType)) {
+                            this.startReleaseCause = new StartReleaseCause(remoteBranch);
+                        } else if ("release".equals(branchType)) {
+                            final ReleaseBranchCauseGroup releaseBranchCauseGroup = new ReleaseBranchCauseGroup(remoteBranch);
+                            this.releaseBranchCauseGroupsByVersion.put(releaseBranchCauseGroup.getReleaseVersion(), releaseBranchCauseGroup);
+                        } else if ("master".equals(branchType)) {
+                            // When the master branch has a snapshot version, we assume an initial commit and not a published release.
+                            if (!StringUtils.endsWith(remoteBranch.getLastBuildVersion(), "-SNAPSHOT")) {
+                                this.startHotfixCause = new StartHotfixCause(remoteBranch);
+                            }
+                        } else if ("hotfix".equals(branchType)) {
+                            final HotfixBranchCauseGroup hotfixBranchCauseGroup = new HotfixBranchCauseGroup(remoteBranch);
+                            this.hotfixBranchCauseGroupsByVersion.put(hotfixBranchCauseGroup.getHotfixVersion(), hotfixBranchCauseGroup);
+                        }
                     }
                 }
 
                 break;
             }
         }
-    }
 
-    @VisibleForTesting
-    GitflowProjectAction(final AbstractProject<?, ?> job, final Map<String, RemoteBranch> remoteBranches) {
-        this.job = job;
-        this.remoteBranches = remoteBranches;
+        // Set startHotfixCause to null when the hotfix branch for the published release already exists.
+        if (this.startHotfixCause != null && this.hotfixBranchCauseGroupsByVersion.containsKey(this.startHotfixCause.getHotfixVersion())) {
+            this.startHotfixCause = null;
+        }
     }
 
     private static GitClientDelegate createGitClient(final AbstractProject<?, ?> job) {
@@ -90,9 +156,9 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         }
     }
 
-    private static boolean isExistingRemoteBranch(final GitClientDelegate git, final String remoteAlias, final String branchName) {
+    private static boolean isExistingBlessedRemoteBranch(final GitClientDelegate git, final String remoteAlias, final String branchName) {
         try {
-            return git.getHeadRev(git.getRemoteUrl(remoteAlias), branchName) != null;
+            return "origin".equals(remoteAlias) && git.getHeadRev(git.getRemoteUrl(remoteAlias), branchName) != null;
         } catch (final Exception ignored) {
             // NOTE that proper error handling for Git client problems is not possible here.
             // That's why exceptions are swallowed instead of being handled in any way.
@@ -120,157 +186,86 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         return "gitflow";
     }
 
-    public String computeReleaseVersion() throws IOException {
-        final RemoteBranch developBranch = this.remoteBranches.get("origin/" + getGitflowBuildWrapperDescriptor().getDevelopBranch());
-        if (developBranch == null) {
-            return DEFAULT_STRING;
-        } else {
-            return StringUtils.removeEnd(developBranch.getLastBuildVersion(), "-SNAPSHOT");
-        }
-    }
-
-    public String computeReleaseNextDevelopmentVersion() throws IOException {
-        final String releaseVersion = this.computeReleaseVersion();
-        if (StringUtils.equals(releaseVersion, DEFAULT_STRING)) {
-            return DEFAULT_STRING;
-        } else {
-            return releaseVersion + ".1-SNAPSHOT";
-        }
-    }
-
-    public String computeNextDevelopmentVersion() throws IOException {
-        final String releaseVersion = this.computeReleaseVersion();
-        if (StringUtils.equals(releaseVersion, DEFAULT_STRING)) {
-            return DEFAULT_STRING;
-        } else {
-            final String latestMinorVersion = StringUtils.substringAfterLast(releaseVersion, ".");
-            final int nextMinorVersion = Integer.valueOf(latestMinorVersion).intValue() + 1;
-
-            final String baseVersion = StringUtils.substringBeforeLast(releaseVersion, ".");
-            return baseVersion + "." + nextMinorVersion + "-SNAPSHOT";
-        }
-    }
-
-    public SortedSet<String> computeReleaseBranches() throws IOException {
-        final String releaseBranchPrefix = getGitflowBuildWrapperDescriptor().getReleaseBranchPrefix();
-        return filterBranches(releaseBranchPrefix, this.remoteBranches.values());
-    }
-
-    public SortedSet<String> computeHotfixBranches() throws IOException {
-        final String hotfixBranchPrefix = getGitflowBuildWrapperDescriptor().getHotfixBranchPrefix();
-        return filterBranches(hotfixBranchPrefix, this.remoteBranches.values());
-    }
-
-    public String computeHotfixVersion(final String hotfixBranch) {
-        final String hotfixPrefix = getGitflowBuildWrapperDescriptor().getHotfixBranchPrefix();
-        return StringUtils.removeStart(hotfixBranch, hotfixPrefix);
-    }
-
-    protected static SortedSet<String> filterBranches(final String branchPrefix, final Collection<RemoteBranch> branches) {
-        final SortedSet<String> filterBranches = new TreeSet<String>();
-
-        for (final RemoteBranch remoteBranchEntry : branches) {
-            final String branchName = remoteBranchEntry.getBranchName();
-            //plus origin
-            if (StringUtils.startsWith(branchName, branchPrefix)) {
-                filterBranches.add(branchName);
-            }
-        }
-        return filterBranches;
-    }
-
-    public String computeHotfixReleaseVersion() throws IOException {
-        final RemoteBranch masterBranch = this.remoteBranches.get("origin/" + getGitflowBuildWrapperDescriptor().getMasterBranch());
-        if (masterBranch == null) {
-            return DEFAULT_STRING;
-        } else {
-            return masterBranch.getBaseReleaseVersion();
-        }
-    }
-
-    public String computePublishedFixesReleaseVersion() throws IOException {
-        final RemoteBranch masterBranch = this.remoteBranches.get("origin/" + getGitflowBuildWrapperDescriptor().getMasterBranch());
-        if (masterBranch == null)
-            return DEFAULT_STRING;
-        else {
-            return masterBranch.getLastReleaseVersion();
-        }
-    }
-
-    public String computeNextHotfixDevelopmentVersion() throws IOException {
-        final StringBuilder nextHotfixDevelopmentVersionBuilder = new StringBuilder();
-
-        final RemoteBranch masterBranch = this.remoteBranches.get("origin/" + getGitflowBuildWrapperDescriptor().getMasterBranch());
-        if (masterBranch == null) {
-            nextHotfixDevelopmentVersionBuilder.append(DEFAULT_STRING);
-        } else {
-            final String lastReleaseVersion = masterBranch.getLastReleaseVersion();
-            final String baseReleaseVersion = masterBranch.getBaseReleaseVersion();
-
-            nextHotfixDevelopmentVersionBuilder.append(baseReleaseVersion);
-            nextHotfixDevelopmentVersionBuilder.append(".");
-
-            if (StringUtils.equals(lastReleaseVersion, baseReleaseVersion)) {
-                nextHotfixDevelopmentVersionBuilder.append("1");
-            } else {
-                final String patchVersion = StringUtils.removeStart(lastReleaseVersion, baseReleaseVersion + ".");
-                nextHotfixDevelopmentVersionBuilder.append(Integer.valueOf(patchVersion).intValue() + 1);
-            }
-
-            nextHotfixDevelopmentVersionBuilder.append("-SNAPSHOT");
-        }
-
-        return nextHotfixDevelopmentVersionBuilder.toString();
-    }
-
-    public String computeReleaseVersion(final String releaseBranch) {
-        final String releaseBranchPrefix = getGitflowBuildWrapperDescriptor().getReleaseBranchPrefix();
-        return StringUtils.removeStart(releaseBranch, releaseBranchPrefix);
-    }
-
-    public String computeFixesReleaseVersion(final String releaseBranch) throws IOException {
-        final String versionForBranch = this.remoteBranches.get("origin/" + releaseBranch).getLastBuildVersion();
-        return StringUtils.removeEnd(versionForBranch, "-SNAPSHOT");
-    }
-
-    public String computeNextFixesDevelopmentVersion(final String releaseBranch) throws IOException {
-        final StringBuilder nextFixesDevelopmentVersionBuilder = new StringBuilder();
-
-        final String fixesReleaseVersion = this.computeFixesReleaseVersion(releaseBranch);
-
-        nextFixesDevelopmentVersionBuilder.append(StringUtils.substringBeforeLast(fixesReleaseVersion, "."));
-        nextFixesDevelopmentVersionBuilder.append(".");
-        nextFixesDevelopmentVersionBuilder.append(Integer.valueOf(StringUtils.substringAfterLast(fixesReleaseVersion, ".")).intValue() + 1);
-        nextFixesDevelopmentVersionBuilder.append("-SNAPSHOT");
-
-        return nextFixesDevelopmentVersionBuilder.toString();
-    }
-
-    public String computeLastFixesReleaseVersion(final String releaseBranch) throws IOException {
-        return this.remoteBranches.get("origin/" + releaseBranch).getLastReleaseVersion();
-    }
-
-    public String computeLastFixesReleaseCommit(final String releaseBranch) throws IOException {
-        return this.remoteBranches.get("origin/" + releaseBranch).getLastReleaseVersionCommit().getName();
-    }
-
-    @SuppressWarnings("UnusedDeclaration")
-    public String computeHotfixBranch(final String releaseBranch) {
-        return getGitflowBuildWrapperDescriptor().getHotfixBranchPrefix() + this.computeReleaseVersion(releaseBranch);
-    }
-
     @SuppressWarnings("UnusedDeclaration")
     public void doSubmit(final StaplerRequest request, final StaplerResponse response) throws IOException, ServletException {
 
         // TODO Validate that the versions for the selected action are not empty and don't equal DEFAULT_STRING.
 
-        // Create the cause object for the selected action.
-        final AbstractGitflowCause gitflowCause = GitflowCauseFactory.newInstance(request.getSubmittedForm());
+        // Identify the cause object for the selected action and overwrite the fields that can be changed by the user.
+        final JSONObject submittedForm = request.getSubmittedForm();
+        final JSONObject submittedAction = submittedForm.getJSONObject(KEY_ACTION);
+        final String action = submittedAction.getString(KEY_VALUE);
+        final AbstractGitflowCause gitflowCause;
+        if (KEY_PREFIX_START_RELEASE.equals(action)) {
+            this.startReleaseCause.setReleaseVersion(submittedAction.getString(KEY_PREFIX_START_RELEASE + "_" + KEY_POSTFIX_RELEASE_VERSION));
+            this.startReleaseCause.setNextPatchDevelopmentVersion(submittedAction.getString(KEY_PREFIX_START_RELEASE + "_" + KEY_POSTFIX_NEXT_PATCH_DEVELOPMENT_VERSION));
+            this.startReleaseCause.setNextReleaseDevelopmentVersion(submittedAction.getString(KEY_PREFIX_START_RELEASE + "_" + KEY_POSTFIX_NEXT_RELEASE_DEVELOPMENT_VERSION));
+            gitflowCause = this.startReleaseCause;
+        } else if (action.startsWith(KEY_PREFIX_TEST_RELEASE)) {
+            final ReleaseBranchCauseGroup causeGroup = this.releaseBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_TEST_RELEASE + "_" + KEY_POSTFIX_RELEASE_VERSION));
+            final String releaseVersionDotfree = causeGroup.getReleaseVersionDotfree();
+            final TestReleaseCause testReleaseCause = causeGroup.getTestReleaseCause();
+            testReleaseCause.setPatchReleaseVersion(submittedAction.getString(KEY_PREFIX_TEST_RELEASE + "_" + releaseVersionDotfree + "_" + KEY_POSTFIX_PATCH_RELEASE_VERSION));
+            testReleaseCause.setNextPatchDevelopmentVersion(submittedAction.getString(KEY_PREFIX_TEST_RELEASE + "_" + releaseVersionDotfree + "_" + KEY_POSTFIX_NEXT_PATCH_DEVELOPMENT_VERSION));
+            gitflowCause = testReleaseCause;
+        } else if (action.startsWith(KEY_PREFIX_PUBLISH_RELEASE)) {
+            final ReleaseBranchCauseGroup causeGroup = this.releaseBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_PUBLISH_RELEASE + "_" + KEY_POSTFIX_RELEASE_VERSION));
+            final String releaseVersionDotfree = causeGroup.getReleaseVersionDotfree();
+            final PublishReleaseCause publishReleaseCause = causeGroup.getPublishReleaseCause();
+            publishReleaseCause.setMergeToDevelop(submittedAction.getBoolean(KEY_PREFIX_PUBLISH_RELEASE + "_" + releaseVersionDotfree + "_" + KEY_POSTFIX_MERGE_TO_DEVELOP));
+            publishReleaseCause.setIncludedAction(submittedAction.getString(KEY_PREFIX_PUBLISH_RELEASE + "_" + releaseVersionDotfree + "_" + KEY_POSTFIX_INCLUDED_ACTION));
+            gitflowCause = publishReleaseCause;
+        } else if (action.startsWith(KEY_PREFIX_FINISH_RELEASE)) {
+            final ReleaseBranchCauseGroup causeGroup = this.releaseBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_FINISH_RELEASE + "_" + KEY_POSTFIX_RELEASE_VERSION));
+            final FinishReleaseCause finishReleaseCause = causeGroup.getFinishReleaseCause();
+            final String releaseVersionDotfree = causeGroup.getReleaseVersionDotfree();
+            finishReleaseCause.setIncludeStartHotfixAction(submittedAction.getBoolean(KEY_PREFIX_FINISH_RELEASE + "_" + releaseVersionDotfree + "_" + KEY_POSTFIX_INCLUDE_START_HOTFIX_ACTION));
+            gitflowCause = finishReleaseCause;
+        } else if (KEY_PREFIX_START_HOTFIX.equals(action)) {
+            this.startHotfixCause.setNextPatchDevelopmentVersion(submittedAction.getString(KEY_PREFIX_START_HOTFIX + "_" + KEY_POSTFIX_NEXT_PATCH_DEVELOPMENT_VERSION));
+            gitflowCause = this.startHotfixCause;
+        } else if (action.startsWith(KEY_PREFIX_TEST_HOTFIX)) {
+            final HotfixBranchCauseGroup causeGroup = this.hotfixBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_TEST_HOTFIX + "_" + KEY_POSTFIX_HOTFIX_VERSION));
+            final TestHotfixCause testHotfixCause = causeGroup.getTestHotfixCause();
+            final String hotfixVersionDotfree = causeGroup.getHotfixVersionDotfree();
+            testHotfixCause.setPatchReleaseVersion(submittedAction.getString(KEY_PREFIX_TEST_HOTFIX + "_" + hotfixVersionDotfree + "_" + KEY_POSTFIX_PATCH_RELEASE_VERSION));
+            testHotfixCause.setNextPatchDevelopmentVersion(submittedAction.getString(KEY_PREFIX_TEST_HOTFIX + "_" + hotfixVersionDotfree + "_" + KEY_POSTFIX_NEXT_PATCH_DEVELOPMENT_VERSION));
+            gitflowCause = testHotfixCause;
+        } else if (action.startsWith(KEY_PREFIX_PUBLISH_HOTFIX)) {
+            final String hotfixVersion = submittedAction.getString(KEY_PREFIX_PUBLISH_HOTFIX + "_" + KEY_POSTFIX_HOTFIX_VERSION);
+            throw new IllegalArgumentException("Gitflow action " + action + " is not implemented so far");
+        } else if (action.startsWith(KEY_PREFIX_FINISH_HOTFIX)) {
+            gitflowCause = this.hotfixBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_FINISH_HOTFIX + "_" + KEY_POSTFIX_HOTFIX_VERSION)).getFinishHotfixCause();
+        } else {
+            // Only an IOException causes the build to fail properly.
+            throw new IOException("Unknown Gitflow action " + action);
+        }
+        gitflowCause.setDryRun(submittedForm.getBoolean(KEY_DRY_RUN));
 
         // Start a build.
         this.job.scheduleBuild(0, gitflowCause);
 
         // Return to the main page of the job.
         response.sendRedirect(request.getContextPath() + '/' + this.job.getUrl());
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public StartReleaseCause getStartReleaseCause() {
+        return this.startReleaseCause;
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public Collection<ReleaseBranchCauseGroup> getReleaseBranchCauseGroups() {
+        return this.releaseBranchCauseGroupsByVersion.values();
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public StartHotfixCause getStartHotfixCause() {
+        return this.startHotfixCause;
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public Collection<HotfixBranchCauseGroup> getHotfixBranchCauseGroups() {
+        return this.hotfixBranchCauseGroupsByVersion.values();
     }
 }

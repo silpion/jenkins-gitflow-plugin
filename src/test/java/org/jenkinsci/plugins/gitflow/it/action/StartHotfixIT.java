@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.gitflow.it.action;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileReader;
@@ -72,14 +73,14 @@ public class StartHotfixIT {
     public void testStartHotfix() throws Exception {
 
         File gitRepro = folder.newFolder("testrepo.git");
-        setUpGitRepo("/StartHotfixAction/testrepo.git.zip", gitRepro);
+        setUpGitRepo("../testrepo.git_finished-release-1.0.zip", gitRepro);
 
         //make a build before
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
 
-        addRemoteBranch(data,"origin", "master", Result.SUCCESS, "1.2", "1.2", "1.2");
+        addRemoteBranch(data,"origin", "master", Result.SUCCESS, "1.0.1", "1.0", "1.0.1");
 
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
@@ -87,23 +88,18 @@ public class StartHotfixIT {
         JenkinsRule.WebClient webClient = j.createWebClient();
         HtmlPage page = webClient.goTo(mavenProject.getUrl() + "gitflow");
 
-        assertThat("more than on element found", page.getElementsByName("hotfixReleaseVersion").size(), is(1));
-        HtmlTextInput nameElement = (HtmlTextInput) page.getElementsByName("hotfixReleaseVersion").get(0);
-
-        assertThat("more than on element found", page.getElementsByName("nextHotfixDevelopmentVersion").size(), is(1));
-        HtmlTextInput versionElement = (HtmlTextInput) page.getElementsByName("nextHotfixDevelopmentVersion").get(0);
+        assertThat("more than on element found", page.getElementsByName("startHotfix_nextPatchDevelopmentVersion").size(), is(1));
+        HtmlTextInput versionElement = (HtmlTextInput) page.getElementsByName("startHotfix_nextPatchDevelopmentVersion").get(0);
 
         assertThat("more than on element found", page.getElementsByName("dryRun").size(), is(1));
         HtmlCheckBoxInput dryRunElement = (HtmlCheckBoxInput) page.getElementsByName("dryRun").get(0);
 
-        assertThat(nameElement.getText(), is("1.2"));
-        assertThat(versionElement.getText(), is("1.2.1-SNAPSHOT"));
+        assertThat(versionElement.getText(), is("1.0.2-SNAPSHOT"));
         assertThat(dryRunElement.isChecked(), is(false));
 
         //set values and submit the form
         checkRadioButton("action", "startHotfix", page);
-        nameElement.setAttribute("value", "superHotfix");
-        versionElement.setAttribute("value","1.2.2-SNAPSHOT");
+        versionElement.setAttribute("value","1.0.5-SNAPSHOT");
         j.submit(page.getFormByName("performGitflowRelease"));
 
         j.waitUntilNoActivity();
@@ -115,10 +111,10 @@ public class StartHotfixIT {
         gitClient.clone(gitRepro.getAbsolutePath(), "origin", false, null);
         Map<String, Branch> branches = getAllBranches(gitClient);
 
-        assertThat(branches.keySet(), containsInAnyOrder("origin/hotfix/superHotfix", "origin/master", "origin/develop", "master", "origin/hotfix/1.3"));
+        assertThat(branches.keySet(), containsInAnyOrder("origin/master", "origin/develop", "master", "origin/hotfix/1.0"));
 
-        gitClient.checkoutBranch("hotfix/superHotfix", branches.get("origin/hotfix/superHotfix").getSHA1String());
-        checkMultiModuleProject(repository, "1.2.2-SNAPSHOT", 4);
+        gitClient.checkoutBranch("hotfix/superHotfix", branches.get("origin/hotfix/1.0").getSHA1String());
+        this.checkMultiModuleProject(repository, "1.0.5-SNAPSHOT", 4);
     }
 
     private void addRemoteBranch(final GitflowPluginData data, final String origin, final String branch, final Result result, final String buildVersion, final String baseReleaseVersion,
@@ -139,25 +135,26 @@ public class StartHotfixIT {
     public void testStartHotfixDryRun() throws Exception {
 
         File gitRepro = folder.newFolder("testrepo.git");
-        setUpGitRepo("/StartHotfixAction/testrepo.git.zip", gitRepro);
+        setUpGitRepo("../testrepo.git_finished-release-1.0.zip", gitRepro);
 
         //make a build before
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        addRemoteBranch(data, "origin", "master", Result.SUCCESS, "1.2", "1.2", "1.2");
+
+        addRemoteBranch(data,"origin", "master", Result.SUCCESS, "1.0.1", "1.0", "1.0.1");
+
+        mavenProject.scheduleBuild2(0).get();
+        assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         JenkinsRule.WebClient webClient = j.createWebClient();
-
         HtmlPage page = webClient.goTo(mavenProject.getUrl() + "gitflow");
-        HtmlTextInput nameElement = (HtmlTextInput) page.getElementsByName("hotfixReleaseVersion").get(0);
-        HtmlTextInput versionElement = (HtmlTextInput) page.getElementsByName("nextHotfixDevelopmentVersion").get(0);
+        HtmlTextInput versionElement = (HtmlTextInput) page.getElementsByName("startHotfix_nextPatchDevelopmentVersion").get(0);
         HtmlCheckBoxInput dryRunElement = (HtmlCheckBoxInput) page.getElementsByName("dryRun").get(0);
 
         //set values and submit the form
         checkRadioButton("action", "startHotfix", page);
-        nameElement.setAttribute("value", "superHotfix");
-        versionElement.setAttribute("value","1.2.2-SNAPSHOT");
+        versionElement.setAttribute("value","1.0.5-SNAPSHOT");
         dryRunElement.setChecked(true);
         j.submit(page.getFormByName("performGitflowRelease"));
 
@@ -170,56 +167,31 @@ public class StartHotfixIT {
         gitClient.clone(gitRepro.getAbsolutePath(), "origin", false, null);
         Map<String, Branch> branches = getAllBranches(gitClient);
 
-        assertThat(branches.keySet(), containsInAnyOrder("origin/master", "origin/develop", "master", "origin/hotfix/1.3"));
+        assertThat(branches.keySet(), containsInAnyOrder("origin/master", "origin/develop", "master"));
 
         gitClient.checkoutBranch("hotfix/master", branches.get("origin/master").getSHA1String());
-        checkMultiModuleProject(repository, "1.0-SNAPSHOT", 4);
+        checkMultiModuleProject(repository, "1.0.1", 4);
     }
 
-    /**
-     * Run the <i>Start Hotfix</i> Gitflow action in via a webclient that fials.
-     *
-     * @throws Exception
-     */
     @Test
-    public void testStartHotfixFail() throws Exception {
+    public void testStartHotfixDisabled() throws Exception {
 
-        File gitRepro = folder.newFolder("testrepo.git");
-        setUpGitRepo("/StartHotfixAction/testrepo.git.zip", gitRepro);
+        File gitRepro = this.folder.newFolder("testrepo.git");
+        this.setUpGitRepo("../testrepo.git_initial.zip", gitRepro);
 
         //make a build before
-        mavenProject.scheduleBuild2(0).get();
-        assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
-        GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        addRemoteBranch(data, "origin", "master", Result.SUCCESS, "1.2", "1.2", "1.2");
+        this.mavenProject.scheduleBuild2(0).get();
+        assertThat("TestBuild failed", this.mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
+        GitflowPluginData data = this.mavenProject.getLastBuild().getAction(GitflowPluginData.class);
 
-        JenkinsRule.WebClient webClient = j.createWebClient();
+        this.addRemoteBranch(data,"origin", "master", Result.SUCCESS, "1.0-SNAPSHOT", null, null);
 
-        HtmlPage page = webClient.goTo(mavenProject.getUrl() + "gitflow");
-        HtmlTextInput nameElement = (HtmlTextInput) page.getElementsByName("hotfixReleaseVersion").get(0);
-        HtmlTextInput versionElement = (HtmlTextInput) page.getElementsByName("nextHotfixDevelopmentVersion").get(0);
+        this.mavenProject.scheduleBuild2(0).get();
+        assertThat("TestBuild failed", this.mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
-        // Set values and submit the form.
-        // Note: Setting 'nameElement' to 1.3 breaks the build, because there already is a branch 'hotfix/1.3' in the test repository.
-        checkRadioButton("action", "startHotfix", page);
-        nameElement.setAttribute("value", "1.3");
-        versionElement.setAttribute("value","1.2.2-SNAPSHOT");
-        j.submit(page.getFormByName("performGitflowRelease"));
-
-        j.waitUntilNoActivity();
-        assertThat("StartHotfixAction failed", mavenProject.getLastBuild().getResult(), is(Result.FAILURE));
-
-        //check the Git-Repro
-        File repository = folder.newFolder();
-        GitClient gitClient = Git.with(j.createTaskListener(), new EnvVars()).in(repository).getClient();
-        gitClient.clone(gitRepro.getAbsolutePath(), "origin", false, null);
-        Map<String, Branch> branches = getAllBranches(gitClient);
-
-        assertThat(branches.keySet(), containsInAnyOrder("origin/master", "origin/develop", "master", "origin/hotfix/1.3"));
-
-        gitClient.checkoutBranch("hotfix/master", branches.get("origin/master").getSHA1String());
-        checkMultiModuleProject(repository, "1.0-SNAPSHOT", 4);
-
+        JenkinsRule.WebClient webClient = this.j.createWebClient();
+        HtmlPage page = webClient.goTo(this.mavenProject.getUrl() + "gitflow");
+        assertEquals(0, page.getElementsByName("startHotfix_nextPatchDevelopmentVersion").size());
     }
 
     //**********************************************************************************************************************************************************

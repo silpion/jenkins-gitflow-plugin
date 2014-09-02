@@ -1,57 +1,51 @@
 package org.jenkinsci.plugins.gitflow.cause;
 
-import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 
 /**
- * The {@link hudson.model.Cause} object for the <i>Test Hotfix</i> action to be executed.
+ * The {@link hudson.model.Cause Cause} object for the <i>Test Hotfix</i> action to be executed.
  *
  * @author Hannes Osius, Silpion IT-Solutions GmbH - osius@silpion.de
  */
-public class TestHotfixCause extends AbstractGitflowCause {
+public class TestHotfixCause extends AbstractHotfixBranchCause {
 
-    public static final String PARAM_HOTFIX = "testHotfix";
-    public static final String PARAM_HOTFIX_BRANCH = "hotfixBranch";
-    public static final String PARAM_HOTFIX_RELEASE_VERSION = "fixesHotfixReleaseVersion";
-    public static final String PARAM_NEXT_HOTFIX_RELEASE_VERSION = "nextHotfixReleaseVersion";
-
-    private String hotfixBranch;
-    private String hotfixReleaseVersion;
-    private String nextHotfixReleaseVersion;
+    private String patchReleaseVersion;
+    private String nextPatchDevelopmentVersion;
 
     /**
      * Creates a cause instance for the <i>Gitflow</i> build.
      *
-     * @param structuredActionConent the structured content for the selected action to be instanciated.
-     * @param dryRun is the build dryRun or not
+     * @param hotfixBranch the <i>hotfix</i> branch containing base data for the cause.
      */
-    public TestHotfixCause(final JSONObject structuredActionConent, final boolean dryRun) {
-        this(structuredActionConent.getJSONObject(PARAM_HOTFIX).getString(PARAM_HOTFIX_BRANCH),
-             structuredActionConent.getJSONObject(PARAM_HOTFIX).getString(PARAM_HOTFIX_RELEASE_VERSION),
-             structuredActionConent.getJSONObject(PARAM_HOTFIX).getString(PARAM_NEXT_HOTFIX_RELEASE_VERSION),
-             dryRun);
-    }
+    public TestHotfixCause(final RemoteBranch hotfixBranch) {
+        super(hotfixBranch);
 
-    public TestHotfixCause(String hotfixBranch, String hotfixReleaseVersion, String nextHotfixReleaseVersion, boolean dryRun) {
-        super(dryRun);
-        this.hotfixBranch = hotfixBranch;
-        this.hotfixReleaseVersion = hotfixReleaseVersion;
-        this.nextHotfixReleaseVersion = nextHotfixReleaseVersion;
+        this.patchReleaseVersion = StringUtils.removeEnd(hotfixBranch.getLastBuildVersion(), "-SNAPSHOT");
+
+        final String baseVersion = StringUtils.substringBeforeLast(this.patchReleaseVersion, ".");
+        final int newPatchNumber = Integer.valueOf(StringUtils.substringAfterLast(this.patchReleaseVersion, ".")).intValue() + 1;
+        this.nextPatchDevelopmentVersion = baseVersion + "." + newPatchNumber + "-SNAPSHOT";
     }
 
     @Override
     public String getVersionForBadge() {
-        return getHotfixReleaseVersion();
+        return this.patchReleaseVersion;
     }
 
-    public String getHotfixBranch() {
-        return hotfixBranch;
+    public String getPatchReleaseVersion() {
+        return this.patchReleaseVersion;
     }
 
-    public String getHotfixReleaseVersion() {
-        return hotfixReleaseVersion;
+    public void setPatchReleaseVersion(final String patchReleaseVersion) {
+        this.patchReleaseVersion = patchReleaseVersion;
     }
 
-    public String getNextHotfixReleaseVersion() {
-        return nextHotfixReleaseVersion;
+    public String getNextPatchDevelopmentVersion() {
+        return this.nextPatchDevelopmentVersion;
+    }
+
+    public void setNextPatchDevelopmentVersion(final String nextPatchDevelopmentVersion) {
+        this.nextPatchDevelopmentVersion = nextPatchDevelopmentVersion;
     }
 }

@@ -9,11 +9,7 @@ import hudson.model.Cause;
  */
 public abstract class AbstractGitflowCause extends Cause {
 
-    private final boolean dryRun;
-
-    public AbstractGitflowCause(final boolean dryRun) {
-        this.dryRun = dryRun;
-    }
+    private boolean dryRun;
 
     @Override
     public String getShortDescription() {
@@ -22,6 +18,10 @@ public abstract class AbstractGitflowCause extends Cause {
 
     public boolean isDryRun() {
         return this.dryRun;
+    }
+
+    public void setDryRun(final boolean dryRun) {
+        this.dryRun = dryRun;
     }
 
     /**
