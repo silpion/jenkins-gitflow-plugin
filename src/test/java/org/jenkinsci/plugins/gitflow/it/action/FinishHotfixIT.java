@@ -3,7 +3,6 @@ package org.jenkinsci.plugins.gitflow.it.action;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 
 import java.io.File;
 import java.io.FileReader;
@@ -71,28 +70,26 @@ public class FinishHotfixIT {
     @Test
     public void testFinishHotfix() throws Exception {
         final Set<String> remoteBranches = this.testFinishHotfix(false);
-        assertThat(remoteBranches, containsInAnyOrder("origin/hotfix/foobar1", "origin/hotfix/foobar2", "origin/hotfix/foobar4", "origin/hotfix/foobar5",
-                                                      "origin/master", "origin/develop", "origin/release/1.0"));
+        assertThat(remoteBranches, containsInAnyOrder("origin/master", "origin/develop"));
     }
 
     @Test
     public void testFinishHotfixDryRun() throws Exception {
         final Set<String> remoteBranches = this.testFinishHotfix(true);
-        assertThat(remoteBranches, containsInAnyOrder("origin/hotfix/foobar1", "origin/hotfix/foobar2", "origin/hotfix/foobar3", "origin/hotfix/foobar4", "origin/hotfix/foobar5",
-                                                      "origin/master", "origin/develop", "origin/release/1.0"));
+        assertThat(remoteBranches, containsInAnyOrder("origin/master", "origin/develop", "origin/hotfix/1.0"));
     }
 
     private Set<String> testFinishHotfix(final boolean dryRun) throws Exception {
 
         File gitRepro = folder.newFolder("testrepo.git");
-        setUpGitRepo("/FinishHotfixAction/testrepo.git.zip", gitRepro);
+        this.setUpGitRepo("../testrepo.git_started-hotfix-1.0.zip", gitRepro);
 
         //make a build before
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        addRemoteBranch(data, "origin", "hotfix/foobar1", Result.SUCCESS, "1.1-SNAPSHOT");
+        addRemoteBranch(data, "origin", "hotfix/1.0", Result.SUCCESS, "1.0.2-SNAPSHOT");
         addRemoteBranch(data, "origin", "hotfix/foobar2", Result.SUCCESS, "1.1-SNAPSHOT");
         addRemoteBranch(data, "origin", "hotfix/foobar3", Result.SUCCESS, "1.1-SNAPSHOT");
         addRemoteBranch(data, "origin", "hotfix/foobar4", Result.SUCCESS, "1.1-SNAPSHOT");
@@ -105,23 +102,7 @@ public class FinishHotfixIT {
         HtmlPage page = webClient.goTo(mavenProject.getUrl() + "gitflow");
 
         HtmlForm form = page.getFormByName("performGitflowRelease");
-        final HtmlRadioButtonInput htmlRadioButtonFinishHotfix = checkRadioButton("action", "finishHotfix", page);
-
-        // In the Jelly form(s), the selector for the hotfix to be finished is in the next table row after the one containing the radio button to select the action.
-        final HtmlTableRow parentTableRowOfFinishHotfixRadio = this.findParentTableRow(htmlRadioButtonFinishHotfix);
-        final HtmlTableRow parentTableRowOfHotfixSelector = (HtmlTableRow) parentTableRowOfFinishHotfixRadio.getNextSibling();
-        final HtmlSelect hotfixSelect = (HtmlSelect) parentTableRowOfHotfixSelector.getElementsByTagName("select").get(0);
-
-        assertThat("HotFixSelect not found", hotfixSelect, is(notNullValue()));
-        assertThat("HotFixSelect missing Element", hotfixSelect.getOptions().size(), is(5));
-        for (HtmlOption htmlOption : hotfixSelect.getOptions()) {
-            if ("foobar3".equals(htmlOption.getValueAttribute())) {
-                htmlOption.setSelected(true);
-            } else {
-                htmlOption.setSelected(false);
-            }
-        }
-
+        checkRadioButton("action", "finishHotfix_1.0", page);
         ((HtmlCheckBoxInput) page.getElementsByName("dryRun").get(0)).setChecked(dryRun);
 
         j.submit(form);
