@@ -20,6 +20,7 @@ public class HotfixBranchCauseGroup {
     private final String hotfixVersion;
 
     private final TestHotfixCause testHotfixCause;
+    private final PublishHotfixCause publishHotfixCause;
     private final FinishHotfixCause finishHotfixCause;
 
     public HotfixBranchCauseGroup(final RemoteBranch hotfixBranch) {
@@ -31,6 +32,7 @@ public class HotfixBranchCauseGroup {
         this.hotfixVersion = StringUtils.removeStart(this.branchName, hotfixBranchPrefix);
 
         this.testHotfixCause = new TestHotfixCause(hotfixBranch);
+        this.publishHotfixCause = new PublishHotfixCause(hotfixBranch);
         this.finishHotfixCause = new FinishHotfixCause(hotfixBranch);
     }
 
@@ -52,6 +54,11 @@ public class HotfixBranchCauseGroup {
     @SuppressWarnings("UnusedDeclaration")
     public TestHotfixCause getTestHotfixCause() {
         return this.testHotfixCause;
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public PublishHotfixCause getPublishHotfixCause() {
+        return this.publishHotfixCause;
     }
 
     @SuppressWarnings("UnusedDeclaration")
