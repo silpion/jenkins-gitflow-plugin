@@ -129,6 +129,24 @@
                                 </f:entry>
                             </f:radioBlock>
 
+                            <j:set var="publishHotfixCause" value="${hotfixBranchCauseGroup.publishHotfixCause}" />
+                            <f:radioBlock name="action" value="publishHotfix_${hotfixVersion}" title="Publish Hotfix ${hotfixVersion}" checked="false">
+                                <f:invisibleEntry>
+                                    <input name="publishHotfix_hotfixVersion" value="${hotfixVersion}" type="hidden" />
+                                </f:invisibleEntry>
+                                <f:entry title="Last Patch Release Version">
+                                    ${publishHotfixCause.lastPatchReleaseVersion} (Commit ${publishHotfixCause.lastPatchReleaseCommit})
+                                </f:entry>
+                                <f:entry title="Merge to develop">
+                                    <f:checkbox name="publishHotfix_${hotfixVersionDotfree}_mergeToDevelop" checked="${publishHotfixCause.mergeToDevelop}"
+                                        title="(Using merge strategy 'recursive-ours' to prevent conflicts, but some conflicting changes may be lost.)" />
+                                </f:entry>
+                                <f:entry title="Included Action">
+                                    <f:checkbox name="publishHotfix_${hotfixVersionDotfree}_includeFinishHotfixAction" checked="${publishHotfixCause.includeFinishHotfixAction}"
+                                        title="Finish Hotfix ${hotfixVersion} (Delete hotfix branch - NOTE: Merge to develop should be checked)" />
+                                </f:entry>
+                            </f:radioBlock>
+
                             <j:set var="finishHotfixCause" value="${hotfixBranchCauseGroup.finishHotfixCause}" />
                             <f:radioBlock name="action" value="finishHotfix_${hotfixVersion}" title="Finish Hotfix ${hotfixVersion}" checked="false">
                                 <f:invisibleEntry>

@@ -14,6 +14,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
 import org.jenkinsci.plugins.gitflow.cause.FinishReleaseCause;
 import org.jenkinsci.plugins.gitflow.cause.HotfixBranchCauseGroup;
+import org.jenkinsci.plugins.gitflow.cause.PublishHotfixCause;
 import org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause;
 import org.jenkinsci.plugins.gitflow.cause.ReleaseBranchCauseGroup;
 import org.jenkinsci.plugins.gitflow.cause.StartHotfixCause;
@@ -64,6 +65,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
     @VisibleForTesting static final String KEY_POSTFIX_MERGE_TO_DEVELOP = "mergeToDevelop";
     @VisibleForTesting static final String KEY_POSTFIX_INCLUDED_ACTION = "includedAction";
     @VisibleForTesting static final String KEY_POSTFIX_INCLUDE_START_HOTFIX_ACTION = "includeStartHotfixAction";
+    @VisibleForTesting static final String KEY_POSTFIX_INCLUDE_FINISH_HOTFIX_ACTION = "includeFinishHotfixAction";
 
     private static final Comparator<String> VERSION_NUMBER_COMPARATOR = new Comparator<String>() {
 
@@ -189,8 +191,6 @@ public class GitflowProjectAction implements PermalinkProjectAction {
     @SuppressWarnings("UnusedDeclaration")
     public void doSubmit(final StaplerRequest request, final StaplerResponse response) throws IOException, ServletException {
 
-        // TODO Validate that the versions for the selected action are not empty and don't equal DEFAULT_STRING.
-
         // Identify the cause object for the selected action and overwrite the fields that can be changed by the user.
         final JSONObject submittedForm = request.getSubmittedForm();
         final JSONObject submittedAction = submittedForm.getJSONObject(KEY_ACTION);
@@ -233,7 +233,12 @@ public class GitflowProjectAction implements PermalinkProjectAction {
             gitflowCause = testHotfixCause;
         } else if (action.startsWith(KEY_PREFIX_PUBLISH_HOTFIX)) {
             final String hotfixVersion = submittedAction.getString(KEY_PREFIX_PUBLISH_HOTFIX + "_" + KEY_POSTFIX_HOTFIX_VERSION);
-            throw new IllegalArgumentException("Gitflow action " + action + " is not implemented so far");
+            final HotfixBranchCauseGroup causeGroup = this.hotfixBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_PUBLISH_HOTFIX + "_" + KEY_POSTFIX_HOTFIX_VERSION));
+            final PublishHotfixCause publishHotfixCause = causeGroup.getPublishHotfixCause();
+            final String hotfixVersionDotfree = causeGroup.getHotfixVersionDotfree();
+            publishHotfixCause.setMergeToDevelop(submittedAction.getBoolean(KEY_PREFIX_PUBLISH_HOTFIX + "_" + hotfixVersionDotfree + "_" + KEY_POSTFIX_MERGE_TO_DEVELOP));
+            publishHotfixCause.setIncludeFinishHotfixAction(submittedAction.getBoolean(KEY_PREFIX_PUBLISH_HOTFIX + "_" + hotfixVersionDotfree + "_" + KEY_POSTFIX_INCLUDE_FINISH_HOTFIX_ACTION));
+            gitflowCause = publishHotfixCause;
         } else if (action.startsWith(KEY_PREFIX_FINISH_HOTFIX)) {
             gitflowCause = this.hotfixBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_FINISH_HOTFIX + "_" + KEY_POSTFIX_HOTFIX_VERSION)).getFinishHotfixCause();
         } else {
