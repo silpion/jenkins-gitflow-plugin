@@ -95,8 +95,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
 
         // Merge the last fixes release to the develop branch (if intended).
         // TODO Only offer merge if there have not been commits after the last snapshot version commit.
-        final boolean mergeToDevelop = this.gitflowCause.isMergeToDevelop();
-        if (mergeToDevelop) {
+        if (this.gitflowCause.isMergeToDevelop()) {
             this.mergeLastFixesRelease(buildWrapperDescriptor.getDevelopBranch(), OURS);
         }
 
@@ -111,7 +110,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
                 final String hotfixBranch = hotfixBranchPrefix + StringUtils.removeStart(releaseBranch, releaseBranchPrefix);
                 this.createBranch(hotfixBranch, releaseBranch);
                 this.deleteBranch(releaseBranch);
-            } else if (includedAction == FINISH_RELEASE && mergeToDevelop) {
+            } else if (includedAction == FINISH_RELEASE) {
                 this.deleteBranch(releaseBranch);
             }
         }
