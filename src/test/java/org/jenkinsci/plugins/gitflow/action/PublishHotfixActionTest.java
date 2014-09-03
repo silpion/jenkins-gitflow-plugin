@@ -54,7 +54,7 @@ public class PublishHotfixActionTest extends AbstractGitflowActionTest<PublishHo
 
         // Mock relevant method calls.
         when(this.gitflowBuildWrapperDescriptor.getMasterBranch()).thenReturn("master");
-        when(this.cause.getLastPatchReleaseCommit()).thenReturn(ObjectId.zeroId().getName());
+        when(this.cause.getLastPatchReleaseCommit()).thenReturn(ObjectId.zeroId());
         when(this.git.getHeadRev(anyString(), anyString())).thenReturn(ObjectId.zeroId());
         when(this.cause.getHotfixBranch()).thenReturn("hotfix/1.0");
 

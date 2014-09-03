@@ -79,7 +79,7 @@ public class PublishHotfixAction<B extends AbstractBuild<?, ?>> extends Abstract
         remoteBranchMaster.setLastBuildVersion(lastPatchReleaseVersion);
         remoteBranchMaster.setBaseReleaseVersion(remoteBranchHotfix.getBaseReleaseVersion());
         remoteBranchMaster.setLastReleaseVersion(lastPatchReleaseVersion);
-        remoteBranchMaster.setLastReleaseVersionCommit(ObjectId.fromString(this.gitflowCause.getLastPatchReleaseCommit()));
+        remoteBranchMaster.setLastReleaseVersionCommit(this.gitflowCause.getLastPatchReleaseCommit());
 
         // Set the build data with the merge commit on the master branch, so that it won't be scheduled for a new build.
         // Otherwise Jenkins might try to rebuild an already existing release and deploy it to the (Maven) repository manager.
@@ -112,7 +112,7 @@ public class PublishHotfixAction<B extends AbstractBuild<?, ?>> extends Abstract
         this.consoleLogger.printf(MSG_PATTERN_CHECKOUT_BRANCH, ACTION_NAME, targetBranch);
 
         // Merge the last patch release (from the hotfix branch) to the target branch.
-        final ObjectId lastPatchReleaseCommit = ObjectId.fromString(this.gitflowCause.getLastPatchReleaseCommit());
+        final ObjectId lastPatchReleaseCommit = this.gitflowCause.getLastPatchReleaseCommit();
         this.git.merge(lastPatchReleaseCommit, NO_FF, RECURSIVE, recursiveMergeStrategyOption, false);
         final String lastPatchReleaseVersion = this.gitflowCause.getLastPatchReleaseVersion();
         final String msgMergedLastPatchRelease = formatPattern(MSG_PATTERN_MERGED_LAST_PATCH_RELEASE, ACTION_NAME, lastPatchReleaseVersion, targetBranch);
