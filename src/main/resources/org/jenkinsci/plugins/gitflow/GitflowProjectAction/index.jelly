@@ -43,7 +43,7 @@
                                     <input name="publishRelease_releaseVersion" value="${releaseVersion}" type="hidden" />
                                 </f:invisibleEntry>
                                 <f:entry title="Last Patch Release Version">
-                                    ${publishReleaseCause.lastPatchReleaseVersion} (Commit ${publishReleaseCause.lastPatchReleaseCommit})
+                                    ${publishReleaseCause.lastPatchReleaseVersion} (Commit ${publishReleaseCause.lastPatchReleaseCommit.name})
                                 </f:entry>
                                 <f:entry title="Merge to develop">
                                     <f:checkbox name="publishRelease_${releaseVersionDotfree}_mergeToDevelop" checked="${publishReleaseCause.mergeToDevelop}"
