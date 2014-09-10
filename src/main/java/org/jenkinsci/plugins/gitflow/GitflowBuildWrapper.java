@@ -8,6 +8,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitflow.action.AbstractGitflowAction;
 import org.jenkinsci.plugins.gitflow.action.GitflowActionFactory;
+import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
 import net.sf.json.JSONObject;
@@ -67,6 +68,10 @@ public class GitflowBuildWrapper extends BuildWrapper {
         }
     };
 
+    @DataBoundConstructor
+    public GitflowBuildWrapper() {
+        // No job config params so far.
+    }
 
     /** {@inheritDoc} */
     @Override

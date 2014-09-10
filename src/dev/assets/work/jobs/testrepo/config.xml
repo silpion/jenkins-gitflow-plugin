@@ -54,7 +54,14 @@
   <settings class="jenkins.mvn.DefaultSettingsProvider"/>
   <globalSettings class="jenkins.mvn.DefaultGlobalSettingsProvider"/>
   <reporters/>
-  <publishers/>
+  <publishers>
+    <hudson.maven.RedeployPublisher>
+      <id></id>
+      <uniqueVersion>true</uniqueVersion>
+      <evenIfUnstable>false</evenIfUnstable>
+      <releaseEnvVar>skipDeployment</releaseEnvVar>
+    </hudson.maven.RedeployPublisher>
+  </publishers>
   <buildWrappers>
     <org.jenkinsci.plugins.gitflow.GitflowBuildWrapper plugin="gitflow@1.0-SNAPSHOT"/>
   </buildWrappers>
