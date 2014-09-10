@@ -209,56 +209,28 @@ public class GitflowBuildWrapper extends BuildWrapper {
             return this.masterBranch;
         }
 
-        public void setMasterBranch(String masterBranch) {
-            this.masterBranch = masterBranch;
-        }
-
         public String getDevelopBranch() {
             return this.developBranch;
-        }
-
-        public void setDevelopBranch(String developBranch) {
-            this.developBranch = developBranch;
         }
 
         public String getFeatureBranchPrefix() {
             return this.featureBranchPrefix;
         }
 
-        public void setFeatureBranchPrefix(String featureBranchPrefix) {
-            this.featureBranchPrefix = featureBranchPrefix;
-        }
-
         public String getReleaseBranchPrefix() {
             return this.releaseBranchPrefix;
-        }
-
-        public void setReleaseBranchPrefix(String releaseBranchPrefix) {
-            this.releaseBranchPrefix = releaseBranchPrefix;
         }
 
         public String getHotfixBranchPrefix() {
             return this.hotfixBranchPrefix;
         }
 
-        public void setHotfixBranchPrefix(String hotfixBranchPrefix) {
-            this.hotfixBranchPrefix = hotfixBranchPrefix;
-        }
-
         public String getVersionTagPrefix() {
             return this.versionTagPrefix;
         }
 
-        public void setVersionTagPrefix(String versionTagPrefix) {
-            this.versionTagPrefix = versionTagPrefix;
-        }
-
         public boolean isMarkSuccessfulBuildUnstableOnBrokenBranches() {
             return this.markSuccessfulBuildUnstableOnBrokenBranches;
-        }
-
-        public void setMarkSuccessfulBuildUnstableOnBrokenBranches(final boolean markSuccessfulBuildUnstableOnBrokenBranches) {
-            this.markSuccessfulBuildUnstableOnBrokenBranches = markSuccessfulBuildUnstableOnBrokenBranches;
         }
     }
 }

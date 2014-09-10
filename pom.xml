@@ -44,6 +44,16 @@
             </roles>
             <timezone>+1</timezone>
         </developer>
+        <developer>
+            <id>osius</id>
+            <name>Hannes Osius</name>
+            <email>osiuss@silpion.de</email>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
     </developers>
 
     <scm>

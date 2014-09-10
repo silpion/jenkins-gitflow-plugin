@@ -43,7 +43,7 @@
                                     <input name="publishRelease_releaseVersion" value="${releaseVersion}" type="hidden" />
                                 </f:invisibleEntry>
                                 <f:entry title="Last Patch Release Version">
-                                    ${publishReleaseCause.lastPatchReleaseVersion} (Commit ${publishReleaseCause.lastPatchReleaseCommit})
+                                    ${publishReleaseCause.lastPatchReleaseVersion} (Commit ${publishReleaseCause.lastPatchReleaseCommit.name})
                                 </f:entry>
                                 <f:entry title="Merge to develop">
                                     <f:checkbox name="publishRelease_${releaseVersionDotfree}_mergeToDevelop" checked="${publishReleaseCause.mergeToDevelop}"
@@ -55,7 +55,7 @@
                                             None (keep release branch)
                                         </f:option>
                                         <f:option value="FINISH_RELEASE" selected="${publishReleaseCause.includedAction == 'FINISH_RELEASE'}">
-                                            Finish Release ${releaseVersion} (Delete release branch - NOTE: Merge to develop must be checked)
+                                            Finish Release ${releaseVersion} (Delete release branch - NOTE: Merge to develop should be checked)
                                         </f:option>
                                         <f:option value="START_HOTFIX" selected="${publishReleaseCause.includedAction == 'START_HOTFIX'}">
                                             Finish Release ${releaseVersion} and Start Hotfix ${releaseVersion} (Rename release branch)

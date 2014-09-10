@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.gitflow.cause;
 
+import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 
 /**
@@ -9,8 +10,9 @@ import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
  */
 public class PublishReleaseCause extends AbstractReleaseBranchCause {
 
-    private String lastPatchReleaseVersion;
-    private String lastPatchReleaseCommit;
+    private final String lastPatchReleaseVersion;
+    private final ObjectId lastPatchReleaseCommit;
+
     private boolean mergeToDevelop = false;
     private IncludedAction includedAction = IncludedAction.START_HOTFIX;
 
@@ -23,7 +25,7 @@ public class PublishReleaseCause extends AbstractReleaseBranchCause {
         super(releaseBranch);
 
         this.lastPatchReleaseVersion = releaseBranch.getLastReleaseVersion();
-        this.lastPatchReleaseCommit = releaseBranch.getLastReleaseVersionCommit().getName();
+        this.lastPatchReleaseCommit = releaseBranch.getLastReleaseVersionCommit();
     }
 
     @Override
@@ -35,7 +37,7 @@ public class PublishReleaseCause extends AbstractReleaseBranchCause {
         return this.lastPatchReleaseVersion;
     }
 
-    public String getLastPatchReleaseCommit() {
+    public ObjectId getLastPatchReleaseCommit() {
         return this.lastPatchReleaseCommit;
     }
 

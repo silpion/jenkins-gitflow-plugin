@@ -83,7 +83,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         remoteBranchMaster.setLastBuildVersion(lastFixesReleaseVersion);
         remoteBranchMaster.setBaseReleaseVersion(remoteBranchRelease.getBaseReleaseVersion());
         remoteBranchMaster.setLastReleaseVersion(lastFixesReleaseVersion);
-        remoteBranchMaster.setLastReleaseVersionCommit(ObjectId.fromString(this.gitflowCause.getLastPatchReleaseCommit()));
+        remoteBranchMaster.setLastReleaseVersionCommit(this.gitflowCause.getLastPatchReleaseCommit());
 
         // Set the build data with the merge commit on the master branch, so that it won't be scheduled for a new build.
         // Otherwise Jenkins might try to rebuild an already existing release and deploy it to the (Maven) repository manager.
@@ -95,8 +95,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
 
         // Merge the last fixes release to the develop branch (if intended).
         // TODO Only offer merge if there have not been commits after the last snapshot version commit.
-        final boolean mergeToDevelop = this.gitflowCause.isMergeToDevelop();
-        if (mergeToDevelop) {
+        if (this.gitflowCause.isMergeToDevelop()) {
             this.mergeLastFixesRelease(buildWrapperDescriptor.getDevelopBranch(), OURS);
         }
 
@@ -111,7 +110,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
                 final String hotfixBranch = hotfixBranchPrefix + StringUtils.removeStart(releaseBranch, releaseBranchPrefix);
                 this.createBranch(hotfixBranch, releaseBranch);
                 this.deleteBranch(releaseBranch);
-            } else if (includedAction == FINISH_RELEASE && mergeToDevelop) {
+            } else if (includedAction == FINISH_RELEASE) {
                 this.deleteBranch(releaseBranch);
             }
         }
@@ -128,7 +127,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         this.consoleLogger.printf(MSG_PATTERN_CHECKOUT_BRANCH, ACTION_NAME, targetBranch);
 
         // Merge the last fixes release (from the release branch) to the target branch.
-        final ObjectId lastFixesReleaseCommit = ObjectId.fromString(this.gitflowCause.getLastPatchReleaseCommit());
+        final ObjectId lastFixesReleaseCommit = this.gitflowCause.getLastPatchReleaseCommit();
         this.git.merge(lastFixesReleaseCommit, NO_FF, RECURSIVE, recursiveMergeStrategyOption, false);
         final String lastFixesReleaseVersion = this.gitflowCause.getLastPatchReleaseVersion();
         final String msgMergedLastFixesRelease = formatPattern(MSG_PATTERN_MERGED_LAST_PATCH_RELEASE, ACTION_NAME, lastFixesReleaseVersion, targetBranch);

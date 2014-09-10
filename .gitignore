@@ -1,11 +1,24 @@
-/*.iml
+### Files to be ignored by Git ###
+
+# Jenkins plugin devlopment environment
+/work
+
+# Maven
+**/target
+
+# IntelliJ IDEA
+/.idea
 /*.ipr
 /*.iws
-/.idea
+**/*.iml
+
+# Eclipse
 /.classpath
 /.project
 /.settings
-/bin
-/target
+
+# Mac
+**/.DS_Store
+
+# Custom
 /temp
-/work
