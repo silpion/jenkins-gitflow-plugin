@@ -76,7 +76,7 @@ public class RemoteBranch implements Serializable, Cloneable, Comparable<RemoteB
     }
 
     public Result getLastBuildResult() {
-        return this.lastBuildResult;
+        return this.lastBuildResult != null ? this.lastBuildResult : Result.FAILURE;
     }
 
     public String getBaseReleaseVersion() {
