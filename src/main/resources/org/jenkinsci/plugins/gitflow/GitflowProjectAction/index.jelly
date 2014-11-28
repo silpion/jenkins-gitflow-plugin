@@ -172,7 +172,7 @@
                 <tr>
                     <td colspan="4" align="right">
                         <a href="http://www.silpion.de" target="_blank" style="position: absolute; right:0; padding-right:1em">
-                            <img src="${rootURL}/plugin/gitflow/images/SilpionLogo.gif" />
+                            <img src="${rootURL}/plugin/gitflow/img/Silpion-Logo-2.jpg" height="30" width="120" />
                         </a>
                     </td>
                 </tr>
