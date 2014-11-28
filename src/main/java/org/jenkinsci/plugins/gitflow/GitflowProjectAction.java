@@ -174,7 +174,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
 
     public String getIconFileName() {
         if (GitflowBuildWrapper.hasReleasePermission(this.job)) {
-            return "/plugin/" + this.getUrlName() + "/images/24x24/gitflow.png";
+            return "/plugin/" + this.getUrlName() + "/img/Gitflow-Icon-48x48.png";
         } else {
             return null;
         }
