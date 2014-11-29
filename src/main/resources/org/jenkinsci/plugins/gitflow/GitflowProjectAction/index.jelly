@@ -4,7 +4,9 @@
         <l:main-panel>
             <f:form method="post" action="submit" name="performGitflowRelease">
                 <f:section title="Gitflow">
-                    <f:entry />
+                    <f:entry>
+                       <img src="${rootURL}/plugin/gitflow/img/unused/Gitflow-Large-PNG.png" height="30" width="120" style="position: absolute; right:0; padding-right:1em"/>
+                    </f:entry>
 
                     <j:set var="startReleaseCause" value="${it.startReleaseCause}" />
                     <j:if test="${startReleaseCause == null}">
@@ -171,9 +173,7 @@
                 </tr>
                 <tr>
                     <td colspan="4" align="right">
-                        <a href="http://www.silpion.de" target="_blank" style="position: absolute; right:0; padding-right:1em">
-                            <img src="${rootURL}/plugin/gitflow/img/Silpion-Logo-2.jpg" height="30" width="120" />
-                        </a>
+                        <a href="http://www.silpion.de" target="_blank" style="position: absolute; right:0; padding-right:1em">Developed by <img src="${rootURL}/plugin/gitflow/img/Silpion-Logo-2.jpg" height="10" width="40" /></a>
                     </td>
                 </tr>
             </f:form>
