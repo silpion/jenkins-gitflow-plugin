@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jgit.transport.URIish;
-import org.jenkinsci.plugins.gitclient.PushCommand;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
 import org.jenkinsci.plugins.gitflow.action.buildtype.BuildTypeActionFactory;
 import org.jenkinsci.plugins.gitflow.cause.StartHotfixCause;
@@ -43,9 +42,6 @@ public class StartHotfixActionTest extends AbstractGitflowActionTest<StartHotfix
 
     @Mock
     private GitSCM scm;
-
-    @Mock
-    private PushCommand pushCommand;
 
     @Mock
     @SuppressWarnings("rawtypes")
@@ -84,11 +80,6 @@ public class StartHotfixActionTest extends AbstractGitflowActionTest<StartHotfix
         // Instanciate the test subject.
         final StartHotfixCause cause = new StartHotfixCause(createRemoteBranch("master", "1.0", "1.0.1"));
         this.testAction = new StartHotfixAction<AbstractBuild<?, ?>>(this.build, this.launcher, this.listener, this.git, cause);
-
-        // Mock calls to Git client.
-        when(this.git.push()).thenReturn(this.pushCommand);
-        when(this.pushCommand.ref(anyString())).thenReturn(this.pushCommand);
-        when(this.pushCommand.to(any(URIish.class))).thenReturn(this.pushCommand);
     }
 
     private static RemoteBranch createRemoteBranch(final String branchName, final String baseReleaseVersion, final String lastReleaseVersion) {
@@ -132,7 +123,7 @@ public class StartHotfixActionTest extends AbstractGitflowActionTest<StartHotfix
         verify(this.git).add("child2/pom.xml");
         verify(this.git).add("child3/pom.xml");
         verify(this.git).commit(any(String.class));
-        verify(this.git, atLeastOnce()).push();
+        verify(this.git, atLeastOnce()).push(anyString(), anyString());
 
         verify(this.gitflowPluginData).setDryRun(false);
         verify(this.gitflowPluginData).getRemoteBranch("origin", "master");
@@ -141,11 +132,8 @@ public class StartHotfixActionTest extends AbstractGitflowActionTest<StartHotfix
         verify(this.remoteBranchHotfix, atLeastOnce()).setLastBuildResult(Result.SUCCESS);
         verify(this.remoteBranchHotfix, atLeastOnce()).setLastBuildVersion("1.0.2-SNAPSHOT");
 
-        verify(this.pushCommand, atLeastOnce()).to(this.urIishArgumentCaptor.capture());
-        verify(this.pushCommand, atLeastOnce()).ref("refs/heads/hotfix/1.0:refs/heads/hotfix/1.0");
-        verify(this.pushCommand, atLeastOnce()).execute();
         assertThat(this.urIishArgumentCaptor.getValue().getPath(), is("origin"));
 
-        verifyNoMoreInteractions(this.git, this.gitflowPluginData, this.pushCommand);
+        verifyNoMoreInteractions(this.git, this.gitflowPluginData);
     }
 }

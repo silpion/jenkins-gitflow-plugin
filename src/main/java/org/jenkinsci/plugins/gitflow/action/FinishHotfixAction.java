@@ -3,7 +3,7 @@ package org.jenkinsci.plugins.gitflow.action;
 import java.io.IOException;
 
 import org.jenkinsci.plugins.gitflow.cause.FinishHotfixCause;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxy;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -30,7 +30,7 @@ public class FinishHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractG
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    public <BC extends B> FinishHotfixAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git, final FinishHotfixCause gitflowCause)
+    public <BC extends B> FinishHotfixAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientProxy git, final FinishHotfixCause gitflowCause)
             throws IOException, InterruptedException {
         super(build, launcher, listener, git, gitflowCause);
     }

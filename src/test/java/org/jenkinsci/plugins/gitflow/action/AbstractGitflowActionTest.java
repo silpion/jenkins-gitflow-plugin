@@ -13,7 +13,7 @@ import java.util.Map;
 import org.jenkinsci.plugins.gitflow.AbstractGitflowPluginTest;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxy;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -45,7 +45,7 @@ public abstract class AbstractGitflowActionTest<A extends AbstractGitflowAction<
     protected BuildListener listener = new StreamBuildListener(new NullStream());
 
     @Mock
-    protected GitClientDelegate git;
+    protected GitClientProxy git;
 
     @Mock
     protected GitflowBuildWrapper.DescriptorImpl gitflowBuildWrapperDescriptor;

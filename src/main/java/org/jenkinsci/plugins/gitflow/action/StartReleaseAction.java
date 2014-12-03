@@ -7,7 +7,7 @@ import java.io.IOException;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.cause.StartReleaseCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxy;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -41,7 +41,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    public <BC extends B> StartReleaseAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git, final StartReleaseCause gitflowCause)
+    public <BC extends B> StartReleaseAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientProxy git, final StartReleaseCause gitflowCause)
             throws IOException, InterruptedException {
         super(build, launcher, listener, git, gitflowCause);
     }
@@ -91,7 +91,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         final String releaseVersion = this.gitflowCause.getReleaseVersion();
         final GitflowBuildWrapper.DescriptorImpl buildWrapperDescriptor = getGitflowBuildWrapperDescriptor();
         final String releaseBranch = buildWrapperDescriptor.getReleaseBranchPrefix() + releaseVersion;
-        this.git.push().to(this.remoteUrl).ref("refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch).execute();
+        this.git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
 
         // Record the information on the currently stable version on the release branch.
         final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getOrAddRemoteBranch("origin", releaseBranch);
@@ -99,7 +99,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         remoteBranchRelease.setLastBuildVersion(releaseVersion);
         remoteBranchRelease.setBaseReleaseVersion(releaseVersion);
         remoteBranchRelease.setLastReleaseVersion(releaseVersion);
-        remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev(this.git.getRemoteUrl("origin"), releaseBranch));
+        remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev("origin", releaseBranch));
 
         // Create a tag for the release version.
         final String tagName = buildWrapperDescriptor.getVersionTagPrefix() + releaseVersion;
@@ -108,7 +108,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         this.consoleLogger.print(msgCreatedReleaseTag);
 
         // Push the tag for the release version.
-        this.git.push().to(this.remoteUrl).ref("refs/tags/" + tagName + ":refs/tags/" + tagName).execute();
+        this.git.push("origin", "refs/tags/" + tagName + ":refs/tags/" + tagName);
 
         // Update the project files to the development version for the release fixes.
         final String nextPatchDevelopmentVersion = this.gitflowCause.getNextPatchDevelopmentVersion();
@@ -118,7 +118,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         this.consoleLogger.print(msgUpdatedFixesVersion);
 
         // Push the project files with the development version for the release fixes.
-        this.git.push().to(this.remoteUrl).ref("refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch).execute();
+        this.git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
 
         // Record the fixes development version on the release branch.
         remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
@@ -134,7 +134,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         this.consoleLogger.print(msgUpdatedNextVersion);
 
         // Push the project files in the develop branch with the development version for the next release.
-        this.git.push().to(this.remoteUrl).ref("refs/heads/" + developBranch + ":refs/heads/" + developBranch).execute();
+        this.git.push("origin", "refs/heads/" + developBranch + ":refs/heads/" + developBranch);
 
         // Record the next development version on the develop branch.
         // TODO We should not offer the Start Release action when no record for the develop branch exists - the method 'getOrAddRemoteBranch' can be used then.

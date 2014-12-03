@@ -8,7 +8,7 @@ import java.util.Collection;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitflow.cause.NoGitflowCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxy;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -35,7 +35,7 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    public <BC extends B> NoGitflowAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git) throws IOException, InterruptedException {
+    public <BC extends B> NoGitflowAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientProxy git) throws IOException, InterruptedException {
         super(build, launcher, listener, git, new NoGitflowCause());
     }
 

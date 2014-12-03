@@ -2,17 +2,12 @@ package org.jenkinsci.plugins.gitflow.action;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
-import static org.powermock.api.mockito.PowerMockito.when;
 
 import java.util.Collections;
 import java.util.Map;
 
 import org.eclipse.jgit.transport.URIish;
-import org.jenkinsci.plugins.gitclient.PushCommand;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
 import org.jenkinsci.plugins.gitflow.cause.FinishHotfixCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
@@ -36,9 +31,6 @@ public class FinishHotfixActionTest extends AbstractGitflowActionTest<FinishHotf
     private GitSCM scm;
 
     @Mock
-    private PushCommand pushCommand;
-
-    @Mock
     private AbstractBuildTypeAction<?> buildTypeAction;
 
     @Captor
@@ -51,11 +43,6 @@ public class FinishHotfixActionTest extends AbstractGitflowActionTest<FinishHotf
         // Instanciate the test subject.
         final FinishHotfixCause cause = new FinishHotfixCause(new RemoteBranch("origin", "hotfix/foobar"));
         this.testAction = new FinishHotfixAction<AbstractBuild<?, ?>>(this.build, this.launcher, this.listener, this.git, cause);
-
-        // Mock calls to Git client.
-        when(this.git.push()).thenReturn(this.pushCommand);
-        when(this.pushCommand.ref(anyString())).thenReturn(this.pushCommand);
-        when(this.pushCommand.to(any(URIish.class))).thenReturn(this.pushCommand);
     }
 
     /** {@inheritDoc} */
@@ -85,13 +72,8 @@ public class FinishHotfixActionTest extends AbstractGitflowActionTest<FinishHotf
         this.testAction.beforeMainBuildInternal();
 
         //Check
-        verify(this.git).push();
-        verify(this.pushCommand).to(this.urIishArgumentCaptor.capture());
-        verify(this.pushCommand).ref(":refs/heads/hotfix/foobar");
-        verify(this.pushCommand).execute();
+        verify(this.git).push("origin", ":refs/heads/hotfix/foobar");
 
         assertThat(this.urIishArgumentCaptor.getValue().getPath(), is("origin"));
-
-        verifyNoMoreInteractions(this.pushCommand);
     }
 }

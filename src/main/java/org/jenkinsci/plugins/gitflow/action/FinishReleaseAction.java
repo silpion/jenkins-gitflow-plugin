@@ -7,7 +7,7 @@ import java.io.IOException;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.cause.FinishReleaseCause;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxy;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -34,7 +34,7 @@ public class FinishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstract
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    public <BC extends B> FinishReleaseAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git, final FinishReleaseCause gitflowCause)
+    public <BC extends B> FinishReleaseAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientProxy git, final FinishReleaseCause gitflowCause)
             throws IOException, InterruptedException {
         super(build, launcher, listener, git, gitflowCause);
     }

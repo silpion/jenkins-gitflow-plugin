@@ -7,7 +7,7 @@ import java.io.IOException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.gitflow.cause.TestReleaseCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxy;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -40,7 +40,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    public <BC extends B> TestReleaseAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git, final TestReleaseCause gitflowCause)
+    public <BC extends B> TestReleaseAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientProxy git, final TestReleaseCause gitflowCause)
             throws IOException, InterruptedException {
         super(build, launcher, listener, git, gitflowCause);
     }
@@ -55,7 +55,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
         // Checkout the release Branch
         final String releaseBranch = this.gitflowCause.getReleaseBranch();
-        final ObjectId releaseBranchRev = this.git.getHeadRev(this.git.getRemoteUrl("origin"), releaseBranch);
+        final ObjectId releaseBranchRev = this.git.getHeadRev("origin", releaseBranch);
         this.git.checkoutBranch(releaseBranch, releaseBranchRev.getName());
         this.consoleLogger.printf(MSG_PATTERN_CHECKED_OUT_RELEASE_BRANCH, ACTION_NAME, releaseBranch);
 
@@ -88,7 +88,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
         // Push the new minor release version to the remote repo.
         final String releaseBranch = this.gitflowCause.getReleaseBranch();
-        this.git.push().to(this.remoteUrl).ref("refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch).execute();
+        this.git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
 
         // Record the information on the currently stable version on the release branch.
         final String patchReleaseVersion = this.gitflowCause.getPatchReleaseVersion();
@@ -96,7 +96,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
         remoteBranchRelease.setLastBuildVersion(patchReleaseVersion);
         remoteBranchRelease.setLastReleaseVersion(patchReleaseVersion);
-        remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev(this.git.getRemoteUrl("origin"), releaseBranch));
+        remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev("origin", releaseBranch));
 
         // Create a tag for the release version.
         final String tagName = getGitflowBuildWrapperDescriptor().getVersionTagPrefix() + patchReleaseVersion;
@@ -105,7 +105,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         this.consoleLogger.print(msgCreatedReleaseTag);
 
         // Push the tag for the release version.
-        this.git.push().to(this.remoteUrl).ref("refs/tags/" + tagName + ":refs/tags/" + tagName).execute();
+        this.git.push("origin", "refs/tags/" + tagName + ":refs/tags/" + tagName);
 
         // Update and commit the project files to the minor version for the next release
         final String nextPatchDevelopmentVersion = this.gitflowCause.getNextPatchDevelopmentVersion();
@@ -115,7 +115,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         this.consoleLogger.print(msgUpdatedFixesVersion);
 
         // Push the project files with the minor version for the next release.
-        this.git.push().to(this.remoteUrl).ref("refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch).execute();
+        this.git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
 
         // Record the fixes development version on the release branch.
         remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
