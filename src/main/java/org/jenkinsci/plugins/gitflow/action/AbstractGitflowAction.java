@@ -1,9 +1,9 @@
 package org.jenkinsci.plugins.gitflow.action;
 
 import static hudson.model.Result.SUCCESS;
-import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
 import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.OMIT_MAIN_BUILD_PARAMETER_NAME;
 import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.OMIT_MAIN_BUILD_PARAMETER_VALUE_TRUE;
+import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -21,7 +21,7 @@ import org.jenkinsci.plugins.gitflow.action.buildtype.BuildTypeActionFactory;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
 import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxy;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
@@ -60,7 +60,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
     protected final C gitflowCause;
 
     protected final AbstractBuildTypeAction<?> buildTypeAction;
-    protected final GitClientDelegate git;
+    protected final GitClientProxy git;
 
     protected final URIish remoteUrl;
 
@@ -79,7 +79,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    protected AbstractGitflowAction(final B build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git, C gitflowCause) throws IOException, InterruptedException {
+    protected AbstractGitflowAction(final B build, final Launcher launcher, final BuildListener listener, final GitClientProxy git, C gitflowCause) throws IOException, InterruptedException {
         super(build, listener);
 
         this.gitflowCause = gitflowCause;
@@ -114,7 +114,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
                     // Collect remote branches that don't exist anymore.
                     final List<RemoteBranch> removeRemoteBranches = new LinkedList<RemoteBranch>();
                     for (final RemoteBranch remoteBranch : this.gitflowPluginData.getRemoteBranches()) {
-                        if (this.git.getHeadRev(this.git.getRemoteUrl(remoteBranch.getRemoteAlias()), remoteBranch.getBranchName()) == null) {
+                        if (this.git.getHeadRev(remoteBranch.getRemoteAlias(), remoteBranch.getBranchName()) == null) {
                             removeRemoteBranches.add(remoteBranch);
                         }
                     }
@@ -240,7 +240,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
         this.consoleLogger.printf(MSG_PATTERN_CREATED_BRANCH_BASED_ON_OTHER, this.getActionName(), newBranchName, refBranchName);
 
         // Push the new branch.
-        this.git.push().to(this.remoteUrl).ref("refs/heads/" + newBranchName + ":refs/heads/" + newBranchName).execute();
+        this.git.push("origin", "refs/heads/" + newBranchName + ":refs/heads/" + newBranchName);
 
         // Record the data for the new remote branch.
         final RemoteBranch remoteBranchRef = this.gitflowPluginData.getRemoteBranch("origin", refBranchName);
@@ -267,7 +267,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
             this.git.deleteBranch(branchName);
         }
         this.consoleLogger.printf(MSG_PATTERN_DELETED_BRANCH, this.getActionName(), branchName);
-        this.git.push().to(this.remoteUrl).ref(":refs/heads/" + branchName).execute();
+        this.git.push("origin", ":refs/heads/" + branchName);
 
         // Remove the recorded data of the deleted remote branch.
         final RemoteBranch remoteBranch = this.gitflowPluginData.getRemoteBranch("origin", branchName);

@@ -1,15 +1,8 @@
 package org.jenkinsci.plugins.gitflow.action;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
-
 import java.util.Collections;
 import java.util.Map;
 
-import org.eclipse.jgit.transport.URIish;
-import org.jenkinsci.plugins.gitclient.PushCommand;
 import org.jenkinsci.plugins.gitflow.cause.FinishReleaseCause;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -45,13 +38,6 @@ public class FinishReleaseActionTest extends AbstractGitflowActionTest<FinishRel
     /** {@inheritDoc} */
     @Override
     protected Map<String, String> setUpTestGetAdditionalBuildEnvVars() throws InterruptedException {
-
-        // Mock relevant method calls.
-        final PushCommand pushCommand = mock(PushCommand.class);
-        when(this.git.push()).thenReturn(pushCommand);
-        when(pushCommand.ref(anyString())).thenReturn(pushCommand);
-        when(pushCommand.to(any(URIish.class))).thenReturn(pushCommand);
-
         // No expectations, because the main build is omitted.
         return Collections.emptyMap();
     }

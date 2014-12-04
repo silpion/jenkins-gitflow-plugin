@@ -1,6 +1,5 @@
 package org.jenkinsci.plugins.gitflow.action;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -10,8 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.transport.URIish;
-import org.jenkinsci.plugins.gitclient.PushCommand;
 import org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -55,12 +52,6 @@ public class PublishReleaseActionTest extends AbstractGitflowActionTest<PublishR
         when(this.cause.getLastPatchReleaseCommit()).thenReturn(ObjectId.zeroId());
         when(this.git.getHeadRev(anyString(), anyString())).thenReturn(ObjectId.zeroId());
         when(this.cause.getReleaseBranch()).thenReturn("release/1.0");
-
-        // Mock push command.
-        final PushCommand pushCommand = mock(PushCommand.class);
-        when(this.git.push()).thenReturn(pushCommand);
-        when(pushCommand.ref(anyString())).thenReturn(pushCommand);
-        when(pushCommand.to(any(URIish.class))).thenReturn(pushCommand);
 
         // Mock build data.
         final BuildData buildData = mock(BuildData.class);

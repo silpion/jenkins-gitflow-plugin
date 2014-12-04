@@ -23,7 +23,8 @@ import org.jenkinsci.plugins.gitflow.cause.TestHotfixCause;
 import org.jenkinsci.plugins.gitflow.cause.TestReleaseCause;
 import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxy;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxyFactory;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
@@ -114,7 +115,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
                 // The action form should only offer actions on the recorded remote branches that still exist.
                 // NOTE that proper error handling for Git client problems is not possible here. That's why the methods
                 // 'createGitClient' and 'isExistingBlessedRemoteBranch' swallow exceptions instead of handling them in any way.
-                final GitClientDelegate git = createGitClient(job);
+                final GitClientProxy git = createGitClient(job);
                 for (final RemoteBranch remoteBranch : gitflowPluginData.getRemoteBranches()) {
                     final String remoteAlias = remoteBranch.getRemoteAlias();
                     final String branchName = remoteBranch.getBranchName();
@@ -148,9 +149,9 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         }
     }
 
-    private static GitClientDelegate createGitClient(final AbstractProject<?, ?> job) {
+    private static GitClientProxy createGitClient(final AbstractProject<?, ?> job) {
         try {
-            return new GitClientDelegate(job.getLastBuild(), new StreamBuildListener(new NullStream()));
+            return GitClientProxyFactory.newInstance(job.getLastBuild(), new StreamBuildListener(new NullStream()), false);
         } catch (final Exception ignored) {
             // NOTE that proper error handling for Git client problems is not possible here.
             // That's why exceptions are swallowed instead of being handled in any way.
@@ -158,9 +159,9 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         }
     }
 
-    private static boolean isExistingBlessedRemoteBranch(final GitClientDelegate git, final String remoteAlias, final String branchName) {
+    private static boolean isExistingBlessedRemoteBranch(final GitClientProxy git, final String remoteAlias, final String branchName) {
         try {
-            return "origin".equals(remoteAlias) && git.getHeadRev(git.getRemoteUrl(remoteAlias), branchName) != null;
+            return "origin".equals(remoteAlias) && git.getHeadRev(remoteAlias, branchName) != null;
         } catch (final Exception ignored) {
             // NOTE that proper error handling for Git client problems is not possible here.
             // That's why exceptions are swallowed instead of being handled in any way.

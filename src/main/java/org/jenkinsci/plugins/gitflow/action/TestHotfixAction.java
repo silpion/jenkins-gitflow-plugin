@@ -7,7 +7,7 @@ import java.io.IOException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.gitflow.cause.TestHotfixCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxy;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -40,7 +40,7 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    public <BC extends B> TestHotfixAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git, final TestHotfixCause gitflowCause)
+    public <BC extends B> TestHotfixAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientProxy git, final TestHotfixCause gitflowCause)
             throws IOException, InterruptedException {
         super(build, launcher, listener, git, gitflowCause);
     }
@@ -55,7 +55,7 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
 
         // Checkout the hotfix Branch
         String hotfixBranch = gitflowCause.getHotfixBranch();
-        ObjectId hotfixBranchRev = git.getHeadRev(git.getRemoteUrl("origin"), hotfixBranch);
+        final ObjectId hotfixBranchRev = git.getHeadRev("origin", hotfixBranch);
         this.git.checkoutBranch(hotfixBranch, hotfixBranchRev.getName());
         this.consoleLogger.printf(MSG_PATTERN_CHECKOUT_HOTFIX_BRANCH, ACTION_NAME, hotfixBranch);
 
@@ -88,7 +88,7 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
 
         // Push the new minor release version to the remote repo.
         String hotfixBranch = gitflowCause.getHotfixBranch();
-        this.git.push().to(this.remoteUrl).ref("refs/heads/" + hotfixBranch + ":refs/heads/" + hotfixBranch).execute();
+        this.git.push("origin", "refs/heads/" + hotfixBranch + ":refs/heads/" + hotfixBranch);
 
         // Record the information on the currently stable version on the release branch.
         final String patchReleaseVersion = this.gitflowCause.getPatchReleaseVersion();
@@ -96,7 +96,7 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
         remoteBranchHotfix.setLastBuildResult(Result.SUCCESS);
         remoteBranchHotfix.setLastBuildVersion(patchReleaseVersion);
         remoteBranchHotfix.setLastReleaseVersion(patchReleaseVersion);
-        remoteBranchHotfix.setLastReleaseVersionCommit(this.git.getHeadRev(this.git.getRemoteUrl("origin"), hotfixBranch));
+        remoteBranchHotfix.setLastReleaseVersionCommit(this.git.getHeadRev("origin", hotfixBranch));
 
         // Create a tag for the release version.
         final String tagName = getGitflowBuildWrapperDescriptor().getVersionTagPrefix() + patchReleaseVersion;
@@ -105,7 +105,7 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
         this.consoleLogger.print(msgCreatedReleaseTag);
 
         // Push the tag for the release version.
-        this.git.push().to(this.remoteUrl).ref("refs/tags/" + tagName + ":refs/tags/" + tagName).execute();
+        this.git.push("origin", "refs/tags/" + tagName + ":refs/tags/" + tagName);
 
         // Update and commit the project files to the next version for the next hotfix
         final String nextPatchDevelopmentVersion = this.gitflowCause.getNextPatchDevelopmentVersion();
@@ -115,7 +115,7 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
         this.consoleLogger.print(msgUpdatedFixesVersion);
 
         // Push the project files with the next version for the next hotfix.
-        this.git.push().to(this.remoteUrl).ref("refs/heads/" + hotfixBranch + ":refs/heads/" + hotfixBranch).execute();
+        this.git.push("origin", "refs/heads/" + hotfixBranch + ":refs/heads/" + hotfixBranch);
 
         // Record the fixes development version on the release branch.
         remoteBranchHotfix.setLastBuildResult(Result.SUCCESS);

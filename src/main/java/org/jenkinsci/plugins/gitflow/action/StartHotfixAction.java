@@ -7,7 +7,7 @@ import java.io.IOException;
 
 import org.jenkinsci.plugins.gitflow.cause.StartHotfixCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxy;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -36,7 +36,7 @@ public class StartHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    public <BC extends B> StartHotfixAction(BC build, Launcher launcher, BuildListener listener, GitClientDelegate git, StartHotfixCause startHotfixCause) throws IOException, InterruptedException {
+    public <BC extends B> StartHotfixAction(BC build, Launcher launcher, BuildListener listener, GitClientProxy git, StartHotfixCause startHotfixCause) throws IOException, InterruptedException {
         super(build, launcher, listener, git, startHotfixCause);
     }
 
@@ -63,7 +63,7 @@ public class StartHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         this.consoleLogger.print(msgUpadtedReleaseVersion);
 
         // Push the new hotfix branch to the remote repo.
-        this.git.push().to(this.remoteUrl).ref("refs/heads/" + hotfixBranch + ":refs/heads/" + hotfixBranch).execute();
+        this.git.push("origin", "refs/heads/" + hotfixBranch + ":refs/heads/" + hotfixBranch);
 
         // Record the remote branch data.
         final RemoteBranch remoteBranch = this.gitflowPluginData.getOrAddRemoteBranch("origin", hotfixBranch);

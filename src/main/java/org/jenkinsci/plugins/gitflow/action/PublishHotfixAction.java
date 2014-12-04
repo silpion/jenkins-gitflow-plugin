@@ -15,7 +15,7 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.cause.PublishHotfixCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientDelegate;
+import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxy;
 import org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand.StrategyOption;
 
 import hudson.Launcher;
@@ -50,7 +50,7 @@ public class PublishHotfixAction<B extends AbstractBuild<?, ?>> extends Abstract
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    public <BC extends B> PublishHotfixAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientDelegate git, final PublishHotfixCause gitflowCause)
+    public <BC extends B> PublishHotfixAction(final BC build, final Launcher launcher, final BuildListener listener, final GitClientProxy git, final PublishHotfixCause gitflowCause)
             throws IOException, InterruptedException {
         super(build, launcher, listener, git, gitflowCause);
     }
@@ -83,7 +83,7 @@ public class PublishHotfixAction<B extends AbstractBuild<?, ?>> extends Abstract
 
         // Set the build data with the merge commit on the master branch, so that it won't be scheduled for a new build.
         // Otherwise Jenkins might try to rebuild an already existing release and deploy it to the (Maven) repository manager.
-        final ObjectId masterMergeCommit = this.git.getHeadRev(this.git.getRemoteUrl("origin"), masterBranch);
+        final ObjectId masterMergeCommit = this.git.getHeadRev("origin", masterBranch);
         final String remoteBranchNameMaster = remoteBranchMaster.toString();
         final List<Branch> branches = Collections.singletonList(new Branch(remoteBranchNameMaster, masterMergeCommit));
         final Build masterBuild = new Build(new Revision(masterMergeCommit, branches), this.build.getNumber(), SUCCESS);
@@ -107,7 +107,7 @@ public class PublishHotfixAction<B extends AbstractBuild<?, ?>> extends Abstract
     private void mergeLastPatchRelease(final String targetBranch, final StrategyOption recursiveMergeStrategyOption) throws InterruptedException {
 
         // Checkout the target branch.
-        final ObjectId targetBranchRev = this.git.getHeadRev(this.git.getRemoteUrl("origin"), targetBranch);
+        final ObjectId targetBranchRev = this.git.getHeadRev("origin", targetBranch);
         this.git.checkoutBranch(targetBranch, targetBranchRev.getName());
         this.consoleLogger.printf(MSG_PATTERN_CHECKOUT_BRANCH, ACTION_NAME, targetBranch);
 
@@ -120,7 +120,7 @@ public class PublishHotfixAction<B extends AbstractBuild<?, ?>> extends Abstract
         this.consoleLogger.print(msgMergedLastPatchRelease);
 
         // Push the master branch with the new merge commit.
-        this.git.push().to(this.remoteUrl).ref("refs/heads/" + targetBranch + ":refs/heads/" + targetBranch).execute();
+        this.git.push("origin", "refs/heads/" + targetBranch + ":refs/heads/" + targetBranch);
     }
 
     /** {@inheritDoc} */
