@@ -1,21 +1,16 @@
 package org.jenkinsci.plugins.gitflow.action;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.verify;
 
 import java.util.Collections;
 import java.util.Map;
 
-import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
 import org.jenkinsci.plugins.gitflow.cause.FinishHotfixCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -32,9 +27,6 @@ public class FinishHotfixActionTest extends AbstractGitflowActionTest<FinishHotf
 
     @Mock
     private AbstractBuildTypeAction<?> buildTypeAction;
-
-    @Captor
-    private ArgumentCaptor<URIish> urIishArgumentCaptor;
 
     @Before
     public void setUp() throws Exception {
@@ -73,7 +65,5 @@ public class FinishHotfixActionTest extends AbstractGitflowActionTest<FinishHotf
 
         //Check
         verify(this.git).push("origin", ":refs/heads/hotfix/foobar");
-
-        assertThat(this.urIishArgumentCaptor.getValue().getPath(), is("origin"));
     }
 }

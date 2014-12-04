@@ -1,7 +1,5 @@
 package org.jenkinsci.plugins.gitflow.action;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
@@ -15,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jgit.transport.URIish;
+import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
 import org.jenkinsci.plugins.gitflow.action.buildtype.BuildTypeActionFactory;
 import org.jenkinsci.plugins.gitflow.cause.StartHotfixCause;
@@ -24,8 +22,6 @@ import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -52,9 +48,6 @@ public class StartHotfixActionTest extends AbstractGitflowActionTest<StartHotfix
 
     @Mock
     private RemoteBranch remoteBranchHotfix;
-
-    @Captor
-    private ArgumentCaptor<URIish> urIishArgumentCaptor;
 
     @Before
     @SuppressWarnings("unchecked assignment")
@@ -99,6 +92,9 @@ public class StartHotfixActionTest extends AbstractGitflowActionTest<StartHotfix
     @Override
     protected Map<String, String> setUpTestGetAdditionalBuildEnvVars() throws InterruptedException {
 
+        // Mock call to Git client proxy.
+        when(this.git.getHeadRev(anyString(),anyString())).thenReturn(ObjectId.zeroId());
+
         // No expectations, because the main build is omitted.
         return Collections.emptyMap();
     }
@@ -131,8 +127,6 @@ public class StartHotfixActionTest extends AbstractGitflowActionTest<StartHotfix
 
         verify(this.remoteBranchHotfix, atLeastOnce()).setLastBuildResult(Result.SUCCESS);
         verify(this.remoteBranchHotfix, atLeastOnce()).setLastBuildVersion("1.0.2-SNAPSHOT");
-
-        assertThat(this.urIishArgumentCaptor.getValue().getPath(), is("origin"));
 
         verifyNoMoreInteractions(this.git, this.gitflowPluginData);
     }

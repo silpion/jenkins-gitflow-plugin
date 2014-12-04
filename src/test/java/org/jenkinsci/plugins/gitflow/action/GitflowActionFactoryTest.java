@@ -3,25 +3,27 @@ package org.jenkinsci.plugins.gitflow.action;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
 
+import org.jenkinsci.plugins.gitflow.AbstractGitflowPluginTest;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
 import org.jenkinsci.plugins.gitflow.cause.StartHotfixCause;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
+import hudson.model.Descriptor;
 import hudson.plugins.git.GitSCM;
 
-@RunWith(MockitoJUnitRunner.class)
-public class GitflowActionFactoryTest {
+@RunWith(PowerMockRunner.class)
+public class GitflowActionFactoryTest extends AbstractGitflowPluginTest {
 
     @Mock
     private AbstractBuild build;
@@ -34,10 +36,19 @@ public class GitflowActionFactoryTest {
 
     @Before
     public void setUp() throws Exception {
+        super.setUp();
+
         AbstractProject project = mock(AbstractProject.class);
         when(project.getScm()).thenReturn(mock(GitSCM.class));
         when(build.getProject()).thenReturn(project);
 
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected Descriptor<?> getGitflowBuildWrapperDescriptor() {
+        // We currently don't need the descriptor in this test.
+        return null;
     }
 
     @Test
