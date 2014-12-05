@@ -1,5 +1,7 @@
 package org.jenkinsci.plugins.gitflow.action;
 
+import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
+
 import java.io.IOException;
 
 import org.jenkinsci.plugins.gitflow.cause.FinishHotfixCause;
@@ -44,10 +46,16 @@ public class FinishHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractG
     protected void beforeMainBuildInternal() throws IOException, InterruptedException {
 
         // Finish Release: just delete the release branch.
-        this.deleteBranch(this.gitflowCause.getHotfixBranch());
+        final String hotfixBranch = this.gitflowCause.getHotfixBranch();
+        this.deleteBranch(hotfixBranch);
 
-        // Abort the job, because there's no need to execute the main build.
-        this.omitMainBuild();
+        // Add environment and property variables
+        this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", hotfixBranch);
+        this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/" + hotfixBranch);
+        this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getGitflowBuildWrapperDescriptor().getBranchType(hotfixBranch));
+
+        // There's no need to execute the main build.
+        this.buildTypeAction.skipMainBuild(this.additionalBuildEnvVars);
     }
 
     @Override

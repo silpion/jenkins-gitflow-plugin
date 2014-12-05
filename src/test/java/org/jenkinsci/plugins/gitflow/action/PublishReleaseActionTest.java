@@ -4,7 +4,6 @@ import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,19 +45,25 @@ public class PublishReleaseActionTest extends AbstractGitflowActionTest<PublishR
     /** {@inheritDoc} */
     @Override
     protected Map<String, String> setUpTestGetAdditionalBuildEnvVars() throws InterruptedException {
+        final Map<String, String> expectedAdditionalBuildEnvVars = new HashMap<String, String>();
 
         // Mock relevant method calls.
         when(this.gitflowBuildWrapperDescriptor.getMasterBranch()).thenReturn("master");
         when(this.cause.getLastPatchReleaseCommit()).thenReturn(ObjectId.zeroId());
         when(this.git.getHeadRev(anyString(), anyString())).thenReturn(ObjectId.zeroId());
         when(this.cause.getReleaseBranch()).thenReturn("release/1.0");
+        when(this.gitflowBuildWrapperDescriptor.getBranchType("master")).thenReturn("master");
 
         // Mock build data.
         final BuildData buildData = mock(BuildData.class);
         when(this.build.getAction(BuildData.class)).thenReturn(buildData);
         when(buildData.getBuildsByBranchName()).thenReturn(new HashMap<String, Build>());
 
-        // No expectations, because the main build is omitted.
-        return Collections.emptyMap();
+        // Define expectations.
+        expectedAdditionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", "master");
+        expectedAdditionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/master");
+        expectedAdditionalBuildEnvVars.put("GIT_BRANCH_TYPE", "master");
+
+        return expectedAdditionalBuildEnvVars;
     }
 }

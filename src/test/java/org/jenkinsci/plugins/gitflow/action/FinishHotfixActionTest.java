@@ -1,8 +1,10 @@
 package org.jenkinsci.plugins.gitflow.action;
 
+import static org.mockito.Matchers.startsWith;
 import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.when;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
@@ -46,9 +48,17 @@ public class FinishHotfixActionTest extends AbstractGitflowActionTest<FinishHotf
     /** {@inheritDoc} */
     @Override
     protected Map<String, String> setUpTestGetAdditionalBuildEnvVars() throws InterruptedException {
+        final Map<String, String> expectedAdditionalBuildEnvVars = new HashMap<String, String>();
 
-        // No expectations, because the main build is omitted.
-        return Collections.emptyMap();
+        // Mock relevant method calls.
+        when(this.gitflowBuildWrapperDescriptor.getBranchType(startsWith("hotfix/"))).thenReturn("hotfix");
+
+        // Define expectations.
+        expectedAdditionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", "hotfix/foobar");
+        expectedAdditionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/hotfix/foobar");
+        expectedAdditionalBuildEnvVars.put("GIT_BRANCH_TYPE", "hotfix");
+
+        return expectedAdditionalBuildEnvVars;
     }
 
     //**********************************************************************************************************************************************************

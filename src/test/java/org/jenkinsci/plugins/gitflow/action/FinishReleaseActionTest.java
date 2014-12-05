@@ -1,6 +1,9 @@
 package org.jenkinsci.plugins.gitflow.action;
 
-import java.util.Collections;
+import static org.mockito.Matchers.startsWith;
+import static org.powermock.api.mockito.PowerMockito.when;
+
+import java.util.HashMap;
 import java.util.Map;
 
 import org.jenkinsci.plugins.gitflow.cause.FinishReleaseCause;
@@ -38,7 +41,17 @@ public class FinishReleaseActionTest extends AbstractGitflowActionTest<FinishRel
     /** {@inheritDoc} */
     @Override
     protected Map<String, String> setUpTestGetAdditionalBuildEnvVars() throws InterruptedException {
-        // No expectations, because the main build is omitted.
-        return Collections.emptyMap();
+        final Map<String, String> expectedAdditionalBuildEnvVars = new HashMap<String, String>();
+
+        // Mock relevant method calls.
+        when(this.cause.getReleaseBranch()).thenReturn("release/foobar");
+        when(this.gitflowBuildWrapperDescriptor.getBranchType(startsWith("release/"))).thenReturn("release");
+
+        // Define expectations.
+        expectedAdditionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", "release/foobar");
+        expectedAdditionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/release/foobar");
+        expectedAdditionalBuildEnvVars.put("GIT_BRANCH_TYPE", "release");
+
+        return expectedAdditionalBuildEnvVars;
     }
 }
