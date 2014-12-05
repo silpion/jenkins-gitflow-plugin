@@ -62,11 +62,18 @@ public abstract class AbstractBuildTypeAction<T extends AbstractBuild<?, ?>> ext
     public abstract List<String> updateVersion(final String version) throws IOException, InterruptedException;
 
     /**
-     * Add configurations and settings to the main build, that changes the behaviour of the main build so that it performs a release build.
+     * Add configurations and settings to the main build, that change the behaviour of the main build so that it performs a release build.
      *
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      */
     public abstract void prepareForReleaseBuild() throws IOException;
+
+    /**
+     * Set configurations and settings for the main build, that cause it to be skipped.
+     *
+     * @throws IOException if an error occurs that causes or should cause the build to fail.
+     */
+    public abstract void skipMainBuild(final Map<String, String> buildEnvVars) throws IOException;
 
     /**
      * Add environmental variables to the given map that change the behaviour of the build so that it doesn't publish the built archives.
