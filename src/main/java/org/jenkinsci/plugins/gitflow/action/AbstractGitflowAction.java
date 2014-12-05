@@ -83,7 +83,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
         super(build, listener);
 
         this.gitflowCause = gitflowCause;
-        this.buildTypeAction = BuildTypeActionFactory.newInstance(build, launcher, listener);
+        this.buildTypeAction = BuildTypeActionFactory.newInstance(build, launcher, listener, this.getActionName());
 
         this.git = git;
         this.git.setGitflowActionName(this.getActionName());

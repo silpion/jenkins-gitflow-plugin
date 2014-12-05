@@ -61,7 +61,7 @@ public class TestHotfixActionTest extends AbstractGitflowActionTest<TestHotfixAc
 
         // Mock the BuildTypeAction.
         mockStatic(BuildTypeActionFactory.class);
-        when(BuildTypeActionFactory.newInstance(build, launcher, listener)).thenReturn(buildTypeAction);
+        when(BuildTypeActionFactory.newInstance(this.build, this.launcher, this.listener, "Test Hotfix")).thenReturn(this.buildTypeAction);
 
         // Mock calls to the GitflowPluginData object.
         when(this.gitflowPluginData.getRemoteBranch("origin", "hotfix/1.2")).thenReturn(this.remoteBranchHotfix);

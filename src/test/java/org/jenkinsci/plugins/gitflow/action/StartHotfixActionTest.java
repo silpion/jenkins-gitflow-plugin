@@ -62,7 +62,7 @@ public class StartHotfixActionTest extends AbstractGitflowActionTest<StartHotfix
         // Mock the call to the BuildTypeAction.
         final List<String> changeFiles = Arrays.asList("pom.xml", "child1/pom.xml", "child2/pom.xml", "child3/pom.xml");
         mockStatic(BuildTypeActionFactory.class);
-        when(BuildTypeActionFactory.newInstance(this.build, this.launcher, this.listener)).thenReturn(this.buildTypeAction);
+        when(BuildTypeActionFactory.newInstance(this.build, this.launcher, this.listener, "Start Hotfix")).thenReturn(this.buildTypeAction);
         when(this.buildTypeAction.updateVersion("1.0.2-SNAPSHOT")).thenReturn(changeFiles);
 
         // Mock calls to the GitflowPluginData object.

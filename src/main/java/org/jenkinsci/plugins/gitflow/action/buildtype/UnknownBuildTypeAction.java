@@ -25,9 +25,10 @@ public class UnknownBuildTypeAction extends AbstractBuildTypeAction<AbstractBuil
      * @param build the <i>Gitflow</i> build that is in progress.
      * @param launcher can be used to launch processes for this build - even if the build runs remotely.
      * @param listener can be used to send any message.
+     * @param gitflowActionName the name of the <i>Gitflow</i> action for the build in progress.
      */
-    public UnknownBuildTypeAction(final AbstractBuild<?, ?> build, final Launcher launcher, final BuildListener listener) {
-        super(build, launcher, listener);
+    public UnknownBuildTypeAction(final AbstractBuild<?, ?> build, final Launcher launcher, final BuildListener listener, final String gitflowActionName) {
+        super(build, launcher, listener, gitflowActionName);
     }
 
     /** {@inheritDoc} */
