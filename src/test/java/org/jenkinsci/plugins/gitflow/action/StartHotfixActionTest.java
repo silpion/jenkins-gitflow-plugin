@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.gitflow.action;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.startsWith;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -9,7 +10,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -62,7 +63,7 @@ public class StartHotfixActionTest extends AbstractGitflowActionTest<StartHotfix
         // Mock the call to the BuildTypeAction.
         final List<String> changeFiles = Arrays.asList("pom.xml", "child1/pom.xml", "child2/pom.xml", "child3/pom.xml");
         mockStatic(BuildTypeActionFactory.class);
-        when(BuildTypeActionFactory.newInstance(this.build, this.launcher, this.listener)).thenReturn(this.buildTypeAction);
+        when(BuildTypeActionFactory.newInstance(this.build, this.launcher, this.listener, "Start Hotfix")).thenReturn(this.buildTypeAction);
         when(this.buildTypeAction.updateVersion("1.0.2-SNAPSHOT")).thenReturn(changeFiles);
 
         // Mock calls to the GitflowPluginData object.
@@ -91,12 +92,18 @@ public class StartHotfixActionTest extends AbstractGitflowActionTest<StartHotfix
     /** {@inheritDoc} */
     @Override
     protected Map<String, String> setUpTestGetAdditionalBuildEnvVars() throws InterruptedException {
+        final Map<String, String> expectedAdditionalBuildEnvVars = new HashMap<String, String>();
 
         // Mock call to Git client proxy.
         when(this.git.getHeadRev(anyString(),anyString())).thenReturn(ObjectId.zeroId());
+        when(this.gitflowBuildWrapperDescriptor.getBranchType(startsWith("hotfix/"))).thenReturn("hotfix");
 
-        // No expectations, because the main build is omitted.
-        return Collections.emptyMap();
+        // Define expectations.
+        expectedAdditionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", "hotfix/1.0");
+        expectedAdditionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/hotfix/1.0");
+        expectedAdditionalBuildEnvVars.put("GIT_BRANCH_TYPE", "hotfix");
+
+        return expectedAdditionalBuildEnvVars;
     }
 
     //**********************************************************************************************************************************************************

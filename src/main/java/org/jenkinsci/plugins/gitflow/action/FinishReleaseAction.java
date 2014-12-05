@@ -60,11 +60,16 @@ public class FinishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstract
             this.createBranch(hotfixBranch, releaseBranch);
         }
 
+        // Add environment and property variables
+        this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", releaseBranch);
+        this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/" + releaseBranch);
+        this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getGitflowBuildWrapperDescriptor().getBranchType(releaseBranch));
+
         // Finish Release: just delete the release branch.
         this.deleteBranch(releaseBranch);
 
-        // Abort the job, because there's no need to execute the main build.
-        this.omitMainBuild();
+        // There's no need to execute the main build.
+        this.buildTypeAction.skipMainBuild(this.additionalBuildEnvVars);
     }
 
     /** {@inheritDoc} */

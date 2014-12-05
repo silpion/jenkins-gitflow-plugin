@@ -115,8 +115,13 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
             }
         }
 
-        // Abort the job, because there's no need to execute the main build.
-        this.omitMainBuild();
+        // Add environment and property variables
+        this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", masterBranch);
+        this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/" + masterBranch);
+        this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getGitflowBuildWrapperDescriptor().getBranchType(masterBranch));
+
+        // There's no need to execute the main build.
+        this.buildTypeAction.skipMainBuild(this.additionalBuildEnvVars);
     }
 
     private void mergeLastFixesRelease(final String targetBranch, final StrategyOption recursiveMergeStrategyOption) throws InterruptedException {

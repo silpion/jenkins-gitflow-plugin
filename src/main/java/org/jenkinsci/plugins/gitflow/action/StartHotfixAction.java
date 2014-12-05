@@ -70,8 +70,13 @@ public class StartHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         remoteBranch.setLastBuildResult(SUCCESS);
         remoteBranch.setLastBuildVersion(nextPatchDevelopmentVersion);
 
-        // Abort the job, because there's no need to execute the main build.
-        this.omitMainBuild();
+        // Add environment and property variables
+        this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", hotfixBranch);
+        this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/" + hotfixBranch);
+        this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getGitflowBuildWrapperDescriptor().getBranchType(hotfixBranch));
+
+        // There's no need to execute the main build.
+        this.buildTypeAction.skipMainBuild(this.additionalBuildEnvVars);
     }
 
     /** {@inheritDoc} */
