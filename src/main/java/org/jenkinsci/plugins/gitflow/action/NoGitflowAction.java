@@ -69,7 +69,7 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
         for (final String remoteBranchName : remoteBranchNames) {
             final String[] remoteBranchNameTokens = StringUtils.split(remoteBranchName, "/", 2);
 
-            final RemoteBranch remoteBranch = this.gitflowPluginData.getOrAddRemoteBranch(remoteBranchNameTokens[0], remoteBranchNameTokens[1]);
+            final RemoteBranch remoteBranch = this.gitflowPluginData.getOrAddRemoteBranch(remoteBranchNameTokens[1]);
             remoteBranch.setLastBuildResult(this.build.getResult());
             remoteBranch.setLastBuildVersion(this.buildTypeAction.getCurrentVersion());
         }

@@ -66,7 +66,7 @@ public class StartHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         this.git.push("origin", "refs/heads/" + hotfixBranch + ":refs/heads/" + hotfixBranch);
 
         // Record the remote branch data.
-        final RemoteBranch remoteBranch = this.gitflowPluginData.getOrAddRemoteBranch("origin", hotfixBranch);
+        final RemoteBranch remoteBranch = this.gitflowPluginData.getOrAddRemoteBranch(hotfixBranch);
         remoteBranch.setLastBuildResult(SUCCESS);
         remoteBranch.setLastBuildVersion(nextPatchDevelopmentVersion);
 

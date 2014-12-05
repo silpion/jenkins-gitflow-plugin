@@ -217,15 +217,14 @@ public abstract class GitClientProxy {
      * slashes, the original method might mix up branches. E.g.: When looking for branch
      * {@code release/1.0}, the head rev of {@code hotfix/1.0} may be returned.
      *
-     * @param remoteAlias the alias for the remote repository.
      * @param branch the name of the branch.
      * @return the ref for the head commit of the specified branch or {@code null}.
      * @throws InterruptedException
      */
-    public ObjectId getHeadRev(final String remoteAlias, final String branch) throws InterruptedException {
+    public ObjectId getHeadRev(final String branch) throws InterruptedException {
         ObjectId headRev = null;
 
-        final String remoteUrl = this.getGitClient().getRemoteUrl(remoteAlias);
+        final String remoteUrl = this.getGitClient().getRemoteUrl("origin");
         if (branch.startsWith("remotes/") || branch.startsWith("refs/heads/")) {
             headRev = this.getGitClient().getHeadRev(remoteUrl, branch);
         } else {

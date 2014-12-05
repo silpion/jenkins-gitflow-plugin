@@ -67,8 +67,8 @@ public class StartHotfixActionTest extends AbstractGitflowActionTest<StartHotfix
         when(this.buildTypeAction.updateVersion("1.0.2-SNAPSHOT")).thenReturn(changeFiles);
 
         // Mock calls to the GitflowPluginData object.
-        when(this.gitflowPluginData.getRemoteBranch("origin", "master")).thenReturn(new RemoteBranch("origin", "master"));
-        when(this.gitflowPluginData.getOrAddRemoteBranch("origin", "hotfix/1.0")).thenReturn(this.remoteBranchHotfix);
+        when(this.gitflowPluginData.getRemoteBranch("master")).thenReturn(new RemoteBranch("master"));
+        when(this.gitflowPluginData.getOrAddRemoteBranch("hotfix/1.0")).thenReturn(this.remoteBranchHotfix);
         when(this.build.getAction(GitflowPluginData.class)).thenReturn(this.gitflowPluginData);
 
         // Instanciate the test subject.
@@ -77,7 +77,7 @@ public class StartHotfixActionTest extends AbstractGitflowActionTest<StartHotfix
     }
 
     private static RemoteBranch createRemoteBranch(final String branchName, final String baseReleaseVersion, final String lastReleaseVersion) {
-        final RemoteBranch masterBranch = new RemoteBranch("origin", branchName);
+        final RemoteBranch masterBranch = new RemoteBranch(branchName);
         masterBranch.setBaseReleaseVersion(baseReleaseVersion);
         masterBranch.setLastReleaseVersion(lastReleaseVersion);
         return masterBranch;
@@ -95,7 +95,7 @@ public class StartHotfixActionTest extends AbstractGitflowActionTest<StartHotfix
         final Map<String, String> expectedAdditionalBuildEnvVars = new HashMap<String, String>();
 
         // Mock call to Git client proxy.
-        when(this.git.getHeadRev(anyString(),anyString())).thenReturn(ObjectId.zeroId());
+        when(this.git.getHeadRev(anyString())).thenReturn(ObjectId.zeroId());
         when(this.gitflowBuildWrapperDescriptor.getBranchType(startsWith("hotfix/"))).thenReturn("hotfix");
 
         // Define expectations.
@@ -129,8 +129,8 @@ public class StartHotfixActionTest extends AbstractGitflowActionTest<StartHotfix
         verify(this.git, atLeastOnce()).push(anyString(), anyString());
 
         verify(this.gitflowPluginData).setDryRun(false);
-        verify(this.gitflowPluginData).getRemoteBranch("origin", "master");
-        verify(this.gitflowPluginData, atLeastOnce()).getOrAddRemoteBranch("origin", "hotfix/1.0");
+        verify(this.gitflowPluginData).getRemoteBranch("master");
+        verify(this.gitflowPluginData, atLeastOnce()).getOrAddRemoteBranch("hotfix/1.0");
 
         verify(this.remoteBranchHotfix, atLeastOnce()).setLastBuildResult(Result.SUCCESS);
         verify(this.remoteBranchHotfix, atLeastOnce()).setLastBuildVersion("1.0.2-SNAPSHOT");

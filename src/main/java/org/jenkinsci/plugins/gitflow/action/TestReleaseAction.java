@@ -55,7 +55,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
         // Checkout the release Branch
         final String releaseBranch = this.gitflowCause.getReleaseBranch();
-        final ObjectId releaseBranchRev = this.git.getHeadRev("origin", releaseBranch);
+        final ObjectId releaseBranchRev = this.git.getHeadRev(releaseBranch);
         this.git.checkoutBranch(releaseBranch, releaseBranchRev.getName());
         this.consoleLogger.printf(MSG_PATTERN_CHECKED_OUT_RELEASE_BRANCH, ACTION_NAME, releaseBranch);
 
@@ -92,11 +92,11 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
         // Record the information on the currently stable version on the release branch.
         final String patchReleaseVersion = this.gitflowCause.getPatchReleaseVersion();
-        final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getRemoteBranch("origin", releaseBranch);
+        final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getRemoteBranch(releaseBranch);
         remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
         remoteBranchRelease.setLastBuildVersion(patchReleaseVersion);
         remoteBranchRelease.setLastReleaseVersion(patchReleaseVersion);
-        remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev("origin", releaseBranch));
+        remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev(releaseBranch));
 
         // Create a tag for the release version.
         final String tagName = getGitflowBuildWrapperDescriptor().getVersionTagPrefix() + patchReleaseVersion;
@@ -125,7 +125,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
     private void afterUnsuccessfulMainBuild() {
 
         // Here we assume that there was an error on the release branch right before exetuted this action.
-        final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getRemoteBranch("origin", this.gitflowCause.getReleaseBranch());
+        final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getRemoteBranch(this.gitflowCause.getReleaseBranch());
         remoteBranchRelease.setLastBuildResult(this.build.getResult());
         remoteBranchRelease.setLastBuildVersion(remoteBranchRelease.getLastBuildVersion());
     }

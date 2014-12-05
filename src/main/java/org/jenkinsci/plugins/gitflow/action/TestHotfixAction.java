@@ -55,7 +55,7 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
 
         // Checkout the hotfix Branch
         String hotfixBranch = gitflowCause.getHotfixBranch();
-        final ObjectId hotfixBranchRev = git.getHeadRev("origin", hotfixBranch);
+        final ObjectId hotfixBranchRev = git.getHeadRev(hotfixBranch);
         this.git.checkoutBranch(hotfixBranch, hotfixBranchRev.getName());
         this.consoleLogger.printf(MSG_PATTERN_CHECKOUT_HOTFIX_BRANCH, ACTION_NAME, hotfixBranch);
 
@@ -92,11 +92,11 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
 
         // Record the information on the currently stable version on the release branch.
         final String patchReleaseVersion = this.gitflowCause.getPatchReleaseVersion();
-        final RemoteBranch remoteBranchHotfix = this.gitflowPluginData.getRemoteBranch("origin", hotfixBranch);
+        final RemoteBranch remoteBranchHotfix = this.gitflowPluginData.getRemoteBranch(hotfixBranch);
         remoteBranchHotfix.setLastBuildResult(Result.SUCCESS);
         remoteBranchHotfix.setLastBuildVersion(patchReleaseVersion);
         remoteBranchHotfix.setLastReleaseVersion(patchReleaseVersion);
-        remoteBranchHotfix.setLastReleaseVersionCommit(this.git.getHeadRev("origin", hotfixBranch));
+        remoteBranchHotfix.setLastReleaseVersionCommit(this.git.getHeadRev(hotfixBranch));
 
         // Create a tag for the release version.
         final String tagName = getGitflowBuildWrapperDescriptor().getVersionTagPrefix() + patchReleaseVersion;
@@ -126,7 +126,7 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
 
         // Here we assume that there was an error on the hotfix branch right before executed this action.
         String hotfixBranch = gitflowCause.getHotfixBranch();
-        RemoteBranch remoteBranch = gitflowPluginData.getRemoteBranch("origin", hotfixBranch);
+        RemoteBranch remoteBranch = gitflowPluginData.getRemoteBranch(hotfixBranch);
         remoteBranch.setLastBuildResult(build.getResult());
     }
 }

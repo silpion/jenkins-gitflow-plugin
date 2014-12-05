@@ -48,7 +48,7 @@ public class TestHotfixCauseTest extends AbstractGitflowPluginTest {
     }
 
     private static RemoteBranch createRemoteBranch(final String branchName, final String lastBuildVersion) {
-        final RemoteBranch remoteBranch = new RemoteBranch("origin", branchName);
+        final RemoteBranch remoteBranch = new RemoteBranch(branchName);
         remoteBranch.setLastBuildVersion(lastBuildVersion);
         return remoteBranch;
     }

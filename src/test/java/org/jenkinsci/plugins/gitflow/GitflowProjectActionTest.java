@@ -206,7 +206,7 @@ public class GitflowProjectActionTest extends AbstractGitflowPluginTest {
     }
 
     private static RemoteBranch createRemoteBranch(final String branchName, final String lastBuildVersion, final String baseReleaseVersion, final String lastReleaseVersion) {
-        final RemoteBranch remoteBranch = new RemoteBranch("origin", branchName);
+        final RemoteBranch remoteBranch = new RemoteBranch(branchName);
         remoteBranch.setLastBuildVersion(lastBuildVersion);
         remoteBranch.setBaseReleaseVersion(baseReleaseVersion);
         remoteBranch.setLastReleaseVersion(lastReleaseVersion);

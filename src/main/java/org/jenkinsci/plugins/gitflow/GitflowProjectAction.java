@@ -117,9 +117,8 @@ public class GitflowProjectAction implements PermalinkProjectAction {
                 // 'createGitClient' and 'isExistingBlessedRemoteBranch' swallow exceptions instead of handling them in any way.
                 final GitClientProxy git = createGitClient(job);
                 for (final RemoteBranch remoteBranch : gitflowPluginData.getRemoteBranches()) {
-                    final String remoteAlias = remoteBranch.getRemoteAlias();
                     final String branchName = remoteBranch.getBranchName();
-                    if (git == null || isExistingBlessedRemoteBranch(git, remoteAlias, branchName)) {
+                    if (git == null || isExistingBlessedRemoteBranch(git, branchName)) {
 
                         final String branchType = GitflowBuildWrapper.getGitflowBuildWrapperDescriptor().getBranchType(branchName);
                         if ("develop".equals(branchType)) {
@@ -159,9 +158,9 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         }
     }
 
-    private static boolean isExistingBlessedRemoteBranch(final GitClientProxy git, final String remoteAlias, final String branchName) {
+    private static boolean isExistingBlessedRemoteBranch(final GitClientProxy git, final String branchName) {
         try {
-            return "origin".equals(remoteAlias) && git.getHeadRev(remoteAlias, branchName) != null;
+            return git.getHeadRev(branchName) != null;
         } catch (final Exception ignored) {
             // NOTE that proper error handling for Git client problems is not possible here.
             // That's why exceptions are swallowed instead of being handled in any way.

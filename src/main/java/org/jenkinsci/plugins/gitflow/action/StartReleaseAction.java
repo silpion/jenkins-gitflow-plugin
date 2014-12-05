@@ -94,12 +94,12 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         this.git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
 
         // Record the information on the currently stable version on the release branch.
-        final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getOrAddRemoteBranch("origin", releaseBranch);
+        final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getOrAddRemoteBranch(releaseBranch);
         remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
         remoteBranchRelease.setLastBuildVersion(releaseVersion);
         remoteBranchRelease.setBaseReleaseVersion(releaseVersion);
         remoteBranchRelease.setLastReleaseVersion(releaseVersion);
-        remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev("origin", releaseBranch));
+        remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev(releaseBranch));
 
         // Create a tag for the release version.
         final String tagName = buildWrapperDescriptor.getVersionTagPrefix() + releaseVersion;
@@ -138,7 +138,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
 
         // Record the next development version on the develop branch.
         // TODO We should not offer the Start Release action when no record for the develop branch exists - the method 'getOrAddRemoteBranch' can be used then.
-        final RemoteBranch remoteBranchDevelop = this.gitflowPluginData.getOrAddRemoteBranch("origin", developBranch);
+        final RemoteBranch remoteBranchDevelop = this.gitflowPluginData.getOrAddRemoteBranch(developBranch);
         remoteBranchDevelop.setLastBuildResult(Result.SUCCESS);
         remoteBranchDevelop.setLastBuildVersion(nextReleaseDevelopmentVersion);
 
@@ -149,7 +149,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
 
         // Here we assume that there was an error on the develop branch right before we created the release branch.
         // TODO We should not offer the Start Release action when no record for the develop branch exists - the method 'getOrAddRemoteBranch' can be used then.
-        final RemoteBranch remoteBranchDevelop = this.gitflowPluginData.getOrAddRemoteBranch("origin", getGitflowBuildWrapperDescriptor().getDevelopBranch());
+        final RemoteBranch remoteBranchDevelop = this.gitflowPluginData.getOrAddRemoteBranch(getGitflowBuildWrapperDescriptor().getDevelopBranch());
         remoteBranchDevelop.setLastBuildResult(this.build.getResult());
         remoteBranchDevelop.setLastBuildVersion(remoteBranchDevelop.getLastBuildVersion());
     }

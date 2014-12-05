@@ -47,7 +47,7 @@ public class GitflowPluginDataTest {
     }
 
     private RemoteBranch createRemoteBranch(final String branchName, final Result lastBuildResult) {
-        final RemoteBranch remoteBranch = new RemoteBranch("origin", branchName);
+        final RemoteBranch remoteBranch = new RemoteBranch(branchName);
         remoteBranch.setLastBuildResult(lastBuildResult);
         return remoteBranch;
     }

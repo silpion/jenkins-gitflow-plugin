@@ -15,10 +15,7 @@ import hudson.model.Result;
  */
 public class RemoteBranch implements Serializable, Cloneable, Comparable<RemoteBranch> {
 
-    private static final long serialVersionUID = 3785850745825098245L;
-
-    @XStreamAsAttribute
-    private final String remoteAlias;
+    private static final long serialVersionUID = -405556788597424146L;
 
     @XStreamAsAttribute
     private final String branchName;
@@ -34,11 +31,9 @@ public class RemoteBranch implements Serializable, Cloneable, Comparable<RemoteB
     /**
      * Constructor for a new {@link RemoteBranch} object.
      *
-     * @param remoteAlias the alias for the remote repository.
      * @param branchName the simple name of the branch (without remote alias).
      */
-    public RemoteBranch(final String remoteAlias, final String branchName) {
-        this.remoteAlias = remoteAlias;
+    public RemoteBranch(final String branchName) {
         this.branchName = branchName;
     }
 
@@ -50,21 +45,13 @@ public class RemoteBranch implements Serializable, Cloneable, Comparable<RemoteB
 
     /** {@inheritDoc} */
     public int compareTo(final RemoteBranch remoteBranch) {
-        int result = String.CASE_INSENSITIVE_ORDER.compare(this.getRemoteAlias(), remoteBranch.getRemoteAlias());
-        if (result == 0) {
-            result = String.CASE_INSENSITIVE_ORDER.compare(this.getBranchName(), remoteBranch.getBranchName());
-        }
-        return result;
+        return String.CASE_INSENSITIVE_ORDER.compare(this.getBranchName(), remoteBranch.getBranchName());
     }
 
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        return this.remoteAlias + "/" + this.branchName;
-    }
-
-    public String getRemoteAlias() {
-        return this.remoteAlias;
+        return this.branchName;
     }
 
     public String getBranchName() {

@@ -89,7 +89,7 @@ public class GitflowPluginData implements Action, Serializable, Cloneable {
             for (final Iterator<RemoteBranch> branchIterator = this.remoteBranches.iterator(); branchIterator.hasNext(); ) {
                 final RemoteBranch branch = branchIterator.next();
                 for (final RemoteBranch removeBranch : removeRemoteBranches) {
-                    if (branch.getRemoteAlias().equals(removeBranch.getRemoteAlias()) && branch.getBranchName().equals(removeBranch.getBranchName())) {
+                    if (branch.getBranchName().equals(removeBranch.getBranchName())) {
                         branchIterator.remove();
                     }
                 }
@@ -129,14 +129,13 @@ public class GitflowPluginData implements Action, Serializable, Cloneable {
      * <p />
      * In <i>Dry Run</i> mode, a copy of the {@link RemoteBranch} is returned. It's a dummy object that is not attached to the persited data.
      *
-     * @param remoteAlias the alias for the remote repository.
      * @param branchName the simple name of the branch.
      * @return the {@link RemoteBranch} with the given remote alias and name or a new {@link RemoteBranch} object.
      */
-    public RemoteBranch getOrAddRemoteBranch(final String remoteAlias, final String branchName) {
-        RemoteBranch remoteBranch = this.getRemoteBranch(remoteAlias, branchName);
+    public RemoteBranch getOrAddRemoteBranch(final String branchName) {
+        RemoteBranch remoteBranch = this.getRemoteBranch(branchName);
         if (remoteBranch == null) {
-            remoteBranch = new RemoteBranch(remoteAlias, branchName);
+            remoteBranch = new RemoteBranch(branchName);
             if (!this.dryRun) {
                 this.remoteBranches.add(remoteBranch);
                 Collections.sort(this.remoteBranches);
@@ -150,21 +149,20 @@ public class GitflowPluginData implements Action, Serializable, Cloneable {
      * <p />
      * In <i>Dry Run</i> mode, a copy of the {@link RemoteBranch} is returned. It's a dummy object that is not attached to the persited data.
      *
-     * @param remoteAlias the alias for the remote repository.
      * @param branchName the simple name of the branch.
      * @return the {@link RemoteBranch} with the given remote alias and name or {@code null}.
      */
-    public RemoteBranch getRemoteBranch(final String remoteAlias, final String branchName) {
+    public RemoteBranch getRemoteBranch(final String branchName) {
         RemoteBranch requestedRemoteBranch = null;
 
         for (final RemoteBranch remoteBranch : this.remoteBranches) {
-            if (remoteBranch.getRemoteAlias().equals(remoteAlias) && remoteBranch.getBranchName().equals(branchName)) {
+            if (remoteBranch.getBranchName().equals(branchName)) {
                 if (this.dryRun) {
                     try {
                         requestedRemoteBranch = remoteBranch.clone();
                     } catch (final CloneNotSupportedException ignore) {
                         // Should not happen. But even if it happens it's not important, because on dry run the object won't be dropped anyway.
-                        requestedRemoteBranch = new RemoteBranch(remoteAlias, branchName);
+                        requestedRemoteBranch = new RemoteBranch(branchName);
                     }
                 } else {
                     requestedRemoteBranch = remoteBranch;

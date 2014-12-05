@@ -80,7 +80,7 @@ public class StartHotfixIT {
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
 
-        addRemoteBranch(data,"origin", "master", Result.SUCCESS, "1.0.1", "1.0", "1.0.1");
+        addRemoteBranch(data, "master", Result.SUCCESS, "1.0.1", "1.0", "1.0.1");
 
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
@@ -117,9 +117,8 @@ public class StartHotfixIT {
         this.checkMultiModuleProject(repository, "1.0.5-SNAPSHOT", 4);
     }
 
-    private void addRemoteBranch(final GitflowPluginData data, final String origin, final String branch, final Result result, final String buildVersion, final String baseReleaseVersion,
-                                 final String lastReleaseVersion) {
-        RemoteBranch masterBranch = data.getOrAddRemoteBranch(origin, branch);
+    private void addRemoteBranch(final GitflowPluginData data, final String branch, final Result result, final String buildVersion, final String baseReleaseVersion, final String lastReleaseVersion) {
+        RemoteBranch masterBranch = data.getOrAddRemoteBranch(branch);
         masterBranch.setLastBuildResult(result);
         masterBranch.setLastBuildVersion(buildVersion);
         masterBranch.setBaseReleaseVersion(baseReleaseVersion);
@@ -142,7 +141,7 @@ public class StartHotfixIT {
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
 
-        addRemoteBranch(data,"origin", "master", Result.SUCCESS, "1.0.1", "1.0", "1.0.1");
+        addRemoteBranch(data, "master", Result.SUCCESS, "1.0.1", "1.0", "1.0.1");
 
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
@@ -184,7 +183,7 @@ public class StartHotfixIT {
         assertThat("TestBuild failed", this.mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
         GitflowPluginData data = this.mavenProject.getLastBuild().getAction(GitflowPluginData.class);
 
-        this.addRemoteBranch(data,"origin", "master", Result.SUCCESS, "1.0-SNAPSHOT", null, null);
+        this.addRemoteBranch(data, "master", Result.SUCCESS, "1.0-SNAPSHOT", null, null);
 
         this.mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", this.mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));

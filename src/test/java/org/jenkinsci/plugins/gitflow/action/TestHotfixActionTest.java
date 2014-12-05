@@ -64,7 +64,7 @@ public class TestHotfixActionTest extends AbstractGitflowActionTest<TestHotfixAc
         when(BuildTypeActionFactory.newInstance(this.build, this.launcher, this.listener, "Test Hotfix")).thenReturn(this.buildTypeAction);
 
         // Mock calls to the GitflowPluginData object.
-        when(this.gitflowPluginData.getRemoteBranch("origin", "hotfix/1.2")).thenReturn(this.remoteBranchHotfix);
+        when(this.gitflowPluginData.getRemoteBranch("hotfix/1.2")).thenReturn(this.remoteBranchHotfix);
         when(this.build.getAction(GitflowPluginData.class)).thenReturn(this.gitflowPluginData);
 
         // Instanciate the test subject.
@@ -73,7 +73,7 @@ public class TestHotfixActionTest extends AbstractGitflowActionTest<TestHotfixAc
     }
 
     private static RemoteBranch createRemoteBranch(final String branchName, final String lastBuildVersion) {
-        final RemoteBranch masterBranch = new RemoteBranch("origin", branchName);
+        final RemoteBranch masterBranch = new RemoteBranch(branchName);
         masterBranch.setLastBuildVersion(lastBuildVersion);
         return masterBranch;
     }
@@ -95,7 +95,7 @@ public class TestHotfixActionTest extends AbstractGitflowActionTest<TestHotfixAc
         expectedAdditionalBuildEnvVars.put("GIT_BRANCH_TYPE", "hotfix");
 
         // Mock call to Git client proxy.
-        when(this.git.getHeadRev(anyString(),anyString())).thenReturn(ObjectId.zeroId());
+        when(this.git.getHeadRev(anyString())).thenReturn(ObjectId.zeroId());
 
         return expectedAdditionalBuildEnvVars;
     }
@@ -116,14 +116,14 @@ public class TestHotfixActionTest extends AbstractGitflowActionTest<TestHotfixAc
         when(buildTypeAction.updateVersion("1.2.3")).thenReturn(changeFiles);
 
         // Mock call to Git client proxy.
-        when(this.git.getHeadRev(anyString(),anyString())).thenReturn(ObjectId.zeroId());
+        when(this.git.getHeadRev(anyString())).thenReturn(ObjectId.zeroId());
 
         //Run
         this.testAction.beforeMainBuildInternal();
 
         //Check
         verify(this.git).setGitflowActionName(this.testAction.getActionName());
-        verify(this.git).getHeadRev("origin", hotfixBranch);
+        verify(this.git).getHeadRev(hotfixBranch);
         verify(this.git).checkoutBranch(hotfixBranch, ObjectId.zeroId().getName());
 
         verify(this.git).add("pom.xml");
@@ -153,7 +153,7 @@ public class TestHotfixActionTest extends AbstractGitflowActionTest<TestHotfixAc
 
         //Check
         verify(this.gitflowPluginData).setDryRun(false);
-        verify(this.gitflowPluginData).getRemoteBranch("origin", hotfixBranch);
+        verify(this.gitflowPluginData).getRemoteBranch(hotfixBranch);
         verify(this.git).setGitflowActionName(this.testAction.getActionName());
         verify(this.git, atLeast(2)).push(anyString(), anyString());
 
@@ -162,7 +162,7 @@ public class TestHotfixActionTest extends AbstractGitflowActionTest<TestHotfixAc
         verify(this.git).add("child2/pom.xml");
         verify(this.git).add("child3/pom.xml");
         verify(this.git).commit(any(String.class));
-        verify(this.git).getHeadRev(any(String.class), any(String.class));
+        verify(this.git).getHeadRev(any(String.class));
         verify(this.git).tag(any(String.class), any(String.class));
 
         verify(this.remoteBranchHotfix, atLeastOnce()).setLastBuildResult(Result.SUCCESS);
@@ -184,7 +184,7 @@ public class TestHotfixActionTest extends AbstractGitflowActionTest<TestHotfixAc
         //Check
         verify(this.git).setGitflowActionName(this.testAction.getActionName());
         verify(this.gitflowPluginData).setDryRun(false);
-        verify(this.gitflowPluginData).getRemoteBranch("origin", "hotfix/1.2");
+        verify(this.gitflowPluginData).getRemoteBranch("hotfix/1.2");
         verify(this.remoteBranchHotfix).setLastBuildResult(Result.FAILURE);
 
         verifyNoMoreInteractions(this.git, this.gitflowPluginData, this.remoteBranchHotfix);

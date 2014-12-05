@@ -89,11 +89,11 @@ public class FinishHotfixIT {
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        addRemoteBranch(data, "origin", "hotfix/1.0", Result.SUCCESS, "1.0.2-SNAPSHOT");
-        addRemoteBranch(data, "origin", "hotfix/foobar2", Result.SUCCESS, "1.1-SNAPSHOT");
-        addRemoteBranch(data, "origin", "hotfix/foobar3", Result.SUCCESS, "1.1-SNAPSHOT");
-        addRemoteBranch(data, "origin", "hotfix/foobar4", Result.SUCCESS, "1.1-SNAPSHOT");
-        addRemoteBranch(data, "origin", "hotfix/foobar5", Result.SUCCESS, "1.1-SNAPSHOT");
+        addRemoteBranch(data, "hotfix/1.0", Result.SUCCESS, "1.0.2-SNAPSHOT");
+        addRemoteBranch(data, "hotfix/foobar2", Result.SUCCESS, "1.1-SNAPSHOT");
+        addRemoteBranch(data, "hotfix/foobar3", Result.SUCCESS, "1.1-SNAPSHOT");
+        addRemoteBranch(data, "hotfix/foobar4", Result.SUCCESS, "1.1-SNAPSHOT");
+        addRemoteBranch(data, "hotfix/foobar5", Result.SUCCESS, "1.1-SNAPSHOT");
 
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
@@ -227,8 +227,8 @@ public class FinishHotfixIT {
         mavenProject.setScm(gitSCM);
     }
 
-    private void addRemoteBranch(GitflowPluginData data, String origin, String branch, Result result, String version) {
-        RemoteBranch masterBranch = data.getOrAddRemoteBranch(origin, branch);
+    private void addRemoteBranch(GitflowPluginData data, String branch, Result result, String version) {
+        RemoteBranch masterBranch = data.getOrAddRemoteBranch(branch);
         masterBranch.setLastBuildVersion(version);
         masterBranch.setLastBuildResult(result);
     }

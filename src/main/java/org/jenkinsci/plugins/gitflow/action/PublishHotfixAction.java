@@ -73,8 +73,8 @@ public class PublishHotfixAction<B extends AbstractBuild<?, ?>> extends Abstract
         // Record the version that has been merged to the master branch.
         final String lastPatchReleaseVersion = this.gitflowCause.getLastPatchReleaseVersion();
         final String hotfixBranch = this.gitflowCause.getHotfixBranch();
-        final RemoteBranch remoteBranchHotfix = this.gitflowPluginData.getOrAddRemoteBranch("origin", hotfixBranch);
-        final RemoteBranch remoteBranchMaster = this.gitflowPluginData.getOrAddRemoteBranch("origin", masterBranch);
+        final RemoteBranch remoteBranchHotfix = this.gitflowPluginData.getOrAddRemoteBranch(hotfixBranch);
+        final RemoteBranch remoteBranchMaster = this.gitflowPluginData.getOrAddRemoteBranch(masterBranch);
         remoteBranchMaster.setLastBuildResult(SUCCESS);
         remoteBranchMaster.setLastBuildVersion(lastPatchReleaseVersion);
         remoteBranchMaster.setBaseReleaseVersion(remoteBranchHotfix.getBaseReleaseVersion());
@@ -83,7 +83,7 @@ public class PublishHotfixAction<B extends AbstractBuild<?, ?>> extends Abstract
 
         // Set the build data with the merge commit on the master branch, so that it won't be scheduled for a new build.
         // Otherwise Jenkins might try to rebuild an already existing release and deploy it to the (Maven) repository manager.
-        final ObjectId masterMergeCommit = this.git.getHeadRev("origin", masterBranch);
+        final ObjectId masterMergeCommit = this.git.getHeadRev(masterBranch);
         final String remoteBranchNameMaster = remoteBranchMaster.toString();
         final List<Branch> branches = Collections.singletonList(new Branch(remoteBranchNameMaster, masterMergeCommit));
         final Build masterBuild = new Build(new Revision(masterMergeCommit, branches), this.build.getNumber(), SUCCESS);
@@ -112,7 +112,7 @@ public class PublishHotfixAction<B extends AbstractBuild<?, ?>> extends Abstract
     private void mergeLastPatchRelease(final String targetBranch, final StrategyOption recursiveMergeStrategyOption) throws InterruptedException {
 
         // Checkout the target branch.
-        final ObjectId targetBranchRev = this.git.getHeadRev("origin", targetBranch);
+        final ObjectId targetBranchRev = this.git.getHeadRev(targetBranch);
         this.git.checkoutBranch(targetBranch, targetBranchRev.getName());
         this.consoleLogger.printf(MSG_PATTERN_CHECKOUT_BRANCH, ACTION_NAME, targetBranch);
 

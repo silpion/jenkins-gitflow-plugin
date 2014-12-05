@@ -71,7 +71,7 @@ public class TestHotfixIT {
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        addRemoteBranch(data, "origin", "hotfix/1.0", Result.SUCCESS, "1.0.2-SNAPSHOT");
+        addRemoteBranch(data, "hotfix/1.0", Result.SUCCESS, "1.0.2-SNAPSHOT");
 
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
@@ -88,7 +88,7 @@ public class TestHotfixIT {
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         GitflowPluginData data1 = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        assertThat(data1.getRemoteBranch("origin", "hotfix/1.0").getLastBuildVersion(), is("1.0.3-SNAPSHOT"));
+        assertThat(data1.getRemoteBranch("hotfix/1.0").getLastBuildVersion(), is("1.0.3-SNAPSHOT"));
 
         //check the Git-Repro
         File repository = folder.newFolder();
@@ -113,7 +113,7 @@ public class TestHotfixIT {
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        addRemoteBranch(data, "origin", "hotfix/1.0", Result.SUCCESS, "1.0.2-SNAPSHOT");
+        addRemoteBranch(data, "hotfix/1.0", Result.SUCCESS, "1.0.2-SNAPSHOT");
 
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
@@ -130,8 +130,8 @@ public class TestHotfixIT {
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         GitflowPluginData data1 = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        assertThat(data1.getRemoteBranch("origin", "hotfix/1.0").getLastBuildVersion(), is("1.0.3-SNAPSHOT"));
-        assertThat(data1.getRemoteBranch("origin", "hotfix/1.0").getLastBuildResult(), is(Result.SUCCESS));
+        assertThat(data1.getRemoteBranch("hotfix/1.0").getLastBuildVersion(), is("1.0.3-SNAPSHOT"));
+        assertThat(data1.getRemoteBranch("hotfix/1.0").getLastBuildResult(), is(Result.SUCCESS));
 
         //check the Git-Repro
         File repository = folder.newFolder();
@@ -156,7 +156,7 @@ public class TestHotfixIT {
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
 
         GitflowPluginData data = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        addRemoteBranch(data, "origin", "hotfix/foobar3", Result.SUCCESS, "1.1-SNAPSHOT");
+        addRemoteBranch(data, "hotfix/foobar3", Result.SUCCESS, "1.1-SNAPSHOT");
 
         mavenProject.scheduleBuild2(0).get();
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.SUCCESS));
@@ -174,8 +174,8 @@ public class TestHotfixIT {
         assertThat("TestBuild failed", mavenProject.getLastBuild().getResult(), is(Result.FAILURE));
 
         GitflowPluginData data1 = mavenProject.getLastBuild().getAction(GitflowPluginData.class);
-        assertThat(data1.getRemoteBranch("origin", "hotfix/1.0").getLastBuildVersion(), is("1.0.2-SNAPSHOT"));
-        assertThat(data1.getRemoteBranch("origin", "hotfix/1.0").getLastBuildResult(), is(Result.FAILURE));
+        assertThat(data1.getRemoteBranch("hotfix/1.0").getLastBuildVersion(), is("1.0.2-SNAPSHOT"));
+        assertThat(data1.getRemoteBranch("hotfix/1.0").getLastBuildResult(), is(Result.FAILURE));
 
         //check the Git-Repro
         File repository = folder.newFolder();
@@ -270,8 +270,8 @@ public class TestHotfixIT {
         mavenProject.setScm(gitSCM);
     }
 
-    private void addRemoteBranch(GitflowPluginData data, String origin, String branch, Result result, String version) {
-        RemoteBranch masterBranch = data.getOrAddRemoteBranch(origin, branch);
+    private void addRemoteBranch(GitflowPluginData data, String branch, Result result, String version) {
+        RemoteBranch masterBranch = data.getOrAddRemoteBranch(branch);
         masterBranch.setLastBuildVersion(version);
         masterBranch.setLastBuildResult(result);
     }

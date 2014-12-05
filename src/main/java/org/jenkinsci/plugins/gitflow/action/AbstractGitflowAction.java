@@ -3,7 +3,6 @@ package org.jenkinsci.plugins.gitflow.action;
 import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -11,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.MapUtils;
-import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.gitflow.GitflowBadgeAction;
 import org.jenkinsci.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
 import org.jenkinsci.plugins.gitflow.action.buildtype.BuildTypeActionFactory;
@@ -56,8 +54,6 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
     protected final AbstractBuildTypeAction<?> buildTypeAction;
     protected final GitClientProxy git;
 
-    protected final URIish remoteUrl;
-
     protected GitflowPluginData gitflowPluginData;
 
     protected Map<String, String> additionalBuildEnvVars = new HashMap<String, String>();
@@ -82,13 +78,6 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
         this.git = git;
         this.git.setGitflowActionName(this.getActionName());
 
-        // Create remote URL.
-        try {
-            this.remoteUrl = new URIish("origin");
-        } catch (final URISyntaxException urise) {
-            throw new IOException("Cannot create remote URL", urise);
-        }
-
         // Prepare the action object that holds the data for the Gitflow plugin.
         this.gitflowPluginData = build.getAction(GitflowPluginData.class);
         if (this.gitflowPluginData == null) {
@@ -108,7 +97,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
                     // Collect remote branches that don't exist anymore.
                     final List<RemoteBranch> removeRemoteBranches = new LinkedList<RemoteBranch>();
                     for (final RemoteBranch remoteBranch : this.gitflowPluginData.getRemoteBranches()) {
-                        if (this.git.getHeadRev(remoteBranch.getRemoteAlias(), remoteBranch.getBranchName()) == null) {
+                        if (this.git.getHeadRev(remoteBranch.getBranchName()) == null) {
                             removeRemoteBranches.add(remoteBranch);
                         }
                     }
@@ -237,8 +226,8 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
         this.git.push("origin", "refs/heads/" + newBranchName + ":refs/heads/" + newBranchName);
 
         // Record the data for the new remote branch.
-        final RemoteBranch remoteBranchRef = this.gitflowPluginData.getRemoteBranch("origin", refBranchName);
-        final RemoteBranch remoteBranchNew = this.gitflowPluginData.getOrAddRemoteBranch("origin", newBranchName);
+        final RemoteBranch remoteBranchRef = this.gitflowPluginData.getRemoteBranch(refBranchName);
+        final RemoteBranch remoteBranchNew = this.gitflowPluginData.getOrAddRemoteBranch(newBranchName);
         remoteBranchNew.setLastBuildResult(remoteBranchRef.getLastBuildResult());
         remoteBranchNew.setLastBuildVersion(remoteBranchRef.getLastBuildVersion());
         remoteBranchNew.setBaseReleaseVersion(remoteBranchRef.getBaseReleaseVersion());
@@ -264,7 +253,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
         this.git.push("origin", ":refs/heads/" + branchName);
 
         // Remove the recorded data of the deleted remote branch.
-        final RemoteBranch remoteBranch = this.gitflowPluginData.getRemoteBranch("origin", branchName);
+        final RemoteBranch remoteBranch = this.gitflowPluginData.getRemoteBranch(branchName);
         if (remoteBranch != null) {
             this.gitflowPluginData.removeRemoteBranch(remoteBranch, false);
         }

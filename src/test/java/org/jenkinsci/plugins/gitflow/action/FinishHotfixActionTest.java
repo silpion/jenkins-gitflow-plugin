@@ -35,7 +35,7 @@ public class FinishHotfixActionTest extends AbstractGitflowActionTest<FinishHotf
         super.setUp();
 
         // Instanciate the test subject.
-        final FinishHotfixCause cause = new FinishHotfixCause(new RemoteBranch("origin", "hotfix/foobar"));
+        final FinishHotfixCause cause = new FinishHotfixCause(new RemoteBranch("hotfix/foobar"));
         this.testAction = new FinishHotfixAction<AbstractBuild<?, ?>>(this.build, this.launcher, this.listener, this.git, cause);
     }
 
