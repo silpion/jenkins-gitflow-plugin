@@ -5,7 +5,7 @@ import java.io.PrintStream;
 import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
 import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.gitclient.GitClient;
-import org.jenkinsci.plugins.gitclient.MergeCommand;
+import org.jenkinsci.plugins.gitclient.MergeCommand.Strategy;
 
 import hudson.plugins.git.GitException;
 
@@ -15,7 +15,7 @@ import hudson.plugins.git.GitException;
  * @param <C> the {@link GitClient} type used to exectue the merge command.
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
-public class GenericMergeCommand<C extends GitClient> implements MergeCommand {
+public class GenericMergeCommand<C extends GitClient> {
 
     protected final C gitClient;
     protected final PrintStream consoleLogger;
@@ -44,13 +44,13 @@ public class GenericMergeCommand<C extends GitClient> implements MergeCommand {
     }
 
     /** {@inheritDoc} */
-    public MergeCommand setRevisionToMerge(final ObjectId rev) {
+    public GenericMergeCommand<C> setRevisionToMerge(final ObjectId rev) {
         this.revisionToMerge = rev;
         return this;
     }
 
     /** {@inheritDoc} */
-    public MergeCommand setStrategy(final Strategy strategy) {
+    public GenericMergeCommand<C> setStrategy(final Strategy strategy) {
         this.strategy = strategy;
         return this;
     }
