@@ -8,7 +8,7 @@ import java.util.Collection;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitflow.cause.NoGitflowCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxy;
+import org.jenkinsci.plugins.gitflow.proxy.gitclient.GitClientProxy;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;

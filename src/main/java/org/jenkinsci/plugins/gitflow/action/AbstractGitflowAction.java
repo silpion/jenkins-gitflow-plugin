@@ -16,7 +16,7 @@ import org.jenkinsci.plugins.gitflow.action.buildtype.BuildTypeActionFactory;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
 import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxy;
+import org.jenkinsci.plugins.gitflow.proxy.gitclient.GitClientProxy;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
@@ -187,8 +187,9 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
      * Adds the provided files to the Git stages - executing {@code git add [file1] [file2] ...}.
      * <p/>
      * TODO Instead of adding the modified files manually, it would be more reliable to ask the Git client for the files that have been mofified and add those.
-     * Unfortunately the {@link hudson.plugins.git.GitSCM GitSCM} class doesn't offer a method to get the modified files. We might file a feature request and/or
-     * implement it ourselves and then do a pull request on GitHub. The method to be implemented should execute something like {@code git ls-files -m}).
+     * Unfortunately the {@link org.jenkinsci.plugins.gitclient.GitClient GitClient} class doesn't offer a method to get the modified files. We might file a
+     * feature request and/or implement it ourselves and then do a pull request on GitHub. The method to be implemented should execute something like
+     * {@code git ls-files -m}).
      *
      * @param files the files to be staged.
      * @throws InterruptedException if the build is interrupted during execution.

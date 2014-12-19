@@ -5,7 +5,7 @@ import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildW
 import java.io.IOException;
 
 import org.jenkinsci.plugins.gitflow.cause.FinishHotfixCause;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxy;
+import org.jenkinsci.plugins.gitflow.proxy.gitclient.GitClientProxy;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
