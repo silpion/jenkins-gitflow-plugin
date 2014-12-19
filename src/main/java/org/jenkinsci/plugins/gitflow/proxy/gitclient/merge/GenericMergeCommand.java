@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.gitflow.gitclient.merge;
+package org.jenkinsci.plugins.gitflow.proxy.gitclient.merge;
 
 import java.io.PrintStream;
 

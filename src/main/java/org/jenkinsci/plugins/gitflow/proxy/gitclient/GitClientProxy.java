@@ -15,11 +15,11 @@ import org.jenkinsci.plugins.gitclient.CliGitAPIImpl;
 import org.jenkinsci.plugins.gitclient.GitClient;
 import org.jenkinsci.plugins.gitclient.JGitAPIImpl;
 import org.jenkinsci.plugins.gitclient.MergeCommand.Strategy;
-import org.jenkinsci.plugins.gitflow.gitclient.merge.CliGitMergeCommand;
-import org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand;
-import org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand.StrategyOption;
-import org.jenkinsci.plugins.gitflow.gitclient.merge.JGitMergeCommand;
 import org.jenkinsci.plugins.gitflow.proxy.git.GitSCMProxy;
+import org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.CliGitMergeCommand;
+import org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand;
+import org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand.StrategyOption;
+import org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.JGitMergeCommand;
 
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
