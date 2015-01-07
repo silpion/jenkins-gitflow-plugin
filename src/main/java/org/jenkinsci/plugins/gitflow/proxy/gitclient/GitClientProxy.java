@@ -1,7 +1,9 @@
-package org.jenkinsci.plugins.gitflow.gitclient;
+package org.jenkinsci.plugins.gitflow.proxy.gitclient;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
+import java.util.Formatter;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,27 +15,37 @@ import org.jenkinsci.plugins.gitclient.CliGitAPIImpl;
 import org.jenkinsci.plugins.gitclient.GitClient;
 import org.jenkinsci.plugins.gitclient.JGitAPIImpl;
 import org.jenkinsci.plugins.gitclient.MergeCommand.Strategy;
-import org.jenkinsci.plugins.gitflow.gitclient.merge.CliGitMergeCommand;
-import org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand;
-import org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand.StrategyOption;
-import org.jenkinsci.plugins.gitflow.gitclient.merge.JGitMergeCommand;
+import org.jenkinsci.plugins.gitflow.proxy.git.GitSCMProxy;
+import org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.CliGitMergeCommand;
+import org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand;
+import org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand.StrategyOption;
+import org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.JGitMergeCommand;
 
+import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.plugins.git.Branch;
 import hudson.plugins.git.GitException;
+import hudson.util.VersionNumber;
+
+import jenkins.model.Jenkins;
 
 /**
- * Abstract proxy implementation for the Jenkins {@link GitClient}. Subclasses should use <i>Reflections</i>
- * to implement version-dependant functions without causing compiler and/or runtime errors.
+ * Proxy implementation for the Jenkins {@link GitClient}. Uses <i>Reflections</i> to
+ * implement version-dependant functions without causing compiler and/or runtime errors.
  *
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
-public abstract class GitClientProxy {
+public class GitClientProxy {
 
     private static final String MSG_PATTERN_PUSHED_TO_REMOTE = "Gitflow - %s: Pushed to %s using refspec %s%n";
     private static final String MSG_PATTERN_PUSH_OMITTED_DUE_TO_DRY_RUN = "Gitflow - %s (dry run): Omitted push to %s using refspec %s%n";
+    private static final String MSG_PATTERN_UNSUPPORTED_PLUGIN_VERSION = "Gitflow plugin requires at least Git Client plugin version %s. Currently installed version is %s%n";
 
-    protected final PrintStream consoleLogger;
+    private static final VersionNumber VERSION_NUMBER_17 = new VersionNumber("1.7.0");
+
+    private final GitClient gitClient;
+
+    private final PrintStream consoleLogger;
 
     private String gitflowActionName = "unknown action";
     private final boolean dryRun;
@@ -41,20 +53,24 @@ public abstract class GitClientProxy {
     /**
      * Creates a new instance.
      *
+     * @param build the build that is in progress.
      * @param listener can be used to send any message.
-     * @param dryRun is the build dryRun or not
+     * @param dryRun is the build dryRun or not.
+     * @throws IOException if the version of the Git or the Git Client plugin is not supported.
+     * @throws InterruptedException if the build is interrupted during execution.
      */
-    public GitClientProxy(final BuildListener listener, final boolean dryRun) {
-        this.dryRun = dryRun;
+    public GitClientProxy(final AbstractBuild<?, ?> build, final BuildListener listener, final boolean dryRun) throws IOException, InterruptedException {
+        this.gitClient = new GitSCMProxy(build).createClient(build, listener);
         this.consoleLogger = listener.getLogger();
-    }
+        this.dryRun = dryRun;
 
-    /**
-     * Returns the proxied {@link GitClient}.
-     *
-     * @return the proxied {@link GitClient}.
-     */
-    protected abstract GitClient getGitClient();
+        // Verify that the minimal required version of the Git Client plugin is installed.
+        final VersionNumber gitClientPluginVersion = Jenkins.getInstance().getPlugin("git-client").getWrapper().getVersionNumber();
+        if (gitClientPluginVersion.isOlderThan(VERSION_NUMBER_17)) {
+            final String message = new Formatter().format(MSG_PATTERN_UNSUPPORTED_PLUGIN_VERSION, VERSION_NUMBER_17, gitClientPluginVersion).toString();
+            throw new IOException(message);
+        }
+    }
 
     /**
      * Stage files for commit.
@@ -63,7 +79,7 @@ public abstract class GitClientProxy {
      * @throws InterruptedException if the build is interrupted during execution.
      */
     public void add(final String filePattern) throws InterruptedException {
-        this.getGitClient().add(filePattern);
+        this.gitClient.add(filePattern);
     }
 
     /**
@@ -73,7 +89,7 @@ public abstract class GitClientProxy {
      * @throws InterruptedException if the build is interrupted during execution.
      */
     public void commit(final String message) throws InterruptedException {
-        this.getGitClient().commit(message);
+        this.gitClient.commit(message);
     }
 
     /**
@@ -96,7 +112,7 @@ public abstract class GitClientProxy {
      * @see GitClient#checkoutBranch(String, String)
      */
     public void checkoutBranch(final String branch, final String ref) throws InterruptedException {
-        this.getGitClient().checkoutBranch(branch, ref);
+        this.gitClient.checkoutBranch(branch, ref);
     }
 
     /**
@@ -126,7 +142,7 @@ public abstract class GitClientProxy {
             throw new GitException("Cannot create remote URL", urise);
         }
 
-        this.getGitClient().push().to(remoteUrl).ref(refspec).execute();
+        this.gitClient.push().to(remoteUrl).ref(refspec).execute();
     }
 
     /**
@@ -142,12 +158,12 @@ public abstract class GitClientProxy {
 
         // Create  merge command object regarding to the underlying (configured) Git client implementation.
         final GenericMergeCommand<? extends GitClient> mergeCommand;
-        if (this.getGitClient() instanceof CliGitAPIImpl) {
-            mergeCommand = new CliGitMergeCommand<CliGitAPIImpl>((CliGitAPIImpl) this.getGitClient(), this.consoleLogger);
-        } else if (this.getGitClient() instanceof JGitAPIImpl) {
-            mergeCommand = new JGitMergeCommand<JGitAPIImpl>((JGitAPIImpl) this.getGitClient(), this.consoleLogger);
+        if (this.gitClient instanceof CliGitAPIImpl) {
+            mergeCommand = new CliGitMergeCommand<CliGitAPIImpl>((CliGitAPIImpl) this.gitClient, this.consoleLogger);
+        } else if (this.gitClient instanceof JGitAPIImpl) {
+            mergeCommand = new JGitMergeCommand<JGitAPIImpl>((JGitAPIImpl) this.gitClient, this.consoleLogger);
         } else {
-            mergeCommand = new GenericMergeCommand<GitClient>(this.getGitClient(), this.consoleLogger);
+            mergeCommand = new GenericMergeCommand<GitClient>(this.gitClient, this.consoleLogger);
         }
 
         // Set the provided merge options.
@@ -172,7 +188,7 @@ public abstract class GitClientProxy {
      * @see GitClient#clean()
      */
     public void clean() throws InterruptedException {
-        this.getGitClient().clean();
+        this.gitClient.clean();
     }
 
     /**
@@ -182,7 +198,7 @@ public abstract class GitClientProxy {
      * @throws InterruptedException if the build is interrupted during execution.
      */
     public void deleteBranch(final String name) throws InterruptedException {
-        this.getGitClient().deleteBranch(name);
+        this.gitClient.deleteBranch(name);
     }
 
     /**
@@ -192,7 +208,7 @@ public abstract class GitClientProxy {
      * @throws InterruptedException if the build is interrupted during execution.
      */
     public Set<Branch> getBranches() throws InterruptedException {
-        return this.getGitClient().getBranches();
+        return this.gitClient.getBranches();
     }
 
     /**
@@ -206,7 +222,7 @@ public abstract class GitClientProxy {
      * @see GitClient#tag(String, String)
      */
     public void tag(final String tagName, final String comment) throws InterruptedException {
-        this.getGitClient().tag(tagName, comment);
+        this.gitClient.tag(tagName, comment);
     }
 
     /**
@@ -224,11 +240,11 @@ public abstract class GitClientProxy {
     public ObjectId getHeadRev(final String branch) throws InterruptedException {
         ObjectId headRev = null;
 
-        final String remoteUrl = this.getGitClient().getRemoteUrl("origin");
+        final String remoteUrl = this.gitClient.getRemoteUrl("origin");
         if (branch.startsWith("remotes/") || branch.startsWith("refs/heads/")) {
-            headRev = this.getGitClient().getHeadRev(remoteUrl, branch);
+            headRev = this.gitClient.getHeadRev(remoteUrl, branch);
         } else {
-            for (final Map.Entry<String, ObjectId> branchHeadRev : this.getGitClient().getHeadRev(remoteUrl).entrySet()) {
+            for (final Map.Entry<String, ObjectId> branchHeadRev : this.gitClient.getHeadRev(remoteUrl).entrySet()) {
                 final String branchName = StringUtils.removeStart(branchHeadRev.getKey(), "refs/heads/");
                 if (branchName.equals(branch)) {
                     headRev = branchHeadRev.getValue();

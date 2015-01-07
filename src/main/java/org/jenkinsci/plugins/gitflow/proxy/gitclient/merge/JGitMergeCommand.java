@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.gitflow.gitclient.merge;
+package org.jenkinsci.plugins.gitflow.proxy.gitclient.merge;
 
 import java.io.PrintStream;
 
@@ -8,6 +8,7 @@ import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.jenkinsci.plugins.gitclient.JGitAPIImpl;
+import org.jenkinsci.plugins.gitclient.MergeCommand.Strategy;
 
 import hudson.plugins.git.GitException;
 

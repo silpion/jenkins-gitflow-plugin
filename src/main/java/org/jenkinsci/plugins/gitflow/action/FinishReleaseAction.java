@@ -7,7 +7,7 @@ import java.io.IOException;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.cause.FinishReleaseCause;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxy;
+import org.jenkinsci.plugins.gitflow.proxy.gitclient.GitClientProxy;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;

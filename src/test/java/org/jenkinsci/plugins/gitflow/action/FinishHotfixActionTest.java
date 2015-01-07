@@ -17,15 +17,11 @@ import org.mockito.Mock;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import hudson.model.AbstractBuild;
-import hudson.plugins.git.GitSCM;
 
 @RunWith(PowerMockRunner.class)
 public class FinishHotfixActionTest extends AbstractGitflowActionTest<FinishHotfixAction<AbstractBuild<?, ?>>, FinishHotfixCause> {
 
     private FinishHotfixAction<AbstractBuild<?, ?>> testAction;
-
-    @Mock
-    private GitSCM scm;
 
     @Mock
     private AbstractBuildTypeAction<?> buildTypeAction;

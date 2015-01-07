@@ -7,8 +7,8 @@ import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildW
 import static org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause.IncludedAction.FINISH_RELEASE;
 import static org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause.IncludedAction.NONE;
 import static org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause.IncludedAction.START_HOTFIX;
-import static org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand.StrategyOption.OURS;
-import static org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand.StrategyOption.THEIRS;
+import static org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand.StrategyOption.OURS;
+import static org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand.StrategyOption.THEIRS;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -19,8 +19,8 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxy;
-import org.jenkinsci.plugins.gitflow.gitclient.merge.GenericMergeCommand.StrategyOption;
+import org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand.StrategyOption;
+import org.jenkinsci.plugins.gitflow.proxy.gitclient.GitClientProxy;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;

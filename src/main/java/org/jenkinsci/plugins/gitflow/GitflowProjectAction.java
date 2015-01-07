@@ -23,8 +23,7 @@ import org.jenkinsci.plugins.gitflow.cause.TestHotfixCause;
 import org.jenkinsci.plugins.gitflow.cause.TestReleaseCause;
 import org.jenkinsci.plugins.gitflow.data.GitflowPluginData;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxy;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxyFactory;
+import org.jenkinsci.plugins.gitflow.proxy.gitclient.GitClientProxy;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
@@ -150,7 +149,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
 
     private static GitClientProxy createGitClient(final AbstractProject<?, ?> job) {
         try {
-            return GitClientProxyFactory.newInstance(job.getLastBuild(), new StreamBuildListener(new NullStream()), false);
+            return new GitClientProxy(job.getLastBuild(), new StreamBuildListener(new NullStream()), false);
         } catch (final Exception ignored) {
             // NOTE that proper error handling for Git client problems is not possible here.
             // That's why exceptions are swallowed instead of being handled in any way.

@@ -11,7 +11,7 @@ import java.util.Map;
 import org.jenkinsci.plugins.gitflow.AbstractGitflowPluginTest;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxy;
+import org.jenkinsci.plugins.gitflow.proxy.gitclient.GitClientProxy;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

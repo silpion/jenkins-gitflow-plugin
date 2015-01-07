@@ -11,8 +11,7 @@ import org.jenkinsci.plugins.gitflow.cause.StartHotfixCause;
 import org.jenkinsci.plugins.gitflow.cause.StartReleaseCause;
 import org.jenkinsci.plugins.gitflow.cause.TestHotfixCause;
 import org.jenkinsci.plugins.gitflow.cause.TestReleaseCause;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxy;
-import org.jenkinsci.plugins.gitflow.gitclient.GitClientProxyFactory;
+import org.jenkinsci.plugins.gitflow.proxy.gitclient.GitClientProxy;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -32,7 +31,7 @@ public class GitflowActionFactory {
         final AbstractGitflowCause gitflowCause = build.getCause(AbstractGitflowCause.class);
 
         final boolean dryRun = gitflowCause != null && gitflowCause.isDryRun();
-        final GitClientProxy git = GitClientProxyFactory.newInstance(build, listener, dryRun);
+        final GitClientProxy git = new GitClientProxy(build, listener, dryRun);
 
         // The action to be created depends on the cause.
         if (gitflowCause == null) {
