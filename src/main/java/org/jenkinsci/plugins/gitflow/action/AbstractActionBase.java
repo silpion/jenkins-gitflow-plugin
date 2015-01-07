@@ -5,6 +5,7 @@ import java.util.Formatter;
 
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.model.Result;
 
 /**
  * Abstract base class for the any kind of action.
@@ -43,5 +44,22 @@ public abstract class AbstractActionBase<B extends AbstractBuild<?, ?>> {
      */
     protected static String formatPattern(final String messageFormat, final Object... messageArguments) {
         return new Formatter().format(messageFormat, messageArguments).toString();
+    }
+
+    /**
+     * Returns the result of the build that is in progress. When an error occurs in an early state
+     * of the build, {@link hudson.model.Run#getResult()} may return {@code null}. In those cases,
+     * <b>this</b> method will return {@link Result#FAILURE}.
+     *
+     * @return the result of the build that is in progress
+     * @see hudson.model.Run#getResult()
+     */
+    protected Result getBuildResultNonNull() {
+        final Result result = this.build.getResult();
+        if (result == null) {
+            return Result.FAILURE;
+        } else {
+            return result;
+        }
     }
 }

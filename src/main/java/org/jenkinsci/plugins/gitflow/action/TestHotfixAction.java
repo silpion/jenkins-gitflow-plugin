@@ -127,6 +127,6 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
         // Here we assume that there was an error on the hotfix branch right before executed this action.
         String hotfixBranch = gitflowCause.getHotfixBranch();
         RemoteBranch remoteBranch = gitflowPluginData.getRemoteBranch(hotfixBranch);
-        remoteBranch.setLastBuildResult(build.getResult());
+        remoteBranch.setLastBuildResult(this.getBuildResultNonNull());
     }
 }

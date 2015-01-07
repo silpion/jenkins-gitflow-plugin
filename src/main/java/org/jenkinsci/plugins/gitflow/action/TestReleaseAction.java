@@ -126,7 +126,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
         // Here we assume that there was an error on the release branch right before exetuted this action.
         final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getRemoteBranch(this.gitflowCause.getReleaseBranch());
-        remoteBranchRelease.setLastBuildResult(this.build.getResult());
+        remoteBranchRelease.setLastBuildResult(this.getBuildResultNonNull());
         remoteBranchRelease.setLastBuildVersion(remoteBranchRelease.getLastBuildVersion());
     }
 }

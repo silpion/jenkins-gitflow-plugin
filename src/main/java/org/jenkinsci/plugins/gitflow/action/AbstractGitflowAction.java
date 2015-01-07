@@ -157,7 +157,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
         this.afterMainBuildInternal();
 
         // Mark successful build as unstable if there are unstable branches.
-        final Result buildResult = this.build.getResult();
+        final Result buildResult = this.getBuildResultNonNull();
         if (buildResult.isBetterThan(Result.UNSTABLE) && getGitflowBuildWrapperDescriptor().isMarkSuccessfulBuildUnstableOnBrokenBranches()) {
             final Map<Result, Collection<RemoteBranch>> unstableBranchesGroupedByResult = this.gitflowPluginData.getUnstableRemoteBranchesGroupedByResult();
             if (MapUtils.isNotEmpty(unstableBranchesGroupedByResult)) {
