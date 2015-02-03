@@ -3,12 +3,13 @@
   <disabledAdministrativeMonitors>
     <string>jenkins.diagnostics.SecurityIsOffMonitor</string>
   </disabledAdministrativeMonitors>
-  <version>1.532.1</version>
+  <version>1.573</version>
   <numExecutors>2</numExecutors>
   <mode>NORMAL</mode>
   <useSecurity>true</useSecurity>
   <authorizationStrategy class="hudson.security.AuthorizationStrategy$Unsecured"/>
   <securityRealm class="hudson.security.SecurityRealm$None"/>
+  <disableRememberMe>false</disableRememberMe>
   <projectNamingStrategy class="jenkins.model.ProjectNamingStrategy$DefaultProjectNamingStrategy"/>
   <workspaceDir>${JENKINS_HOME}/workspace/${ITEM_FULLNAME}</workspaceDir>
   <buildsDir>${ITEM_ROOTDIR}/builds</buildsDir>
