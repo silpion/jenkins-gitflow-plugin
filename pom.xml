@@ -108,6 +108,12 @@
             <version>1.7.0</version>
         </dependency>
         <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>gradle</artifactId>
+            <version>1.24</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>org.jenkins-ci.main</groupId>
             <artifactId>maven-plugin</artifactId>
             <version>2.5</version>
@@ -196,8 +202,9 @@
                                 </goals>
                                 <configuration>
                                     <target>
-                                        <untar src="${project.basedir}/src/dev/assets/work/git-remote/testrepo.git.tgz" compression="gzip"
-                                            dest="${jenkinsHome}/git-remote" />
+                                        <untar dest="${jenkinsHome}/git-remote" compression="gzip">
+                                            <fileset dir="${project.basedir}/src/dev/assets/work/git-remote" includes="*.git.tgz" />
+                                        </untar>
                                     </target>
                                 </configuration>
                             </execution>
@@ -228,7 +235,7 @@
                                             <filtering>true</filtering>
                                             <includes>
                                                 <include>jobs/*/config.xml</include>
-                                                <include>hudson.tasks.Maven.xml</include>
+                                                <include>hudson.*.xml</include>
                                             </includes>
                                         </resource>
                                     </resources>
