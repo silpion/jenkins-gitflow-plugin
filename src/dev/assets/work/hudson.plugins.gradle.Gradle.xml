@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<hudson.plugins.gradle.Gradle_-DescriptorImpl>
+  <installations>
+    <hudson.plugins.gradle.GradleInstallation>
+      <name>Gradle (default)</name>
+      <home>${env.GRADLE_HOME}</home>
+      <properties/>
+      <gradleHome>${env.GRADLE_HOME}</gradleHome>
+    </hudson.plugins.gradle.GradleInstallation>
+  </installations>
+</hudson.plugins.gradle.Gradle_-DescriptorImpl>
