@@ -13,7 +13,7 @@ import org.jenkinsci.plugins.gitflow.proxy.gitclient.GitClientProxy;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
-import hudson.plugins.git.GitTagAction;
+import hudson.plugins.git.Branch;
 
 /**
  * This class executes some actions that are required when the <i>Gitflow</i> plugin is configured for a project and the standard (non-Gitflow) job is started.
@@ -53,7 +53,7 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
     protected void beforeMainBuildInternal() throws IOException, InterruptedException {
 
         // Add environment and property variables
-        final String remoteBranchName = this.build.getAction(GitTagAction.class).getTags().keySet().iterator().next();
+        final String remoteBranchName = this.getBranchesForCurrentlyBuiltCommit().iterator().next().getName();
         final String simpleBranchName = StringUtils.split(remoteBranchName, "/", 2)[1];
         this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", simpleBranchName);
         this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", remoteBranchName);
@@ -65,13 +65,17 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
     protected void afterMainBuildInternal() throws IOException, InterruptedException {
 
         // Record the data about the Gitflow branches that have been built.
-        final Collection<String> remoteBranchNames = this.build.getAction(GitTagAction.class).getTags().keySet();
-        for (final String remoteBranchName : remoteBranchNames) {
-            final String[] remoteBranchNameTokens = StringUtils.split(remoteBranchName, "/", 2);
+        for (final Branch builtBranch : this.getBranchesForCurrentlyBuiltCommit()) {
+            final String builtBranchName = StringUtils.split(builtBranch.getName(), "/", 2)[1];
 
-            final RemoteBranch remoteBranch = this.gitflowPluginData.getOrAddRemoteBranch(remoteBranchNameTokens[1]);
+            final RemoteBranch remoteBranch = this.gitflowPluginData.getOrAddRemoteBranch(builtBranchName);
             remoteBranch.setLastBuildResult(this.getBuildResultNonNull());
             remoteBranch.setLastBuildVersion(this.buildTypeAction.getCurrentVersion());
         }
+    }
+
+    private Collection<Branch> getBranchesForCurrentlyBuiltCommit() throws IOException, InterruptedException {
+        final String gitCommit = this.build.getEnvironment(this.listener).get("GIT_COMMIT");
+        return this.git.getRemoteBranchesForCommit(gitCommit);
     }
 }
