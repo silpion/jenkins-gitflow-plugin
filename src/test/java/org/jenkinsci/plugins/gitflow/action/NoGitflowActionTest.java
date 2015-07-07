@@ -1,21 +1,23 @@
 package org.jenkinsci.plugins.gitflow.action;
 
-import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.when;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.gitflow.cause.NoGitflowCause;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import hudson.EnvVars;
 import hudson.model.AbstractBuild;
-import hudson.plugins.git.GitTagAction;
+import hudson.plugins.git.Branch;
 
 /**
  * Unit tests for the {@link NoGitflowAction} class.
@@ -43,13 +45,17 @@ public class NoGitflowActionTest extends AbstractGitflowActionTest<NoGitflowActi
 
     /** {@inheritDoc} */
     @Override
-    protected Map<String, String> setUpTestGetAdditionalBuildEnvVars() throws InterruptedException {
+    protected Map<String, String> setUpTestGetAdditionalBuildEnvVars() throws InterruptedException, IOException {
         final Map<String, String> expectedAdditionalBuildEnvVars = new HashMap<String, String>();
 
+        // Set build environment with Git commit.
+        final EnvVars environment = new EnvVars();
+        final ObjectId gitCommitId = ObjectId.zeroId();
+        environment.put("GIT_COMMIT", gitCommitId.getName());
+
         // Mock relevant method calls.
-        final GitTagAction gitTagAction = mock(GitTagAction.class);
-        when(this.build.getAction(GitTagAction.class)).thenReturn(gitTagAction);
-        when(gitTagAction.getTags()).thenReturn(Collections.<String, List<String>>singletonMap("origin/develop", null));
+        when(this.build.getEnvironment(this.listener)).thenReturn(environment);
+        when(this.git.getRemoteBranchesForCommit(anyString())).thenReturn(Collections.singleton(new Branch("origin/develop", gitCommitId)));
         when(this.gitflowBuildWrapperDescriptor.getBranchType("develop")).thenReturn("develop");
 
         // Define expectations.
