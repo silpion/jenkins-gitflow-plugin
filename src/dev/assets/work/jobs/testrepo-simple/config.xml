@@ -44,9 +44,6 @@
   </builders>
   <publishers/>
   <buildWrappers>
-    <org.jenkinsci.plugins.gitflow.GitflowBuildWrapper plugin="${project.artifactId}@${project.version}">
-      <currentVersionFile>version.txt</currentVersionFile>
-      <updateVersionCommand>echo &quot;$GITFLOW_PROJECT_NEW_VERSION&quot; &gt; version.txt</updateVersionCommand>
-    </org.jenkinsci.plugins.gitflow.GitflowBuildWrapper>
+    <org.jenkinsci.plugins.gitflow.GitflowBuildWrapper plugin="${project.artifactId}@${project.version}"/>
   </buildWrappers>
 </project>

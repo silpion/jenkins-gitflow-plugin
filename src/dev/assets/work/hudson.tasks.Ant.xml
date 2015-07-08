@@ -2,8 +2,8 @@
 <hudson.tasks.Ant_-DescriptorImpl plugin="ant@1.2">
   <installations>
     <hudson.tasks.Ant_-AntInstallation>
-      <name>Ant Default</name>
-      <home>/opt/apache-ant-default</home>
+      <name>Ant (default)</name>
+      <home>${env.ANT_HOME}</home>
       <properties/>
     </hudson.tasks.Ant_-AntInstallation>
   </installations>
