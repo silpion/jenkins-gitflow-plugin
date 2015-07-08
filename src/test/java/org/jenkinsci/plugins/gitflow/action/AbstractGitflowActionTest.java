@@ -6,6 +6,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.Map;
 
 import org.jenkinsci.plugins.gitflow.AbstractGitflowPluginTest;
@@ -100,5 +101,5 @@ public abstract class AbstractGitflowActionTest<A extends AbstractGitflowAction<
      *
      * @return a map containing the expected build environment variables.
      */
-    protected abstract Map<String, String> setUpTestGetAdditionalBuildEnvVars() throws InterruptedException;
+    protected abstract Map<String, String> setUpTestGetAdditionalBuildEnvVars() throws InterruptedException, IOException;
 }

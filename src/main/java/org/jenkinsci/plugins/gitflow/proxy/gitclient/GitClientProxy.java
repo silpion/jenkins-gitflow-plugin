@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.gitflow.proxy.gitclient;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
+import java.util.Collection;
 import java.util.Formatter;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +21,9 @@ import org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.CliGitMergeCommand;
 import org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand;
 import org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand.StrategyOption;
 import org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.JGitMergeCommand;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
@@ -209,6 +213,27 @@ public class GitClientProxy {
      */
     public Set<Branch> getBranches() throws InterruptedException {
         return this.gitClient.getBranches();
+    }
+
+    /**
+     * Returns the existing remote branches for the specified commit ref.
+     *
+     * @param commitRef the commit ref to get the remote branches for.
+     * @return the existing remote branches for the specified commit ref.
+     * @throws InterruptedException if the build is interrupted during execution.
+     */
+    public Collection<Branch> getRemoteBranchesForCommit(final String commitRef) throws InterruptedException {
+        final Collection<Branch> remoteBranchesForCommit;
+
+        final Set<Branch> remoteBranches = this.gitClient.getRemoteBranches();
+        remoteBranchesForCommit = Collections2.filter(remoteBranches, new Predicate<Branch>() {
+
+            public boolean apply(final Branch input) {
+                return StringUtils.equals(commitRef, input.getSHA1String());
+            }
+        });
+
+        return remoteBranchesForCommit;
     }
 
     /**
