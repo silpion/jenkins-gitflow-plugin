@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<maven2-moduleset plugin="maven-plugin@2.5">
+<project>
   <actions/>
   <description></description>
   <logRotator class="hudson.tasks.LogRotator">
@@ -14,7 +14,7 @@
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>file:///${jenkinsHome}/git-remote/testrepo-maven.git</url>
+        <url>file://${jenkinsHome}/git-remote/testrepo-maven.git</url>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
@@ -37,41 +37,17 @@
     </hudson.triggers.SCMTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
-  <rootModule>
-    <groupId>de.silpion.jenkins.gitflow.testrepo</groupId>
-    <artifactId>parent</artifactId>
-  </rootModule>
-  <aggregatorStyleBuild>true</aggregatorStyleBuild>
-  <incrementalBuild>false</incrementalBuild>
-  <ignoreUpstremChanges>false</ignoreUpstremChanges>
-  <archivingDisabled>false</archivingDisabled>
-  <siteArchivingDisabled>false</siteArchivingDisabled>
-  <fingerprintingDisabled>false</fingerprintingDisabled>
-  <resolveDependencies>false</resolveDependencies>
-  <processPlugins>false</processPlugins>
-  <mavenValidationLevel>-1</mavenValidationLevel>
-  <runHeadless>false</runHeadless>
-  <disableTriggerDownstreamProjects>false</disableTriggerDownstreamProjects>
-  <settings class="jenkins.mvn.DefaultSettingsProvider"/>
-  <globalSettings class="jenkins.mvn.DefaultGlobalSettingsProvider"/>
-  <reporters/>
-  <publishers>
-    <hudson.maven.RedeployPublisher>
-      <id></id>
-      <uniqueVersion>true</uniqueVersion>
-      <evenIfUnstable>false</evenIfUnstable>
-      <releaseEnvVar>skipDeployment</releaseEnvVar>
-    </hudson.maven.RedeployPublisher>
-  </publishers>
+  <builders>
+    <hudson.tasks.Maven>
+      <targets>clean install</targets>
+      <mavenName>Maven (default)</mavenName>
+      <usePrivateRepository>false</usePrivateRepository>
+      <settings class="jenkins.mvn.DefaultSettingsProvider"/>
+      <globalSettings class="jenkins.mvn.DefaultGlobalSettingsProvider"/>
+    </hudson.tasks.Maven>
+  </builders>
+  <publishers/>
   <buildWrappers>
     <org.jenkinsci.plugins.gitflow.GitflowBuildWrapper plugin="${project.artifactId}@${project.version}"/>
   </buildWrappers>
-  <prebuilders/>
-  <postbuilders/>
-  <runPostStepsIfResult>
-    <name>FAILURE</name>
-    <ordinal>2</ordinal>
-    <color>RED</color>
-    <completeBuild>true</completeBuild>
-  </runPostStepsIfResult>
-</maven2-moduleset>
+</project>
