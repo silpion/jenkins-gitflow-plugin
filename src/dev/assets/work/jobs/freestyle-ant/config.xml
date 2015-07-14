@@ -14,7 +14,7 @@
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>file:///${jenkinsHome}/git-remote/testrepo-ant.git</url>
+        <url>file://${jenkinsHome}/git-remote/testrepo-ant.git</url>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
