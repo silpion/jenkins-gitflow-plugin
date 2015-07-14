@@ -125,7 +125,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
                         } else if ("release".equals(branchType)) {
                             final ReleaseBranchCauseGroup releaseBranchCauseGroup = new ReleaseBranchCauseGroup(remoteBranch);
                             this.releaseBranchCauseGroupsByVersion.put(releaseBranchCauseGroup.getReleaseVersion(), releaseBranchCauseGroup);
-                        } else if ("master".equals(branchType)) {
+                        } else if ("master".equals(branchType) && remoteBranch.getBaseReleaseVersion() != null) {
                             // When the master branch has a snapshot version, we assume an initial commit and not a published release.
                             if (!StringUtils.endsWith(remoteBranch.getLastBuildVersion(), "-SNAPSHOT")) {
                                 this.startHotfixCause = new StartHotfixCause(remoteBranch);
