@@ -81,7 +81,7 @@ public class GitflowProjectActionTest extends AbstractGitflowPluginTest {
     public void testConstructorForStartHotfixCause() {
 
         // When a master branch exists, a StartHotfixCause must be created.
-        when(this.gitflowPluginData.getRemoteBranches()).thenReturn(Collections.singletonList(createRemoteBranch("master", null, null, null)));
+        when(this.gitflowPluginData.getRemoteBranches()).thenReturn(Collections.singletonList(createRemoteBranch("master", "1.0", "1.0", "1.0")));
         assertNotNull(new GitflowProjectAction(this.job).getStartHotfixCause());
 
         // No master branch, no StartHotfixCause.
@@ -119,7 +119,7 @@ public class GitflowProjectActionTest extends AbstractGitflowPluginTest {
     @Test
     public void testDoSubmitStartHotfixCause() throws Exception {
 
-        when(this.gitflowPluginData.getRemoteBranches()).thenReturn(Collections.singletonList(createRemoteBranch("master", null, null, null)));
+        when(this.gitflowPluginData.getRemoteBranches()).thenReturn(Collections.singletonList(createRemoteBranch("master", "1.1", "1.1", "1.1")));
 
         final JSONObject actionObject = new JSONObject();
         actionObject.element(KEY_VALUE, "startHotfix");
