@@ -4,8 +4,6 @@ import java.io.Serializable;
 
 import org.eclipse.jgit.lib.ObjectId;
 
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
-
 import hudson.model.Result;
 
 /**
@@ -17,7 +15,6 @@ public class RemoteBranch implements Serializable, Cloneable, Comparable<RemoteB
 
     private static final long serialVersionUID = -405556788597424146L;
 
-    @XStreamAsAttribute
     private final String branchName;
 
     private Result lastBuildResult;
