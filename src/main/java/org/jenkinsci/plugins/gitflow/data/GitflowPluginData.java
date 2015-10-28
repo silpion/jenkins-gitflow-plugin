@@ -65,7 +65,13 @@ public class GitflowPluginData implements Action, Serializable, Cloneable {
     /** {@inheritDoc} */
     @Override
     public GitflowPluginData clone() throws CloneNotSupportedException {
-        return (GitflowPluginData) super.clone();
+        final GitflowPluginData clone = new GitflowPluginData();
+        for (final RemoteBranch remoteBranch : this.remoteBranches) {
+            if (remoteBranch.getBranchName() != null) {
+                clone.remoteBranches.add(remoteBranch.clone());
+            }
+        }
+        return clone;
     }
 
     /**
