@@ -9,6 +9,8 @@ import hudson.model.Cause;
  */
 public abstract class AbstractGitflowCause extends Cause {
 
+    protected static final String MAVEN_SNAPSHOT_VERSION_SUFFIX = "-SNAPSHOT";
+
     private boolean dryRun;
 
     @Override
