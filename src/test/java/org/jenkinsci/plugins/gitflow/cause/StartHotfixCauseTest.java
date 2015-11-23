@@ -36,7 +36,7 @@ public class StartHotfixCauseTest extends AbstractGitflowPluginTest {
     @Test
     public void testConstructorForPublishedFixesReleaseVersion() throws Exception {
         assertEquals("1.0.1", new StartHotfixCause(createRemoteBranch("1.0", "1.0.1")).getPublishedPatchReleaseVersion());
-        assertEquals("1.0", new StartHotfixCause(createRemoteBranch("1.0", "1.0")).getPublishedPatchReleaseVersion());
+        assertEquals("1.0.0", new StartHotfixCause(createRemoteBranch("1.0", "1.0")).getPublishedPatchReleaseVersion());
         assertEquals("1.5.99", new StartHotfixCause(createRemoteBranch("1.5", "1.5.99")).getPublishedPatchReleaseVersion());
     }
 
