@@ -1,8 +1,10 @@
 package org.jenkinsci.plugins.gitflow.cause;
 
+import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
+
 import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
+import org.semver.Version;
 
 /**
  * The {@link hudson.model.Cause Cause} object for the <i>Start Hotfix</i> action to be executed.
@@ -22,26 +24,24 @@ public class StartHotfixCause extends AbstractGitflowCause {
      * @param masterBranch the <i>develop</i> branch containing base data for the cause.
      */
     public StartHotfixCause(final RemoteBranch masterBranch) {
-        assert "master".equals(GitflowBuildWrapper.getGitflowBuildWrapperDescriptor().getBranchType(masterBranch.getBranchName()));
+        assert "master".equals(getGitflowBuildWrapperDescriptor().getBranchType(masterBranch.getBranchName()));
 
-        this.hotfixVersion = masterBranch.getBaseReleaseVersion();
-        this.publishedPatchReleaseVersion = masterBranch.getLastReleaseVersion();
+        final Version semverLastReleaseVersion = Version.parse(masterBranch.getLastReleaseVersion());
+        this.publishedPatchReleaseVersion = semverLastReleaseVersion.toString();
+        this.hotfixVersion = StringUtils.substringBeforeLast(this.publishedPatchReleaseVersion, ".");
 
-        final int patchVersion;
-        if (StringUtils.equals(this.publishedPatchReleaseVersion, this.hotfixVersion)) {
-            patchVersion = 1;
-        } else {
-            final String previousPatchVersion = StringUtils.removeStart(this.publishedPatchReleaseVersion, this.hotfixVersion + ".");
-            patchVersion = Integer.valueOf(previousPatchVersion).intValue() + 1;
-        }
-
-        this.nextPatchDevelopmentVersion = this.hotfixVersion + "." + patchVersion + "-SNAPSHOT";
+        // Unfortunately the Semantic Versioning library (currently) cannot add the SNAPSHOT version suffix itself.
+        this.nextPatchDevelopmentVersion = semverLastReleaseVersion.next(Version.Element.PATCH) + MAVEN_SNAPSHOT_VERSION_SUFFIX;
     }
 
     /** {@inheritDoc} */
     @Override
     public String getVersionForBadge() {
         return this.hotfixVersion;
+    }
+
+    public String getHotfixBranch() {
+        return getGitflowBuildWrapperDescriptor().getHotfixBranchPrefix() + this.hotfixVersion;
     }
 
     public String getHotfixVersion() {

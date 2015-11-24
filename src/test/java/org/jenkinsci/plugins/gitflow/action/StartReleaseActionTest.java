@@ -45,6 +45,7 @@ public class StartReleaseActionTest extends AbstractGitflowActionTest<StartRelea
 
         // Mock relevant method calls.
         when(this.cause.getReleaseVersion()).thenReturn("1.0");
+        when(this.cause.getReleaseBranch()).thenReturn("release/1.0");
         when(this.gitflowBuildWrapperDescriptor.getReleaseBranchPrefix()).thenReturn("release/");
         when(this.gitflowBuildWrapperDescriptor.getBranchType(startsWith("release/"))).thenReturn("release");
 

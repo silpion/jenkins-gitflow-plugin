@@ -57,7 +57,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         // Create a new release branch based on the develop branch.
         final GitflowBuildWrapper.DescriptorImpl buildWrapperDescriptor = getGitflowBuildWrapperDescriptor();
         final String releaseVersion = this.gitflowCause.getReleaseVersion();
-        final String releaseBranch = buildWrapperDescriptor.getReleaseBranchPrefix() + releaseVersion;
+        final String releaseBranch = this.gitflowCause.getReleaseBranch();
         this.git.checkoutBranch(releaseBranch, "origin/" + buildWrapperDescriptor.getDevelopBranch());
         this.consoleLogger.printf(MSG_PATTERN_CREATED_RELEASE_BRANCH, ACTION_NAME, releaseBranch);
 
@@ -88,12 +88,11 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
     private void afterSuccessfulMainBuild() throws IOException, InterruptedException {
 
         // Push the new release branch to the remote repo.
-        final String releaseVersion = this.gitflowCause.getReleaseVersion();
-        final GitflowBuildWrapper.DescriptorImpl buildWrapperDescriptor = getGitflowBuildWrapperDescriptor();
-        final String releaseBranch = buildWrapperDescriptor.getReleaseBranchPrefix() + releaseVersion;
+        final String releaseBranch = this.gitflowCause.getReleaseBranch();
         this.git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
 
         // Record the information on the currently stable version on the release branch.
+        final String releaseVersion = this.gitflowCause.getReleaseVersion();
         final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getOrAddRemoteBranch(releaseBranch);
         remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
         remoteBranchRelease.setLastBuildVersion(releaseVersion);
@@ -102,6 +101,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev(releaseBranch));
 
         // Create a tag for the release version.
+        final GitflowBuildWrapper.DescriptorImpl buildWrapperDescriptor = getGitflowBuildWrapperDescriptor();
         final String tagName = buildWrapperDescriptor.getVersionTagPrefix() + releaseVersion;
         final String msgCreatedReleaseTag = formatPattern(MSG_PATTERN_CREATED_RELEASE_TAG, ACTION_NAME, tagName);
         this.git.tag(tagName, msgCreatedReleaseTag);

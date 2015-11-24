@@ -120,6 +120,17 @@
         </dependency>
 
         <dependency>
+            <groupId>org.semver</groupId>
+            <artifactId>api</artifactId>
+            <version>0.9.33</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.4</version>
@@ -160,6 +171,21 @@
 
     <build>
         <plugins>
+
+            <!-- https://maven.apache.org/enforcer/maven-enforcer-plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>1.4.1</version>
+                <configuration>
+                    <rules>
+                        <requireMavenVersion>
+                            <version>3.2.1</version>
+                            <message>***** At least Maven version 3.2.1 is required, because this project uses wildcard exclusions for transitive dependencies! *****</message>
+                        </requireMavenVersion>
+                    </rules>
+                </configuration>
+            </plugin>
 
             <!-- http://maven.apache.org/plugins/maven-failsafe-plugin -->
             <plugin>

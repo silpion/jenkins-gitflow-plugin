@@ -1,7 +1,7 @@
 package org.jenkinsci.plugins.gitflow.cause;
 
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
+import org.semver.Version;
 
 /**
  * The {@link hudson.model.Cause Cause} object for the <i>Test Hotfix</i> action to be executed.
@@ -21,11 +21,11 @@ public class TestHotfixCause extends AbstractHotfixBranchCause {
     public TestHotfixCause(final RemoteBranch hotfixBranch) {
         super(hotfixBranch);
 
-        this.patchReleaseVersion = StringUtils.removeEnd(hotfixBranch.getLastBuildVersion(), "-SNAPSHOT");
+        final Version semverPatchReleaseVersion = Version.parse(hotfixBranch.getLastBuildVersion()).toReleaseVersion();
+        this.patchReleaseVersion = semverPatchReleaseVersion.toString();
 
-        final String baseVersion = StringUtils.substringBeforeLast(this.patchReleaseVersion, ".");
-        final int newPatchNumber = Integer.valueOf(StringUtils.substringAfterLast(this.patchReleaseVersion, ".")).intValue() + 1;
-        this.nextPatchDevelopmentVersion = baseVersion + "." + newPatchNumber + "-SNAPSHOT";
+        // Unfortunately the Semantic Versioning library (currently) cannot add the SNAPSHOT version suffix itself.
+        this.nextPatchDevelopmentVersion = semverPatchReleaseVersion.next(Version.Element.PATCH) + MAVEN_SNAPSHOT_VERSION_SUFFIX;
     }
 
     @Override

@@ -1,8 +1,10 @@
 package org.jenkinsci.plugins.gitflow.cause;
 
+import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
+
 import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
+import org.semver.Version;
 
 /**
  * The {@link hudson.model.Cause Cause} object for the <i>Start Release</i> action to be executed.
@@ -21,20 +23,23 @@ public class StartReleaseCause extends AbstractGitflowCause {
      * @param developBranch the <i>develop</i> branch containing base data for the cause.
      */
     public StartReleaseCause(final RemoteBranch developBranch) {
-        assert "develop".equals(GitflowBuildWrapper.getGitflowBuildWrapperDescriptor().getBranchType(developBranch.getBranchName()));
+        assert "develop".equals(getGitflowBuildWrapperDescriptor().getBranchType(developBranch.getBranchName()));
 
-        this.releaseVersion = StringUtils.removeEnd(developBranch.getLastBuildVersion(), "-SNAPSHOT");
-        this.nextPatchDevelopmentVersion = this.releaseVersion + ".1-SNAPSHOT";
+        final Version semverReleaseVersion = Version.parse(developBranch.getLastBuildVersion()).toReleaseVersion();
+        this.releaseVersion = semverReleaseVersion.toString();
 
-        final String majorVersion = StringUtils.substringBeforeLast(this.releaseVersion, ".");
-        final String latestMinorVersion = StringUtils.substringAfterLast(this.releaseVersion, ".");
-        final int nextMinorVersion = Integer.valueOf(latestMinorVersion).intValue() + 1;
-        this.nextReleaseDevelopmentVersion = majorVersion + "." + nextMinorVersion + "-SNAPSHOT";
+        // Unfortunately the Semantic Versioning library (currently) cannot add the SNAPSHOT version suffix itself.
+        this.nextPatchDevelopmentVersion = semverReleaseVersion.next(Version.Element.PATCH).toString() + MAVEN_SNAPSHOT_VERSION_SUFFIX;
+        this.nextReleaseDevelopmentVersion = semverReleaseVersion.next(Version.Element.MINOR).toString() + MAVEN_SNAPSHOT_VERSION_SUFFIX;
     }
 
     @Override
     public String getVersionForBadge() {
         return this.releaseVersion;
+    }
+
+    public String getReleaseBranch() {
+        return getGitflowBuildWrapperDescriptor().getReleaseBranchPrefix() + StringUtils.substringBeforeLast(this.releaseVersion, ".");
     }
 
     public String getReleaseVersion() {

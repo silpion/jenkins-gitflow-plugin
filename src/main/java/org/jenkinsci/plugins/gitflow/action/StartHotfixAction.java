@@ -51,7 +51,7 @@ public class StartHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
     protected void beforeMainBuildInternal() throws IOException, InterruptedException {
 
         // Create a new hotfix branch based on the master branch.
-        final String hotfixBranch = getGitflowBuildWrapperDescriptor().getHotfixBranchPrefix() + this.gitflowCause.getHotfixVersion();
+        final String hotfixBranch = this.gitflowCause.getHotfixBranch();
         final String masterBranch = getGitflowBuildWrapperDescriptor().getMasterBranch();
         this.createBranch(hotfixBranch, masterBranch);
 
