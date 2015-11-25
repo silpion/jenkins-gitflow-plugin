@@ -96,7 +96,7 @@ public class TestHotfixIT {
         gitClient.clone(gitRepro.getAbsolutePath(), "origin", false, null);
         Map<String, Branch> branches = getAllBranches(gitClient);
 
-        assertThat(branches.keySet(), containsInAnyOrder("origin/hotfix/1.0", "origin/master", "origin/develop", "master"));
+        assertThat(branches.keySet(), containsInAnyOrder("origin/hotfix/1.0", "origin/master", "origin/develop"));
 
         gitClient.checkoutBranch("hotfix/foobar3", branches.get("origin/hotfix/1.0").getSHA1String());
         this.checkMultiModuleProject(repository, "1.0.3-SNAPSHOT", 4);
@@ -139,7 +139,7 @@ public class TestHotfixIT {
         gitClient.clone(gitRepro.getAbsolutePath(), "origin", false, null);
         Map<String, Branch> branches = getAllBranches(gitClient);
 
-        assertThat(branches.keySet(), containsInAnyOrder("origin/hotfix/1.0", "origin/master", "origin/develop", "master"));
+        assertThat(branches.keySet(), containsInAnyOrder("origin/hotfix/1.0", "origin/master", "origin/develop"));
 
         gitClient.checkoutBranch("hotfix/foobar3", branches.get("origin/hotfix/1.0").getSHA1String());
         checkMultiModuleProject(repository, "1.0.3-SNAPSHOT", 4);
@@ -183,7 +183,7 @@ public class TestHotfixIT {
         gitClient.clone(gitRepro.getAbsolutePath(), "origin", false, null);
         Map<String, Branch> branches = getAllBranches(gitClient);
 
-        assertThat(branches.keySet(), containsInAnyOrder("origin/hotfix/1.0", "origin/master", "origin/develop", "master"));
+        assertThat(branches.keySet(), containsInAnyOrder("origin/hotfix/1.0", "origin/master", "origin/develop"));
 
         gitClient.checkoutBranch("hotfix/foobar3", branches.get("origin/hotfix/1.0").getSHA1String());
         checkMultiModuleProject(repository, "1.0.2-SNAPSHOT", 4);

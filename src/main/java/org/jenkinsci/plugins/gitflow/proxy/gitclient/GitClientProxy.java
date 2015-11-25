@@ -41,11 +41,11 @@ import jenkins.model.Jenkins;
  */
 public class GitClientProxy {
 
+    public static final VersionNumber MINIMAL_VERSION_NUMBER = new VersionNumber("1.11.1");
+
     private static final String MSG_PATTERN_PUSHED_TO_REMOTE = "Gitflow - %s: Pushed to %s using refspec %s%n";
     private static final String MSG_PATTERN_PUSH_OMITTED_DUE_TO_DRY_RUN = "Gitflow - %s (dry run): Omitted push to %s using refspec %s%n";
     private static final String MSG_PATTERN_UNSUPPORTED_PLUGIN_VERSION = "Gitflow plugin requires at least Git Client plugin version %s. Currently installed version is %s%n";
-
-    private static final VersionNumber VERSION_NUMBER_17 = new VersionNumber("1.7.0");
 
     private final GitClient gitClient;
 
@@ -70,8 +70,8 @@ public class GitClientProxy {
 
         // Verify that the minimal required version of the Git Client plugin is installed.
         final VersionNumber gitClientPluginVersion = Jenkins.getInstance().getPlugin("git-client").getWrapper().getVersionNumber();
-        if (gitClientPluginVersion.isOlderThan(VERSION_NUMBER_17)) {
-            final String message = new Formatter().format(MSG_PATTERN_UNSUPPORTED_PLUGIN_VERSION, VERSION_NUMBER_17, gitClientPluginVersion).toString();
+        if (gitClientPluginVersion.isOlderThan(MINIMAL_VERSION_NUMBER)) {
+            final String message = new Formatter().format(MSG_PATTERN_UNSUPPORTED_PLUGIN_VERSION, MINIMAL_VERSION_NUMBER, gitClientPluginVersion).toString();
             throw new IOException(message);
         }
     }

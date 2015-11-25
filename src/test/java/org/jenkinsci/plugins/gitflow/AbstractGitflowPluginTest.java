@@ -4,6 +4,7 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
+import org.jenkinsci.plugins.gitflow.proxy.gitclient.GitClientProxy;
 import org.junit.Before;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -54,7 +55,7 @@ public abstract class AbstractGitflowPluginTest {
         final PluginWrapper gitClientPluginWrapper = mock(PluginWrapper.class);
         when(this.jenkins.getPlugin("git-client")).thenReturn(gitClientPlugin);
         when(gitClientPlugin.getWrapper()).thenReturn(gitClientPluginWrapper);
-        when(gitClientPluginWrapper.getVersionNumber()).thenReturn(new VersionNumber("1.7.0"));
+        when(gitClientPluginWrapper.getVersionNumber()).thenReturn(GitClientProxy.MINIMAL_VERSION_NUMBER);
     }
 
     /**
