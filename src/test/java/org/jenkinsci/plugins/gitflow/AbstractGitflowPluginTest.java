@@ -4,6 +4,7 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
+import org.jenkinsci.plugins.gitflow.proxy.git.GitSCMProxy;
 import org.jenkinsci.plugins.gitflow.proxy.gitclient.GitClientProxy;
 import org.junit.Before;
 import org.mockito.Mock;
@@ -13,7 +14,6 @@ import hudson.Plugin;
 import hudson.PluginWrapper;
 import hudson.model.Descriptor;
 import hudson.model.Executor;
-import hudson.util.VersionNumber;
 
 import jenkins.model.Jenkins;
 
@@ -48,7 +48,7 @@ public abstract class AbstractGitflowPluginTest {
         final PluginWrapper gitPluginWrapper = mock(PluginWrapper.class);
         when(this.jenkins.getPlugin("git")).thenReturn(gitPlugin);
         when(gitPlugin.getWrapper()).thenReturn(gitPluginWrapper);
-        when(gitPluginWrapper.getVersionNumber()).thenReturn(new VersionNumber("2.1"));
+        when(gitPluginWrapper.getVersionNumber()).thenReturn(GitSCMProxy.MINIMAL_VERSION_NUMBER);
 
         // For the tests we assume using the oldest supported version of the Git Client plugin.
         final Plugin gitClientPlugin = mock(Plugin.class);

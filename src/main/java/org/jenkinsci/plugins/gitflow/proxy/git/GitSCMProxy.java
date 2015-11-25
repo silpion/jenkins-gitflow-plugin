@@ -1,18 +1,12 @@
 package org.jenkinsci.plugins.gitflow.proxy.git;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Formatter;
 
 import org.jenkinsci.plugins.gitclient.GitClient;
 
-import hudson.EnvVars;
-import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
-import hudson.model.Run;
-import hudson.model.TaskListener;
 import hudson.plugins.git.GitSCM;
 import hudson.util.VersionNumber;
 
@@ -26,13 +20,11 @@ import jenkins.model.Jenkins;
  */
 public class GitSCMProxy {
 
+    public static final VersionNumber MINIMAL_VERSION_NUMBER = new VersionNumber("2.3");
+
     private static final String MSG_PATTERN_UNSUPPORTED_PLUGIN_VERSION = "Gitflow plugin requires at least Git plugin version %s. Currently installed version is %s%n";
 
-    private static final VersionNumber VERSION_NUMBER_21 = new VersionNumber("2.1");
-    private static final VersionNumber VERSION_NUMBER_23 = new VersionNumber("2.3");
-
     private final GitSCM gitSCM;
-    private VersionNumber gitPluginVersion;
 
     /**
      * Creates a new instance.
@@ -44,9 +36,9 @@ public class GitSCMProxy {
         this.gitSCM = (GitSCM) build.getProject().getScm();
 
         // Verify that the minimal required version of the Git Client plugin is installed.
-        this.gitPluginVersion = Jenkins.getInstance().getPlugin("git").getWrapper().getVersionNumber();
-        if (this.gitPluginVersion.isOlderThan(VERSION_NUMBER_21)) {
-            final String message = new Formatter().format(MSG_PATTERN_UNSUPPORTED_PLUGIN_VERSION, VERSION_NUMBER_21, this.gitPluginVersion).toString();
+        final VersionNumber gitPluginVersion = Jenkins.getInstance().getPlugin("git").getWrapper().getVersionNumber();
+        if (gitPluginVersion.isOlderThan(MINIMAL_VERSION_NUMBER)) {
+            final String message = new Formatter().format(MSG_PATTERN_UNSUPPORTED_PLUGIN_VERSION, MINIMAL_VERSION_NUMBER, gitPluginVersion).toString();
             throw new IOException(message);
         }
     }
@@ -61,66 +53,6 @@ public class GitSCMProxy {
      * @throws InterruptedException if the build is interrupted during execution.
      */
     public GitClient createClient(final AbstractBuild<?, ?> build, final BuildListener listener) throws IOException, InterruptedException {
-        final GitClient gitClient;
-
-        final EnvVars environment = build.getEnvironment(listener);
-
-        // Create GitClient object depending on supported plugin versions.
-        if (this.gitPluginVersion.isOlderThan(VERSION_NUMBER_23)) {
-            gitClient = this.createClient21(build, listener, environment);
-        } else {
-            final FilePath workspace = build.getWorkspace();
-            gitClient = this.createClient23(build, listener, environment, workspace);
-        }
-
-        return gitClient;
-    }
-
-    private GitClient createClient21(final AbstractBuild<?, ?> build, final BuildListener listener, final EnvVars environment) throws IOException, InterruptedException {
-        final GitClient gitClient;
-
-        try {
-            final Method createClientMethod = this.gitSCM.getClass().getMethod("createClient", BuildListener.class, EnvVars.class, AbstractBuild.class);
-            gitClient = (GitClient) createClientMethod.invoke(this.gitSCM, listener, environment, build);
-        } catch (final NoSuchMethodException nsme) {
-            throw new IOException("Cannot create Git client", nsme);
-        } catch (final IllegalAccessException iae) {
-            throw new IOException("Cannot create Git client", iae);
-        } catch (final InvocationTargetException ite) {
-            final Throwable cause = ite.getCause();
-            if (cause instanceof InterruptedException) {
-                throw (InterruptedException) cause;
-            } else if (cause instanceof IOException) {
-                throw (IOException) cause;
-            } else {
-                throw new IOException("Cannot create Git client", cause);
-            }
-        }
-
-        return gitClient;
-    }
-
-    private GitClient createClient23(final Run<?, ?> build, final TaskListener listener, final EnvVars environment, final FilePath workspace) throws IOException, InterruptedException {
-        final GitClient gitClient;
-
-        try {
-            final Method createClientMethod = this.gitSCM.getClass().getMethod("createClient", TaskListener.class, EnvVars.class, Run.class, FilePath.class);
-            gitClient = (GitClient) createClientMethod.invoke(this.gitSCM, listener, environment, build, workspace);
-        } catch (final NoSuchMethodException nsme) {
-            throw new IOException("Cannot create Git client", nsme);
-        } catch (final IllegalAccessException iae) {
-            throw new IOException("Cannot create Git client", iae);
-        } catch (final InvocationTargetException ite) {
-            final Throwable cause = ite.getCause();
-            if (cause instanceof InterruptedException) {
-                throw (InterruptedException) cause;
-            } else if (cause instanceof IOException) {
-                throw (IOException) cause;
-            } else {
-                throw new IOException("Cannot create Git client", cause);
-            }
-        }
-
-        return gitClient;
+        return this.gitSCM.createClient(listener, build.getEnvironment(listener), build, build.getWorkspace());
     }
 }
