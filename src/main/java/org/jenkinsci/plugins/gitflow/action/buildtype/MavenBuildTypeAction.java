@@ -42,7 +42,7 @@ public class MavenBuildTypeAction extends AbstractBuildTypeAction<MavenModuleSet
 
     private static final String CMD_PATTERN_SET_POM_VERSION = "org.codehaus.mojo:versions-maven-plugin:2.1:set -DnewVersion=%s -DgenerateBackupPoms=false";
 
-    private static final String SLASH_POM_XML = "/pom.xml";
+    private static final String POM_XML = "pom.xml";
 
     private static final String MAVEN_PROPERTY_SKIP_DEPLOYMENT = "maven.deploy.skip";
     private static final String PROPERTY_VALUE_TRUE = Boolean.TRUE.toString();
@@ -135,8 +135,10 @@ public class MavenBuildTypeAction extends AbstractBuildTypeAction<MavenModuleSet
         modifiedFiles = new ArrayList<String>(modules.size());
         for (final MavenModule module : modules) {
             final String moduleRelativePath = module.getRelativePath();
-            final String modulePomFile = (StringUtils.isBlank(moduleRelativePath) ? "." : moduleRelativePath) + SLASH_POM_XML;
-            modifiedFiles.add(modulePomFile);
+            final String modulePomFile = (StringUtils.isBlank(moduleRelativePath) ? "" : moduleRelativePath + "/") + POM_XML;
+            if (this.build.getWorkspace().child(modulePomFile).exists()) {
+                modifiedFiles.add(modulePomFile);
+            }
         }
 
         return modifiedFiles;

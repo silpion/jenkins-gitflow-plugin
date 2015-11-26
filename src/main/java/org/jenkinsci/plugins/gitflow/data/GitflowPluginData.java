@@ -43,7 +43,7 @@ public class GitflowPluginData implements Action, Serializable, Cloneable {
     };
 
     // No SortedSet because it would cause the comparator to be written to the XML. We sort the list when it needs to be sorted.
-    private final List<RemoteBranch> remoteBranches = new LinkedList<RemoteBranch>();
+    private List<RemoteBranch> remoteBranches = new LinkedList<RemoteBranch>();
 
     private transient boolean dryRun;
 
@@ -65,7 +65,17 @@ public class GitflowPluginData implements Action, Serializable, Cloneable {
     /** {@inheritDoc} */
     @Override
     public GitflowPluginData clone() throws CloneNotSupportedException {
-        return (GitflowPluginData) super.clone();
+        final GitflowPluginData clone = (GitflowPluginData) super.clone();
+
+        // Only clone valid remote branches.
+        clone.remoteBranches = new LinkedList<RemoteBranch>();
+        for (final RemoteBranch remoteBranch : this.remoteBranches) {
+            if (remoteBranch.getBranchName() != null) {
+                clone.remoteBranches.add(remoteBranch.clone());
+            }
+        }
+
+        return clone;
     }
 
     /**
