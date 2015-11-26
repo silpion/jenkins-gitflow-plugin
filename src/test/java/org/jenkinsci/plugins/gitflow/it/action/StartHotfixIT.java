@@ -111,7 +111,7 @@ public class StartHotfixIT {
         gitClient.clone(gitRepro.getAbsolutePath(), "origin", false, null);
         Map<String, Branch> branches = getAllBranches(gitClient);
 
-        assertThat(branches.keySet(), containsInAnyOrder("origin/master", "origin/develop", "master", "origin/hotfix/1.0"));
+        assertThat(branches.keySet(), containsInAnyOrder("origin/master", "origin/develop", "origin/hotfix/1.0"));
 
         gitClient.checkoutBranch("hotfix/superHotfix", branches.get("origin/hotfix/1.0").getSHA1String());
         this.checkMultiModuleProject(repository, "1.0.5-SNAPSHOT", 4);
@@ -166,7 +166,7 @@ public class StartHotfixIT {
         gitClient.clone(gitRepro.getAbsolutePath(), "origin", false, null);
         Map<String, Branch> branches = getAllBranches(gitClient);
 
-        assertThat(branches.keySet(), containsInAnyOrder("origin/master", "origin/develop", "master"));
+        assertThat(branches.keySet(), containsInAnyOrder("origin/master", "origin/develop"));
 
         gitClient.checkoutBranch("hotfix/master", branches.get("origin/master").getSHA1String());
         checkMultiModuleProject(repository, "1.0.1", 4);

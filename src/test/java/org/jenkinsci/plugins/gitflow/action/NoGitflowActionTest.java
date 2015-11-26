@@ -17,7 +17,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import hudson.EnvVars;
 import hudson.model.AbstractBuild;
-import hudson.plugins.git.Branch;
 
 /**
  * Unit tests for the {@link NoGitflowAction} class.
@@ -55,7 +54,7 @@ public class NoGitflowActionTest extends AbstractGitflowActionTest<NoGitflowActi
 
         // Mock relevant method calls.
         when(this.build.getEnvironment(this.listener)).thenReturn(environment);
-        when(this.git.getRemoteBranchesForCommit(anyString())).thenReturn(Collections.singleton(new Branch("origin/develop", gitCommitId)));
+        when(this.git.getRemoteBranchNamesContaining(anyString())).thenReturn(Collections.singletonList("origin/develop"));
         when(this.gitflowBuildWrapperDescriptor.getBranchType("develop")).thenReturn("develop");
 
         // Define expectations.

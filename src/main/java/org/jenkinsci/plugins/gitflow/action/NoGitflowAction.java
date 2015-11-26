@@ -3,7 +3,7 @@ package org.jenkinsci.plugins.gitflow.action;
 import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitflow.cause.NoGitflowCause;
@@ -53,7 +53,7 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
     protected void beforeMainBuildInternal() throws IOException, InterruptedException {
 
         // Add environment and property variables
-        final String remoteBranchName = this.getBranchesForCurrentlyBuiltCommit().iterator().next().getName();
+        final String remoteBranchName = this.getBranchesForCurrentlyBuiltCommit().iterator().next();
         final String simpleBranchName = StringUtils.split(remoteBranchName, "/", 2)[1];
         this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", simpleBranchName);
         this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", remoteBranchName);
@@ -65,8 +65,8 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
     protected void afterMainBuildInternal() throws IOException, InterruptedException {
 
         // Record the data about the Gitflow branches that have been built.
-        for (final Branch builtBranch : this.getBranchesForCurrentlyBuiltCommit()) {
-            final String builtBranchName = StringUtils.split(builtBranch.getName(), "/", 2)[1];
+        for (final String builtBranch : this.getBranchesForCurrentlyBuiltCommit()) {
+            final String builtBranchName = StringUtils.split(builtBranch, "/", 2)[1];
 
             final RemoteBranch remoteBranch = this.gitflowPluginData.getOrAddRemoteBranch(builtBranchName);
             remoteBranch.setLastBuildResult(this.getBuildResultNonNull());
@@ -74,8 +74,8 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
         }
     }
 
-    private Collection<Branch> getBranchesForCurrentlyBuiltCommit() throws IOException, InterruptedException {
+    private List<String> getBranchesForCurrentlyBuiltCommit() throws IOException, InterruptedException {
         final String gitCommit = this.build.getEnvironment(this.listener).get("GIT_COMMIT");
-        return this.git.getRemoteBranchesForCommit(gitCommit);
+        return this.git.getRemoteBranchNamesContaining(gitCommit);
     }
 }

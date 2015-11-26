@@ -3,8 +3,9 @@ package org.jenkinsci.plugins.gitflow.proxy.gitclient;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
-import java.util.Collection;
 import java.util.Formatter;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -22,9 +23,6 @@ import org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand;
 import org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand.StrategyOption;
 import org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.JGitMergeCommand;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
-
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.plugins.git.Branch;
@@ -41,11 +39,13 @@ import jenkins.model.Jenkins;
  */
 public class GitClientProxy {
 
+    public static final VersionNumber MINIMAL_VERSION_NUMBER = new VersionNumber("1.11.1");
+
     private static final String MSG_PATTERN_PUSHED_TO_REMOTE = "Gitflow - %s: Pushed to %s using refspec %s%n";
     private static final String MSG_PATTERN_PUSH_OMITTED_DUE_TO_DRY_RUN = "Gitflow - %s (dry run): Omitted push to %s using refspec %s%n";
     private static final String MSG_PATTERN_UNSUPPORTED_PLUGIN_VERSION = "Gitflow plugin requires at least Git Client plugin version %s. Currently installed version is %s%n";
 
-    private static final VersionNumber VERSION_NUMBER_17 = new VersionNumber("1.7.0");
+    private static final String REMOTES_PREFIX = "remotes/";
 
     private final GitClient gitClient;
 
@@ -70,8 +70,8 @@ public class GitClientProxy {
 
         // Verify that the minimal required version of the Git Client plugin is installed.
         final VersionNumber gitClientPluginVersion = Jenkins.getInstance().getPlugin("git-client").getWrapper().getVersionNumber();
-        if (gitClientPluginVersion.isOlderThan(VERSION_NUMBER_17)) {
-            final String message = new Formatter().format(MSG_PATTERN_UNSUPPORTED_PLUGIN_VERSION, VERSION_NUMBER_17, gitClientPluginVersion).toString();
+        if (gitClientPluginVersion.isOlderThan(MINIMAL_VERSION_NUMBER)) {
+            final String message = new Formatter().format(MSG_PATTERN_UNSUPPORTED_PLUGIN_VERSION, MINIMAL_VERSION_NUMBER, gitClientPluginVersion).toString();
             throw new IOException(message);
         }
     }
@@ -216,27 +216,6 @@ public class GitClientProxy {
     }
 
     /**
-     * Returns the existing remote branches for the specified commit ref.
-     *
-     * @param commitRef the commit ref to get the remote branches for.
-     * @return the existing remote branches for the specified commit ref.
-     * @throws InterruptedException if the build is interrupted during execution.
-     */
-    public Collection<Branch> getRemoteBranchesForCommit(final String commitRef) throws InterruptedException {
-        final Collection<Branch> remoteBranchesForCommit;
-
-        final Set<Branch> remoteBranches = this.gitClient.getRemoteBranches();
-        remoteBranchesForCommit = Collections2.filter(remoteBranches, new Predicate<Branch>() {
-
-            public boolean apply(final Branch input) {
-                return StringUtils.equals(commitRef, input.getSHA1String());
-            }
-        });
-
-        return remoteBranchesForCommit;
-    }
-
-    /**
      * Create (or update) a tag. If tag already exist it gets updated (equivalent to <tt>git tag --force</tt>)
      * <p/>
      * The method's Javadoc has been copied from {@link GitClient#tag(String, String)}.
@@ -279,6 +258,28 @@ public class GitClientProxy {
         }
 
         return headRev;
+    }
+
+    /**
+     * Find all the remote branches that include the given commit.
+     *
+     * @param revspec commit id to query for
+     * @return list of branches the specified commit belongs to
+     * @throws GitException on Git exceptions
+     * @throws InterruptedException on thread interruption
+     * @see GitClient#getBranchesContaining(String, boolean)
+     */
+    public List<String> getRemoteBranchNamesContaining(final String revspec) throws GitException, InterruptedException {
+        final List<String> remoteBranchNamesContaining = new LinkedList<String>();
+
+        for (final Branch branch : this.gitClient.getBranchesContaining(revspec, true)) {
+            final String branchName = branch.getName();
+            if (StringUtils.startsWith(branchName, REMOTES_PREFIX)) {
+                remoteBranchNamesContaining.add(branchName.substring(REMOTES_PREFIX.length()));
+            }
+        }
+
+        return remoteBranchNamesContaining;
     }
 
     /**
