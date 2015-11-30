@@ -121,7 +121,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getGitflowBuildWrapperDescriptor().getBranchType(masterBranch));
 
         // There's no need to execute the main build.
-        this.buildTypeAction.skipMainBuild(this.additionalBuildEnvVars);
+        this.omitMainBuild();
     }
 
     private void mergeLastFixesRelease(final String targetBranch, final StrategyOption recursiveMergeStrategyOption) throws InterruptedException {

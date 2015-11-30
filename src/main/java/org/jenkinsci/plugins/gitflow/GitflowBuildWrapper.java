@@ -20,6 +20,8 @@ import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.Item;
+import hudson.model.ParameterValue;
+import hudson.model.ParametersAction;
 import hudson.plugins.git.GitSCM;
 import hudson.security.Permission;
 import hudson.security.PermissionScope;
@@ -37,9 +39,54 @@ import jenkins.util.NonLocalizable;
  */
 public class GitflowBuildWrapper extends BuildWrapper {
 
+    public static final String OMIT_MAIN_BUILD_PARAMETER_NAME = "GITFLOW_OMIT_MAIN_BUILD";
+    public static final String OMIT_MAIN_BUILD_PARAMETER_VALUE_TRUE = Boolean.TRUE.toString();
+
+    private static final ParameterValue OMIT_MAIN_BUILD_PARAMETER_VALUE = new ParameterValue("omitMainBuild") {
+
+        private static final long serialVersionUID = -1731562051491908414L;
+
+        /** {@inheritDoc} */
+        @Override
+        public BuildWrapper createBuildWrapper(final AbstractBuild<?, ?> build) {
+            return OMIT_MAIN_BUILD_WRAPPER;
+        }
+    };
+
+    private static final BuildWrapper OMIT_MAIN_BUILD_WRAPPER = new BuildWrapper() {
+
+        /** {@inheritDoc} */
+        @Override
+        public Environment setUp(@SuppressWarnings("rawtypes") final AbstractBuild build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
+            if (OMIT_MAIN_BUILD_PARAMETER_VALUE_TRUE.equals(build.getEnvironment(listener).get(OMIT_MAIN_BUILD_PARAMETER_NAME))) {
+                throw new InterruptedException("Intentionally thrown to omit the main build");
+            } else {
+                return new Environment() {
+
+                };
+            }
+        }
+    };
+
     @DataBoundConstructor
     public GitflowBuildWrapper() {
         // No job config params so far.
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void preCheckout(@SuppressWarnings("rawtypes") final AbstractBuild build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
+        super.preCheckout(build, launcher, listener);
+
+        // Provide a parameter value object, that creates a build wrapper which omits the main build on demand.
+        ParametersAction parametersAction = build.getAction(ParametersAction.class);
+        if (parametersAction == null) {
+            parametersAction = new ParametersAction(OMIT_MAIN_BUILD_PARAMETER_VALUE);
+            build.addAction(parametersAction);
+        } else {
+            parametersAction = parametersAction.createUpdated(Collections.singleton(OMIT_MAIN_BUILD_PARAMETER_VALUE));
+            build.replaceAction(parametersAction);
+        }
     }
 
     @Override

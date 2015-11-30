@@ -106,7 +106,7 @@ public class PublishHotfixAction<B extends AbstractBuild<?, ?>> extends Abstract
         this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getGitflowBuildWrapperDescriptor().getBranchType(masterBranch));
 
         // There's no need to execute the main build.
-        this.buildTypeAction.skipMainBuild(this.additionalBuildEnvVars);
+        this.omitMainBuild();
     }
 
     private void mergeLastPatchRelease(final String targetBranch, final StrategyOption recursiveMergeStrategyOption) throws InterruptedException {

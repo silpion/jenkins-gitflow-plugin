@@ -52,12 +52,6 @@ public class UnknownBuildTypeAction extends AbstractBuildTypeAction<AbstractBuil
 
     /** {@inheritDoc} */
     @Override
-    public void skipMainBuild(final Map<String, String> buildEnvVars) throws IOException {
-        // Nothing to do.
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public void preventArchivePublication(final Map<String, String> buildEnvVars) {
         // Nothing to do.
     }

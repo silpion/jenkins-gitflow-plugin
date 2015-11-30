@@ -69,7 +69,7 @@ public class FinishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstract
         this.deleteBranch(releaseBranch);
 
         // There's no need to execute the main build.
-        this.buildTypeAction.skipMainBuild(this.additionalBuildEnvVars);
+        this.omitMainBuild();
     }
 
     /** {@inheritDoc} */

@@ -76,7 +76,7 @@ public class StartHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getGitflowBuildWrapperDescriptor().getBranchType(hotfixBranch));
 
         // There's no need to execute the main build.
-        this.buildTypeAction.skipMainBuild(this.additionalBuildEnvVars);
+        this.omitMainBuild();
     }
 
     /** {@inheritDoc} */
