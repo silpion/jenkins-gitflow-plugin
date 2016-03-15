@@ -12,8 +12,6 @@ import org.jenkinsci.plugins.gitflow.data.RemoteBranch;
  */
 public class FinishReleaseCause extends AbstractReleaseBranchCause {
 
-    private boolean includeStartHotfixAction = true;
-
     /**
      * Creates a cause instance for the <i>Gitflow</i> build.
      *
@@ -27,13 +25,5 @@ public class FinishReleaseCause extends AbstractReleaseBranchCause {
     @Override
     public String getVersionForBadge() {
         return StringUtils.removeStart(this.getReleaseBranch(), getGitflowBuildWrapperDescriptor().getReleaseBranchPrefix());
-    }
-
-    public boolean isIncludeStartHotfixAction() {
-        return this.includeStartHotfixAction;
-    }
-
-    public void setIncludeStartHotfixAction(final boolean includeStartHotfixAction) {
-        this.includeStartHotfixAction = includeStartHotfixAction;
     }
 }

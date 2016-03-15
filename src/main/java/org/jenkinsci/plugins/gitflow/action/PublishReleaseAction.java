@@ -4,16 +4,12 @@ import static hudson.model.Result.SUCCESS;
 import static org.eclipse.jgit.api.MergeCommand.FastForwardMode.NO_FF;
 import static org.jenkinsci.plugins.gitclient.MergeCommand.Strategy.RECURSIVE;
 import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
-import static org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause.IncludedAction.FINISH_RELEASE;
-import static org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause.IncludedAction.NONE;
-import static org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause.IncludedAction.START_HOTFIX;
 import static org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand.StrategyOption.THEIRS;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause;
@@ -102,22 +98,6 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         final List<Branch> branches = Collections.singletonList(new Branch(remoteBranchNameMaster, masterMergeCommit));
         final Build masterBuild = new Build(new Revision(masterMergeCommit, branches), this.build.getNumber(), SUCCESS);
         this.build.getAction(BuildData.class).getBuildsByBranchName().put(remoteBranchNameMaster, masterBuild);
-
-        // Execute the included action(s).
-        final PublishReleaseCause.IncludedAction includedAction = this.gitflowCause.getIncludedAction();
-        if (includedAction != NONE) {
-
-            // Include action(s).
-            if (includedAction == START_HOTFIX) {
-                final String releaseBranchPrefix = buildWrapperDescriptor.getReleaseBranchPrefix();
-                final String hotfixBranchPrefix = buildWrapperDescriptor.getHotfixBranchPrefix();
-                final String hotfixBranch = hotfixBranchPrefix + StringUtils.removeStart(releaseBranch, releaseBranchPrefix);
-                this.createBranch(hotfixBranch, releaseBranch);
-                this.deleteBranch(releaseBranch);
-            } else if (includedAction == FINISH_RELEASE) {
-                this.deleteBranch(releaseBranch);
-            }
-        }
 
         // Add environment and property variables
         this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", masterBranch);
