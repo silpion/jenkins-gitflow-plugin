@@ -51,19 +51,6 @@
                                     <f:checkbox name="publishRelease_${releaseVersionDotfree}_mergeToDevelop" checked="${publishReleaseCause.mergeToDevelop}"
                                         title="(Using merge strategy 'recursive-ours' to prevent conflicts, but some conflicting changes may be lost.)" />
                                 </f:entry>
-                                <f:entry title="Included Action">
-                                    <select name="publishRelease_${releaseVersionDotfree}_includedAction">
-                                        <f:option value="NONE" selected="${publishReleaseCause.includedAction == 'NONE'}">
-                                            None (keep release branch)
-                                        </f:option>
-                                        <f:option value="FINISH_RELEASE" selected="${publishReleaseCause.includedAction == 'FINISH_RELEASE'}">
-                                            Finish Release ${releaseVersion} (Delete release branch - NOTE: Merge to develop should be checked)
-                                        </f:option>
-                                        <f:option value="START_HOTFIX" selected="${publishReleaseCause.includedAction == 'START_HOTFIX'}">
-                                            Finish Release ${releaseVersion} and Start Hotfix ${releaseVersion} (Rename release branch)
-                                        </f:option>
-                                    </select>
-                                </f:entry>
                             </f:radioBlock>
 
                             <j:set var="finishReleaseCause" value="${releaseBranchCauseGroup.finishReleaseCause}" />

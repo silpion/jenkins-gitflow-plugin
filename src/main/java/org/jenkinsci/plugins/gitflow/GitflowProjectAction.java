@@ -63,7 +63,6 @@ public class GitflowProjectAction implements PermalinkProjectAction {
     @VisibleForTesting static final String KEY_POSTFIX_NEXT_PATCH_DEVELOPMENT_VERSION = "nextPatchDevelopmentVersion";
     @VisibleForTesting static final String KEY_POSTFIX_PATCH_RELEASE_VERSION = "patchReleaseVersion";
     @VisibleForTesting static final String KEY_POSTFIX_MERGE_TO_DEVELOP = "mergeToDevelop";
-    @VisibleForTesting static final String KEY_POSTFIX_INCLUDED_ACTION = "includedAction";
     @VisibleForTesting static final String KEY_POSTFIX_INCLUDE_START_HOTFIX_ACTION = "includeStartHotfixAction";
     @VisibleForTesting static final String KEY_POSTFIX_INCLUDE_FINISH_HOTFIX_ACTION = "includeFinishHotfixAction";
 
@@ -212,7 +211,6 @@ public class GitflowProjectAction implements PermalinkProjectAction {
             final String releaseVersionDotfree = causeGroup.getReleaseVersionDotfree();
             final PublishReleaseCause publishReleaseCause = causeGroup.getPublishReleaseCause();
             publishReleaseCause.setMergeToDevelop(submittedAction.getBoolean(KEY_PREFIX_PUBLISH_RELEASE + "_" + releaseVersionDotfree + "_" + KEY_POSTFIX_MERGE_TO_DEVELOP));
-            publishReleaseCause.setIncludedAction(submittedAction.getString(KEY_PREFIX_PUBLISH_RELEASE + "_" + releaseVersionDotfree + "_" + KEY_POSTFIX_INCLUDED_ACTION));
             gitflowCause = publishReleaseCause;
         } else if (action.startsWith(KEY_PREFIX_FINISH_RELEASE)) {
             final ReleaseBranchCauseGroup causeGroup = this.releaseBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_FINISH_RELEASE + "_" + KEY_POSTFIX_RELEASE_VERSION));
