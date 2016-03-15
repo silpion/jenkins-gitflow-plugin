@@ -12,7 +12,6 @@ import javax.servlet.ServletException;
 
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
-import org.jenkinsci.plugins.gitflow.cause.FinishReleaseCause;
 import org.jenkinsci.plugins.gitflow.cause.HotfixBranchCauseGroup;
 import org.jenkinsci.plugins.gitflow.cause.PublishHotfixCause;
 import org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause;
@@ -63,7 +62,6 @@ public class GitflowProjectAction implements PermalinkProjectAction {
     @VisibleForTesting static final String KEY_POSTFIX_NEXT_PATCH_DEVELOPMENT_VERSION = "nextPatchDevelopmentVersion";
     @VisibleForTesting static final String KEY_POSTFIX_PATCH_RELEASE_VERSION = "patchReleaseVersion";
     @VisibleForTesting static final String KEY_POSTFIX_MERGE_TO_DEVELOP = "mergeToDevelop";
-    @VisibleForTesting static final String KEY_POSTFIX_INCLUDE_START_HOTFIX_ACTION = "includeStartHotfixAction";
     @VisibleForTesting static final String KEY_POSTFIX_INCLUDE_FINISH_HOTFIX_ACTION = "includeFinishHotfixAction";
 
     private static final Comparator<String> VERSION_NUMBER_COMPARATOR = new Comparator<String>() {
@@ -214,10 +212,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
             gitflowCause = publishReleaseCause;
         } else if (action.startsWith(KEY_PREFIX_FINISH_RELEASE)) {
             final ReleaseBranchCauseGroup causeGroup = this.releaseBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_FINISH_RELEASE + "_" + KEY_POSTFIX_RELEASE_VERSION));
-            final FinishReleaseCause finishReleaseCause = causeGroup.getFinishReleaseCause();
-            final String releaseVersionDotfree = causeGroup.getReleaseVersionDotfree();
-            finishReleaseCause.setIncludeStartHotfixAction(submittedAction.getBoolean(KEY_PREFIX_FINISH_RELEASE + "_" + releaseVersionDotfree + "_" + KEY_POSTFIX_INCLUDE_START_HOTFIX_ACTION));
-            gitflowCause = finishReleaseCause;
+            gitflowCause = causeGroup.getFinishReleaseCause();
         } else if (KEY_PREFIX_START_HOTFIX.equals(action)) {
             this.startHotfixCause.setNextPatchDevelopmentVersion(submittedAction.getString(KEY_PREFIX_START_HOTFIX + "_" + KEY_POSTFIX_NEXT_PATCH_DEVELOPMENT_VERSION));
             gitflowCause = this.startHotfixCause;

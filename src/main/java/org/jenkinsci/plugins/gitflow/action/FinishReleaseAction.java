@@ -4,8 +4,6 @@ import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildW
 
 import java.io.IOException;
 
-import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.plugins.gitflow.GitflowBuildWrapper;
 import org.jenkinsci.plugins.gitflow.cause.FinishReleaseCause;
 import org.jenkinsci.plugins.gitflow.proxy.gitclient.GitClientProxy;
 
@@ -49,18 +47,8 @@ public class FinishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstract
     @Override
     protected void beforeMainBuildInternal() throws IOException, InterruptedException {
 
-        final String releaseBranch = this.gitflowCause.getReleaseBranch();
-
-        // Include Start Hotfix action.
-        if (this.gitflowCause.isIncludeStartHotfixAction()) {
-            final GitflowBuildWrapper.DescriptorImpl buildWrapperDescriptor = getGitflowBuildWrapperDescriptor();
-            final String releaseBranchPrefix = buildWrapperDescriptor.getReleaseBranchPrefix();
-            final String hotfixBranchPrefix = buildWrapperDescriptor.getHotfixBranchPrefix();
-            final String hotfixBranch = hotfixBranchPrefix + StringUtils.removeStart(releaseBranch, releaseBranchPrefix);
-            this.createBranch(hotfixBranch, releaseBranch);
-        }
-
         // Add environment and property variables
+        final String releaseBranch = this.gitflowCause.getReleaseBranch();
         this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", releaseBranch);
         this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/" + releaseBranch);
         this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getGitflowBuildWrapperDescriptor().getBranchType(releaseBranch));

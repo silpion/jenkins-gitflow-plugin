@@ -58,10 +58,6 @@
                                 <f:invisibleEntry>
                                     <input name="finishRelease_releaseVersion" value="${releaseVersion}" type="hidden" />
                                 </f:invisibleEntry>
-                                <f:entry title="Included Action">
-                                    <f:checkbox name="finishRelease_${releaseVersionDotfree}_includeStartHotfixAction" checked="${finishReleaseCause.includeStartHotfixAction}"
-                                        title="Start Hotfix ${releaseVersion} (Don't delete release branch, reanme to hotfix branch)" />
-                                </f:entry>
                             </f:radioBlock>
 
                         </f:entry>
