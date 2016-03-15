@@ -62,7 +62,6 @@ public class GitflowProjectAction implements PermalinkProjectAction {
     @VisibleForTesting static final String KEY_POSTFIX_NEXT_PATCH_DEVELOPMENT_VERSION = "nextPatchDevelopmentVersion";
     @VisibleForTesting static final String KEY_POSTFIX_PATCH_RELEASE_VERSION = "patchReleaseVersion";
     @VisibleForTesting static final String KEY_POSTFIX_MERGE_TO_DEVELOP = "mergeToDevelop";
-    @VisibleForTesting static final String KEY_POSTFIX_INCLUDE_FINISH_HOTFIX_ACTION = "includeFinishHotfixAction";
 
     private static final Comparator<String> VERSION_NUMBER_COMPARATOR = new Comparator<String>() {
 
@@ -229,7 +228,6 @@ public class GitflowProjectAction implements PermalinkProjectAction {
             final PublishHotfixCause publishHotfixCause = causeGroup.getPublishHotfixCause();
             final String hotfixVersionDotfree = causeGroup.getHotfixVersionDotfree();
             publishHotfixCause.setMergeToDevelop(submittedAction.getBoolean(KEY_PREFIX_PUBLISH_HOTFIX + "_" + hotfixVersionDotfree + "_" + KEY_POSTFIX_MERGE_TO_DEVELOP));
-            publishHotfixCause.setIncludeFinishHotfixAction(submittedAction.getBoolean(KEY_PREFIX_PUBLISH_HOTFIX + "_" + hotfixVersionDotfree + "_" + KEY_POSTFIX_INCLUDE_FINISH_HOTFIX_ACTION));
             gitflowCause = publishHotfixCause;
         } else if (action.startsWith(KEY_PREFIX_FINISH_HOTFIX)) {
             gitflowCause = this.hotfixBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_FINISH_HOTFIX + "_" + KEY_POSTFIX_HOTFIX_VERSION)).getFinishHotfixCause();

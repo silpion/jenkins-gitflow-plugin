@@ -14,7 +14,6 @@ public class PublishHotfixCause extends AbstractHotfixBranchCause {
     private final ObjectId lastPatchReleaseCommit;
 
     private boolean mergeToDevelop = false;
-    private boolean includeFinishHotfixAction = true;
 
     /**
      * Creates a cause instance for the <i>Gitflow</i> build.
@@ -47,13 +46,5 @@ public class PublishHotfixCause extends AbstractHotfixBranchCause {
 
     public void setMergeToDevelop(final boolean mergeToDevelop) {
         this.mergeToDevelop = mergeToDevelop;
-    }
-
-    public boolean isIncludeFinishHotfixAction() {
-        return this.includeFinishHotfixAction;
-    }
-
-    public void setIncludeFinishHotfixAction(final boolean includeFinishHotfixAction) {
-        this.includeFinishHotfixAction = includeFinishHotfixAction;
     }
 }

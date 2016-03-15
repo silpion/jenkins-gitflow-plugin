@@ -126,10 +126,6 @@
                                     <f:checkbox name="publishHotfix_${hotfixVersionDotfree}_mergeToDevelop" checked="${publishHotfixCause.mergeToDevelop}"
                                         title="(Using merge strategy 'recursive-ours' to prevent conflicts, but some conflicting changes may be lost.)" />
                                 </f:entry>
-                                <f:entry title="Included Action">
-                                    <f:checkbox name="publishHotfix_${hotfixVersionDotfree}_includeFinishHotfixAction" checked="${publishHotfixCause.includeFinishHotfixAction}"
-                                        title="Finish Hotfix ${hotfixVersion} (Delete hotfix branch - NOTE: Merge to develop should be checked)" />
-                                </f:entry>
                             </f:radioBlock>
 
                             <j:set var="finishHotfixCause" value="${hotfixBranchCauseGroup.finishHotfixCause}" />

@@ -95,11 +95,6 @@ public class PublishHotfixAction<B extends AbstractBuild<?, ?>> extends Abstract
             this.mergeLastPatchRelease(buildWrapperDescriptor.getDevelopBranch(), OURS);
         }
 
-        // Include Finish Hotfix action.
-        if (this.gitflowCause.isIncludeFinishHotfixAction()) {
-            this.deleteBranch(hotfixBranch);
-        }
-
         // Add environment and property variables
         this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", masterBranch);
         this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/" + masterBranch);
