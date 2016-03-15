@@ -7,7 +7,6 @@ import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildW
 import static org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause.IncludedAction.FINISH_RELEASE;
 import static org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause.IncludedAction.NONE;
 import static org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause.IncludedAction.START_HOTFIX;
-import static org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand.StrategyOption.OURS;
 import static org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand.StrategyOption.THEIRS;
 
 import java.io.IOException;
@@ -92,12 +91,6 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         final List<Branch> branches = Collections.singletonList(new Branch(remoteBranchNameMaster, masterMergeCommit));
         final Build masterBuild = new Build(new Revision(masterMergeCommit, branches), this.build.getNumber(), SUCCESS);
         this.build.getAction(BuildData.class).getBuildsByBranchName().put(remoteBranchNameMaster, masterBuild);
-
-        // Merge the last fixes release to the develop branch (if intended).
-        // TODO Only offer merge if there have not been commits after the last snapshot version commit.
-        if (this.gitflowCause.isMergeToDevelop()) {
-            this.mergeLastFixesRelease(buildWrapperDescriptor.getDevelopBranch(), OURS);
-        }
 
         // Execute the included action(s).
         final PublishReleaseCause.IncludedAction includedAction = this.gitflowCause.getIncludedAction();

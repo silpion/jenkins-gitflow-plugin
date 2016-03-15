@@ -13,7 +13,6 @@ public class PublishReleaseCause extends AbstractReleaseBranchCause {
     private final String lastPatchReleaseVersion;
     private final ObjectId lastPatchReleaseCommit;
 
-    private boolean mergeToDevelop = false;
     private IncludedAction includedAction = IncludedAction.START_HOTFIX;
 
     /**
@@ -39,14 +38,6 @@ public class PublishReleaseCause extends AbstractReleaseBranchCause {
 
     public ObjectId getLastPatchReleaseCommit() {
         return this.lastPatchReleaseCommit;
-    }
-
-    public boolean isMergeToDevelop() {
-        return this.mergeToDevelop;
-    }
-
-    public void setMergeToDevelop(final boolean mergeToDevelop) {
-        this.mergeToDevelop = mergeToDevelop;
     }
 
     public IncludedAction getIncludedAction() {

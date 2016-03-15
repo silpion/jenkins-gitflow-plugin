@@ -4,7 +4,6 @@ import static hudson.model.Result.SUCCESS;
 import static org.eclipse.jgit.api.MergeCommand.FastForwardMode.NO_FF;
 import static org.jenkinsci.plugins.gitclient.MergeCommand.Strategy.RECURSIVE;
 import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
-import static org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand.StrategyOption.OURS;
 import static org.jenkinsci.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand.StrategyOption.THEIRS;
 
 import java.io.IOException;
@@ -88,12 +87,6 @@ public class PublishHotfixAction<B extends AbstractBuild<?, ?>> extends Abstract
         final List<Branch> branches = Collections.singletonList(new Branch(remoteBranchNameMaster, masterMergeCommit));
         final Build masterBuild = new Build(new Revision(masterMergeCommit, branches), this.build.getNumber(), SUCCESS);
         this.build.getAction(BuildData.class).getBuildsByBranchName().put(remoteBranchNameMaster, masterBuild);
-
-        // Merge the last patch release to the develop branch (if intended).
-        // TODO Only offer merge if there have not been commits after the last snapshot version commit.
-        if (this.gitflowCause.isMergeToDevelop()) {
-            this.mergeLastPatchRelease(buildWrapperDescriptor.getDevelopBranch(), OURS);
-        }
 
         // Include Finish Hotfix action.
         if (this.gitflowCause.isIncludeFinishHotfixAction()) {
