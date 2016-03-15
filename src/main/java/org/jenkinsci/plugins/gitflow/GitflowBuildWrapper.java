@@ -156,8 +156,8 @@ public class GitflowBuildWrapper extends BuildWrapper {
         private String releaseBranchPrefix = "release/";
         private String hotfixBranchPrefix = "hotfix/";
         private String featureBranchPrefix = "feature/";
-        private String versionTagPrefix = "version/";
-        private boolean markSuccessfulBuildUnstableOnBrokenBranches = true;
+        private String versionTagPrefix = "";
+        private boolean markSuccessfulBuildUnstableOnBrokenBranches = false;
 
         public DescriptorImpl() {
             super(GitflowBuildWrapper.class);
