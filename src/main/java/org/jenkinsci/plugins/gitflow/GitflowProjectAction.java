@@ -137,9 +137,12 @@ public class GitflowProjectAction implements PermalinkProjectAction {
             }
         }
 
-        // Set startHotfixCause to null when the hotfix branch for the published release already exists.
-        if (this.startHotfixCause != null && this.hotfixBranchCauseGroupsByVersion.containsKey(this.startHotfixCause.getHotfixVersion())) {
-            this.startHotfixCause = null;
+        // Set startHotfixCause to null when the published release still has a release branch or already has a hotfix branch.
+        if (this.startHotfixCause != null) {
+            final String hotfixVersion = this.startHotfixCause.getHotfixVersion();
+            if (this.releaseBranchCauseGroupsByVersion.containsKey(hotfixVersion) || this.hotfixBranchCauseGroupsByVersion.containsKey(hotfixVersion)) {
+                this.startHotfixCause = null;
+            }
         }
     }
 
