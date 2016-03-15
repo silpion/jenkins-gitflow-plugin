@@ -23,6 +23,7 @@ public class StartHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
     private static final String ACTION_NAME = "Start Hotfix";
 
+    private static final String MSG_PATTERN_CREATED_BRANCH_BASED_ON_OTHER = "Gitflow - %s: Created a new branch %s based on %s%n";
     private static final String MSG_PATTERN_UPDATED_NEXT_PATCH_DEVELOPMENT_VERSION = "Gitflow - %s: Updated project files to next patch development version %s%n";
 
     /**
@@ -53,7 +54,20 @@ public class StartHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         // Create a new hotfix branch based on the master branch.
         final String hotfixBranch = this.gitflowCause.getHotfixBranch();
         final String masterBranch = getGitflowBuildWrapperDescriptor().getMasterBranch();
-        this.createBranch(hotfixBranch, masterBranch);
+        this.git.checkoutBranch(hotfixBranch, "origin/" + masterBranch);
+        this.consoleLogger.printf(MSG_PATTERN_CREATED_BRANCH_BASED_ON_OTHER, this.getActionName(), hotfixBranch, masterBranch);
+
+        // Push the new branch.
+        this.git.push("origin", "refs/heads/" + hotfixBranch + ":refs/heads/" + hotfixBranch);
+
+        // Record the data for the new remote branch.
+        final RemoteBranch remoteBranchRef = this.gitflowPluginData.getRemoteBranch(masterBranch);
+        final RemoteBranch remoteBranchNew = this.gitflowPluginData.getOrAddRemoteBranch(hotfixBranch);
+        remoteBranchNew.setLastBuildResult(remoteBranchRef.getLastBuildResult());
+        remoteBranchNew.setLastBuildVersion(remoteBranchRef.getLastBuildVersion());
+        remoteBranchNew.setBaseReleaseVersion(remoteBranchRef.getBaseReleaseVersion());
+        remoteBranchNew.setLastReleaseVersion(remoteBranchRef.getLastReleaseVersion());
+        remoteBranchNew.setLastReleaseVersionCommit(remoteBranchRef.getLastReleaseVersionCommit());
 
         // Update the version numbers in the project files to the hotfix version.
         final String nextPatchDevelopmentVersion = this.gitflowCause.getNextPatchDevelopmentVersion();

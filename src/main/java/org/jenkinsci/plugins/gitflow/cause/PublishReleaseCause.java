@@ -14,7 +14,6 @@ public class PublishReleaseCause extends AbstractReleaseBranchCause {
     private final ObjectId lastPatchReleaseCommit;
 
     private boolean mergeToDevelop = false;
-    private IncludedAction includedAction = IncludedAction.START_HOTFIX;
 
     /**
      * Creates a cause instance for the <i>Gitflow</i> build.
@@ -47,20 +46,5 @@ public class PublishReleaseCause extends AbstractReleaseBranchCause {
 
     public void setMergeToDevelop(final boolean mergeToDevelop) {
         this.mergeToDevelop = mergeToDevelop;
-    }
-
-    public IncludedAction getIncludedAction() {
-        return this.includedAction;
-    }
-
-    public void setIncludedAction(final String includedAction) {
-        this.includedAction = IncludedAction.valueOf(includedAction);
-    }
-
-    /** The actions that can be included/executed after the main <i>Publish Release</i> action. */
-    public static enum IncludedAction {
-        NONE,
-        FINISH_RELEASE,
-        START_HOTFIX
     }
 }
