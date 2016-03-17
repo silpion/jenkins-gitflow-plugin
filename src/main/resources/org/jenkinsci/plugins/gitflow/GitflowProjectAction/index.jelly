@@ -47,10 +47,6 @@
                                 <f:entry title="Last Patch Release Version">
                                     ${publishReleaseCause.lastPatchReleaseVersion} (Commit ${publishReleaseCause.lastPatchReleaseCommit.name})
                                 </f:entry>
-                                <f:entry title="Merge to develop">
-                                    <f:checkbox name="publishRelease_${releaseVersionDotfree}_mergeToDevelop" checked="${publishReleaseCause.mergeToDevelop}"
-                                        title="(Using merge strategy 'recursive-ours' to prevent conflicts, but some conflicting changes may be lost.)" />
-                                </f:entry>
                             </f:radioBlock>
 
                             <j:set var="finishReleaseCause" value="${releaseBranchCauseGroup.finishReleaseCause}" />
@@ -121,10 +117,6 @@
                                 </f:invisibleEntry>
                                 <f:entry title="Last Patch Release Version">
                                     ${publishHotfixCause.lastPatchReleaseVersion} (Commit ${publishHotfixCause.lastPatchReleaseCommit.name})
-                                </f:entry>
-                                <f:entry title="Merge to develop">
-                                    <f:checkbox name="publishHotfix_${hotfixVersionDotfree}_mergeToDevelop" checked="${publishHotfixCause.mergeToDevelop}"
-                                        title="(Using merge strategy 'recursive-ours' to prevent conflicts, but some conflicting changes may be lost.)" />
                                 </f:entry>
                             </f:radioBlock>
 

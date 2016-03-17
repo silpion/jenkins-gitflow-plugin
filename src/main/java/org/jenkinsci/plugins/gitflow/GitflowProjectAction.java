@@ -14,7 +14,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitflow.cause.AbstractGitflowCause;
 import org.jenkinsci.plugins.gitflow.cause.HotfixBranchCauseGroup;
 import org.jenkinsci.plugins.gitflow.cause.PublishHotfixCause;
-import org.jenkinsci.plugins.gitflow.cause.PublishReleaseCause;
 import org.jenkinsci.plugins.gitflow.cause.ReleaseBranchCauseGroup;
 import org.jenkinsci.plugins.gitflow.cause.StartHotfixCause;
 import org.jenkinsci.plugins.gitflow.cause.StartReleaseCause;
@@ -61,7 +60,6 @@ public class GitflowProjectAction implements PermalinkProjectAction {
     @VisibleForTesting static final String KEY_POSTFIX_NEXT_RELEASE_DEVELOPMENT_VERSION = "nextReleaseDevelopmentVersion";
     @VisibleForTesting static final String KEY_POSTFIX_NEXT_PATCH_DEVELOPMENT_VERSION = "nextPatchDevelopmentVersion";
     @VisibleForTesting static final String KEY_POSTFIX_PATCH_RELEASE_VERSION = "patchReleaseVersion";
-    @VisibleForTesting static final String KEY_POSTFIX_MERGE_TO_DEVELOP = "mergeToDevelop";
 
     private static final Comparator<String> VERSION_NUMBER_COMPARATOR = new Comparator<String>() {
 
@@ -209,9 +207,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         } else if (action.startsWith(KEY_PREFIX_PUBLISH_RELEASE)) {
             final ReleaseBranchCauseGroup causeGroup = this.releaseBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_PUBLISH_RELEASE + "_" + KEY_POSTFIX_RELEASE_VERSION));
             final String releaseVersionDotfree = causeGroup.getReleaseVersionDotfree();
-            final PublishReleaseCause publishReleaseCause = causeGroup.getPublishReleaseCause();
-            publishReleaseCause.setMergeToDevelop(submittedAction.getBoolean(KEY_PREFIX_PUBLISH_RELEASE + "_" + releaseVersionDotfree + "_" + KEY_POSTFIX_MERGE_TO_DEVELOP));
-            gitflowCause = publishReleaseCause;
+            gitflowCause = causeGroup.getPublishReleaseCause();
         } else if (action.startsWith(KEY_PREFIX_FINISH_RELEASE)) {
             final ReleaseBranchCauseGroup causeGroup = this.releaseBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_FINISH_RELEASE + "_" + KEY_POSTFIX_RELEASE_VERSION));
             gitflowCause = causeGroup.getFinishReleaseCause();
@@ -230,7 +226,6 @@ public class GitflowProjectAction implements PermalinkProjectAction {
             final HotfixBranchCauseGroup causeGroup = this.hotfixBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_PUBLISH_HOTFIX + "_" + KEY_POSTFIX_HOTFIX_VERSION));
             final PublishHotfixCause publishHotfixCause = causeGroup.getPublishHotfixCause();
             final String hotfixVersionDotfree = causeGroup.getHotfixVersionDotfree();
-            publishHotfixCause.setMergeToDevelop(submittedAction.getBoolean(KEY_PREFIX_PUBLISH_HOTFIX + "_" + hotfixVersionDotfree + "_" + KEY_POSTFIX_MERGE_TO_DEVELOP));
             gitflowCause = publishHotfixCause;
         } else if (action.startsWith(KEY_PREFIX_FINISH_HOTFIX)) {
             gitflowCause = this.hotfixBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_FINISH_HOTFIX + "_" + KEY_POSTFIX_HOTFIX_VERSION)).getFinishHotfixCause();

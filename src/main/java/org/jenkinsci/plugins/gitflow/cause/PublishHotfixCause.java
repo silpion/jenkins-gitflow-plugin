@@ -13,8 +13,6 @@ public class PublishHotfixCause extends AbstractHotfixBranchCause {
     private final String lastPatchReleaseVersion;
     private final ObjectId lastPatchReleaseCommit;
 
-    private boolean mergeToDevelop = false;
-
     /**
      * Creates a cause instance for the <i>Gitflow</i> build.
      *
@@ -38,13 +36,5 @@ public class PublishHotfixCause extends AbstractHotfixBranchCause {
 
     public ObjectId getLastPatchReleaseCommit() {
         return this.lastPatchReleaseCommit;
-    }
-
-    public boolean isMergeToDevelop() {
-        return this.mergeToDevelop;
-    }
-
-    public void setMergeToDevelop(final boolean mergeToDevelop) {
-        this.mergeToDevelop = mergeToDevelop;
     }
 }
