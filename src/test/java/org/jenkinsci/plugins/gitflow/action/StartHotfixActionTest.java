@@ -67,7 +67,9 @@ public class StartHotfixActionTest extends AbstractGitflowActionTest<StartHotfix
         when(this.buildTypeAction.updateVersion("1.0.2-SNAPSHOT")).thenReturn(changeFiles);
 
         // Mock calls to the GitflowPluginData object.
-        when(this.gitflowPluginData.getRemoteBranch("master")).thenReturn(new RemoteBranch("master"));
+        final RemoteBranch remoteBranchMaster = new RemoteBranch("master");
+        remoteBranchMaster.setLastBuildResult(Result.SUCCESS);
+        when(this.gitflowPluginData.getRemoteBranch("master")).thenReturn(remoteBranchMaster);
         when(this.gitflowPluginData.getOrAddRemoteBranch("hotfix/1.0")).thenReturn(this.remoteBranchHotfix);
         when(this.build.getAction(GitflowPluginData.class)).thenReturn(this.gitflowPluginData);
 
