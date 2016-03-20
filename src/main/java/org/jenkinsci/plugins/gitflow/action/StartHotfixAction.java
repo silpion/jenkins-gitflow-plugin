@@ -57,15 +57,6 @@ public class StartHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         this.git.checkoutBranch(hotfixBranch, "origin/" + masterBranch);
         this.consoleLogger.printf(MSG_PATTERN_CREATED_BRANCH_BASED_ON_OTHER, this.getActionName(), hotfixBranch, masterBranch);
 
-        // Record the data for the new remote branch.
-        final RemoteBranch remoteBranchRef = this.gitflowPluginData.getRemoteBranch(masterBranch);
-        final RemoteBranch remoteBranchNew = this.gitflowPluginData.getOrAddRemoteBranch(hotfixBranch);
-        remoteBranchNew.setLastBuildResult(remoteBranchRef.getLastBuildResult());
-        remoteBranchNew.setLastBuildVersion(remoteBranchRef.getLastBuildVersion());
-        remoteBranchNew.setBaseReleaseVersion(remoteBranchRef.getBaseReleaseVersion());
-        remoteBranchNew.setLastReleaseVersion(remoteBranchRef.getLastReleaseVersion());
-        remoteBranchNew.setLastReleaseVersionCommit(remoteBranchRef.getLastReleaseVersionCommit());
-
         // Update the version numbers in the project files to the hotfix version.
         final String nextPatchDevelopmentVersion = this.gitflowCause.getNextPatchDevelopmentVersion();
         this.addFilesToGitStage(this.buildTypeAction.updateVersion(nextPatchDevelopmentVersion));
@@ -76,10 +67,14 @@ public class StartHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         // Push the new hotfix branch.
         this.git.push("origin", "refs/heads/" + hotfixBranch + ":refs/heads/" + hotfixBranch);
 
-        // Record the remote branch data.
-        final RemoteBranch remoteBranch = this.gitflowPluginData.getOrAddRemoteBranch(hotfixBranch);
-        remoteBranch.setLastBuildResult(SUCCESS);
-        remoteBranch.setLastBuildVersion(nextPatchDevelopmentVersion);
+        // Record the information about the state of the new hotfix branch.
+        final RemoteBranch remoteBranchRef = this.gitflowPluginData.getRemoteBranch(masterBranch);
+        final RemoteBranch remoteBranchNew = this.gitflowPluginData.getOrAddRemoteBranch(hotfixBranch);
+        remoteBranchNew.setLastBuildResult(remoteBranchRef.getLastBuildResult());
+        remoteBranchNew.setLastBuildVersion(nextPatchDevelopmentVersion);
+        remoteBranchNew.setBaseReleaseVersion(remoteBranchRef.getBaseReleaseVersion());
+        remoteBranchNew.setLastReleaseVersion(remoteBranchRef.getLastReleaseVersion());
+        remoteBranchNew.setLastReleaseVersionCommit(remoteBranchRef.getLastReleaseVersionCommit());
 
         // Add environment and property variables
         this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", hotfixBranch);

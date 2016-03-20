@@ -86,16 +86,8 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
     private void afterSuccessfulMainBuild() throws IOException, InterruptedException {
 
-        // Record the information on the currently stable version on the release branch.
-        final String releaseBranch = this.gitflowCause.getReleaseBranch();
-        final String patchReleaseVersion = this.gitflowCause.getPatchReleaseVersion();
-        final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getRemoteBranch(releaseBranch);
-        remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
-        remoteBranchRelease.setLastBuildVersion(patchReleaseVersion);
-        remoteBranchRelease.setLastReleaseVersion(patchReleaseVersion);
-        remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev(releaseBranch));
-
         // Create a tag for the release version.
+        final String patchReleaseVersion = this.gitflowCause.getPatchReleaseVersion();
         final String tagName = getGitflowBuildWrapperDescriptor().getVersionTagPrefix() + patchReleaseVersion;
         final String msgCreatedReleaseTag = formatPattern(MSG_PATTERN_CREATED_RELEASE_TAG, ACTION_NAME, tagName);
         this.git.tag(tagName, msgCreatedReleaseTag);
@@ -109,12 +101,16 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         this.consoleLogger.print(msgUpdatedFixesVersion);
 
         // Push everything - the release branch and its commits and the new tag.
+        final String releaseBranch = this.gitflowCause.getReleaseBranch();
         this.git.push("origin", "refs/tags/" + tagName + ":refs/tags/" + tagName);
         this.git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
 
-        // Record the fixes development version on the release branch.
+        // Record the information about the state of the release branch.
+        final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getRemoteBranch(releaseBranch);
         remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
         remoteBranchRelease.setLastBuildVersion(nextPatchDevelopmentVersion);
+        remoteBranchRelease.setLastReleaseVersion(patchReleaseVersion);
+        remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev(releaseBranch));
     }
 
     private void afterUnsuccessfulMainBuild() {
