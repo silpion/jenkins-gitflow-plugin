@@ -126,7 +126,6 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev(releaseBranch));
 
         // Record the information about the state of the develop branch.
-        // TODO We should not offer the Start Release action when no record for the develop branch exists - the method 'getOrAddRemoteBranch' can be used then.
         final RemoteBranch remoteBranchDevelop = this.gitflowPluginData.getOrAddRemoteBranch(developBranch);
         remoteBranchDevelop.setLastBuildResult(Result.SUCCESS);
         remoteBranchDevelop.setLastBuildVersion(nextReleaseDevelopmentVersion);
