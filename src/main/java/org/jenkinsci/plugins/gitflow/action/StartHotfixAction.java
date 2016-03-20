@@ -57,9 +57,6 @@ public class StartHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         this.git.checkoutBranch(hotfixBranch, "origin/" + masterBranch);
         this.consoleLogger.printf(MSG_PATTERN_CREATED_BRANCH_BASED_ON_OTHER, this.getActionName(), hotfixBranch, masterBranch);
 
-        // Push the new branch.
-        this.git.push("origin", "refs/heads/" + hotfixBranch + ":refs/heads/" + hotfixBranch);
-
         // Record the data for the new remote branch.
         final RemoteBranch remoteBranchRef = this.gitflowPluginData.getRemoteBranch(masterBranch);
         final RemoteBranch remoteBranchNew = this.gitflowPluginData.getOrAddRemoteBranch(hotfixBranch);
@@ -76,7 +73,7 @@ public class StartHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         this.git.commit(msgUpadtedReleaseVersion);
         this.consoleLogger.print(msgUpadtedReleaseVersion);
 
-        // Push the new hotfix branch to the remote repo.
+        // Push the new hotfix branch.
         this.git.push("origin", "refs/heads/" + hotfixBranch + ":refs/heads/" + hotfixBranch);
 
         // Record the remote branch data.

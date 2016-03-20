@@ -87,11 +87,8 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
 
     private void afterSuccessfulMainBuild() throws IOException, InterruptedException {
 
-        // Push the new release branch to the remote repo.
-        final String releaseBranch = this.gitflowCause.getReleaseBranch();
-        this.git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
-
         // Record the information on the currently stable version on the release branch.
+        final String releaseBranch = this.gitflowCause.getReleaseBranch();
         final String releaseVersion = this.gitflowCause.getReleaseVersion();
         final RemoteBranch remoteBranchRelease = this.gitflowPluginData.getOrAddRemoteBranch(releaseBranch);
         remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
@@ -107,9 +104,6 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         this.git.tag(tagName, msgCreatedReleaseTag);
         this.consoleLogger.print(msgCreatedReleaseTag);
 
-        // Push the tag for the release version.
-        this.git.push("origin", "refs/tags/" + tagName + ":refs/tags/" + tagName);
-
         // Update the project files to the development version for the release fixes.
         final String nextPatchDevelopmentVersion = this.gitflowCause.getNextPatchDevelopmentVersion();
         this.addFilesToGitStage(this.buildTypeAction.updateVersion(nextPatchDevelopmentVersion));
@@ -117,8 +111,6 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         this.git.commit(msgUpdatedFixesVersion);
         this.consoleLogger.print(msgUpdatedFixesVersion);
 
-        // Push the project files with the development version for the release fixes.
-        this.git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
 
         // Record the fixes development version on the release branch.
         remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
@@ -133,7 +125,9 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         this.git.commit(msgUpdatedNextVersion);
         this.consoleLogger.print(msgUpdatedNextVersion);
 
-        // Push the project files in the develop branch with the development version for the next release.
+        // Push everything - the new release branch and its commits, the new tag and the commit on the develop branch.
+        this.git.push("origin", "refs/tags/" + tagName + ":refs/tags/" + tagName);
+        this.git.push("origin", "refs/heads/" + releaseBranch + ":refs/heads/" + releaseBranch);
         this.git.push("origin", "refs/heads/" + developBranch + ":refs/heads/" + developBranch);
 
         // Record the next development version on the develop branch.
