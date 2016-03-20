@@ -43,7 +43,6 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
     private static final String MSG_ABORTING_TO_OMIT_MAIN_BUILD = "Intentionally aborting to omit the main build";
     private static final String MSG_PATTERN_ABORTING_TO_OMIT_MAIN_BUILD = "Gitflow - %s: " + MSG_ABORTING_TO_OMIT_MAIN_BUILD + "%n";
     private static final String MSG_PATTERN_CLEANED_UP_WORKING_DIRECTORY = "Gitflow - %s: Cleaned up working/checkout directory%n";
-    private static final String MSG_PATTERN_CREATED_BRANCH_BASED_ON_OTHER = "Gitflow - %s: Created a new branch %s based on %s%n";
     private static final String MSG_PATTERN_DELETED_BRANCH = "Gitflow - %s: Deleted branch %s%n";
     private static final String MSG_PATTERN_RESULT_TO_UNSTABLE = "Gitflow - %s: Changing result of successful build to unstable, because there are unstable branches: %s%n";
 
@@ -214,32 +213,6 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
     protected void cleanCheckout() throws InterruptedException {
         this.git.clean();
         this.consoleLogger.printf(MSG_PATTERN_CLEANED_UP_WORKING_DIRECTORY, this.getActionName());
-    }
-
-    /**
-     * Creates a new branch based on a reference branch.
-     *
-     * @param newBranchName the name of the new branch.
-     * @param refBranchName the name of the reference branch.
-     * @throws InterruptedException if the build is interrupted during execution.
-     */
-    protected void createBranch(final String newBranchName, final String refBranchName) throws InterruptedException {
-
-        // Create a new branch.
-        this.git.checkoutBranch(newBranchName, "origin/" + refBranchName);
-        this.consoleLogger.printf(MSG_PATTERN_CREATED_BRANCH_BASED_ON_OTHER, this.getActionName(), newBranchName, refBranchName);
-
-        // Push the new branch.
-        this.git.push("origin", "refs/heads/" + newBranchName + ":refs/heads/" + newBranchName);
-
-        // Record the data for the new remote branch.
-        final RemoteBranch remoteBranchRef = this.gitflowPluginData.getRemoteBranch(refBranchName);
-        final RemoteBranch remoteBranchNew = this.gitflowPluginData.getOrAddRemoteBranch(newBranchName);
-        remoteBranchNew.setLastBuildResult(remoteBranchRef.getLastBuildResult());
-        remoteBranchNew.setLastBuildVersion(remoteBranchRef.getLastBuildVersion());
-        remoteBranchNew.setBaseReleaseVersion(remoteBranchRef.getBaseReleaseVersion());
-        remoteBranchNew.setLastReleaseVersion(remoteBranchRef.getLastReleaseVersion());
-        remoteBranchNew.setLastReleaseVersionCommit(remoteBranchRef.getLastReleaseVersionCommit());
     }
 
     /**

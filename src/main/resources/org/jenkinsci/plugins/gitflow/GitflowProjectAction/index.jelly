@@ -47,23 +47,6 @@
                                 <f:entry title="Last Patch Release Version">
                                     ${publishReleaseCause.lastPatchReleaseVersion} (Commit ${publishReleaseCause.lastPatchReleaseCommit.name})
                                 </f:entry>
-                                <f:entry title="Merge to develop">
-                                    <f:checkbox name="publishRelease_${releaseVersionDotfree}_mergeToDevelop" checked="${publishReleaseCause.mergeToDevelop}"
-                                        title="(Using merge strategy 'recursive-ours' to prevent conflicts, but some conflicting changes may be lost.)" />
-                                </f:entry>
-                                <f:entry title="Included Action">
-                                    <select name="publishRelease_${releaseVersionDotfree}_includedAction">
-                                        <f:option value="NONE" selected="${publishReleaseCause.includedAction == 'NONE'}">
-                                            None (keep release branch)
-                                        </f:option>
-                                        <f:option value="FINISH_RELEASE" selected="${publishReleaseCause.includedAction == 'FINISH_RELEASE'}">
-                                            Finish Release ${releaseVersion} (Delete release branch - NOTE: Merge to develop should be checked)
-                                        </f:option>
-                                        <f:option value="START_HOTFIX" selected="${publishReleaseCause.includedAction == 'START_HOTFIX'}">
-                                            Finish Release ${releaseVersion} and Start Hotfix ${releaseVersion} (Rename release branch)
-                                        </f:option>
-                                    </select>
-                                </f:entry>
                             </f:radioBlock>
 
                             <j:set var="finishReleaseCause" value="${releaseBranchCauseGroup.finishReleaseCause}" />
@@ -71,10 +54,6 @@
                                 <f:invisibleEntry>
                                     <input name="finishRelease_releaseVersion" value="${releaseVersion}" type="hidden" />
                                 </f:invisibleEntry>
-                                <f:entry title="Included Action">
-                                    <f:checkbox name="finishRelease_${releaseVersionDotfree}_includeStartHotfixAction" checked="${finishReleaseCause.includeStartHotfixAction}"
-                                        title="Start Hotfix ${releaseVersion} (Don't delete release branch, reanme to hotfix branch)" />
-                                </f:entry>
                             </f:radioBlock>
 
                         </f:entry>
@@ -138,14 +117,6 @@
                                 </f:invisibleEntry>
                                 <f:entry title="Last Patch Release Version">
                                     ${publishHotfixCause.lastPatchReleaseVersion} (Commit ${publishHotfixCause.lastPatchReleaseCommit.name})
-                                </f:entry>
-                                <f:entry title="Merge to develop">
-                                    <f:checkbox name="publishHotfix_${hotfixVersionDotfree}_mergeToDevelop" checked="${publishHotfixCause.mergeToDevelop}"
-                                        title="(Using merge strategy 'recursive-ours' to prevent conflicts, but some conflicting changes may be lost.)" />
-                                </f:entry>
-                                <f:entry title="Included Action">
-                                    <f:checkbox name="publishHotfix_${hotfixVersionDotfree}_includeFinishHotfixAction" checked="${publishHotfixCause.includeFinishHotfixAction}"
-                                        title="Finish Hotfix ${hotfixVersion} (Delete hotfix branch - NOTE: Merge to develop should be checked)" />
                                 </f:entry>
                             </f:radioBlock>
 
