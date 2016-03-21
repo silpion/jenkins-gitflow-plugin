@@ -267,6 +267,10 @@
                                                 <include>jobs/*/config.xml</include>
                                                 <include>hudson.*.xml</include>
                                             </includes>
+                                            <!-- Disable creation of freestyle projects as they'll produce errors until JGP-37 is resolved. -->
+                                            <excludes>
+                                                <exclude>jobs/freestyle-*/config.xml</exclude>
+                                            </excludes>
                                         </resource>
                                     </resources>
                                     <outputDirectory>${jenkinsHome}</outputDirectory>
