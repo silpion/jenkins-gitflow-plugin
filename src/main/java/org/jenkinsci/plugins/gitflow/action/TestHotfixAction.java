@@ -86,26 +86,12 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
 
     private void afterSuccessfulMainBuild() throws IOException, InterruptedException {
 
-        // Push the new minor release version to the remote repo.
-        String hotfixBranch = gitflowCause.getHotfixBranch();
-        this.git.push("origin", "refs/heads/" + hotfixBranch + ":refs/heads/" + hotfixBranch);
-
-        // Record the information on the currently stable version on the release branch.
-        final String patchReleaseVersion = this.gitflowCause.getPatchReleaseVersion();
-        final RemoteBranch remoteBranchHotfix = this.gitflowPluginData.getRemoteBranch(hotfixBranch);
-        remoteBranchHotfix.setLastBuildResult(Result.SUCCESS);
-        remoteBranchHotfix.setLastBuildVersion(patchReleaseVersion);
-        remoteBranchHotfix.setLastReleaseVersion(patchReleaseVersion);
-        remoteBranchHotfix.setLastReleaseVersionCommit(this.git.getHeadRev(hotfixBranch));
-
         // Create a tag for the release version.
+        final String patchReleaseVersion = this.gitflowCause.getPatchReleaseVersion();
         final String tagName = getGitflowBuildWrapperDescriptor().getVersionTagPrefix() + patchReleaseVersion;
         final String msgCreatedReleaseTag = formatPattern(MSG_PATTERN_CREATED_HOTFIX_TAG, ACTION_NAME, tagName);
         this.git.tag(tagName, msgCreatedReleaseTag);
         this.consoleLogger.print(msgCreatedReleaseTag);
-
-        // Push the tag for the release version.
-        this.git.push("origin", "refs/tags/" + tagName + ":refs/tags/" + tagName);
 
         // Update and commit the project files to the next version for the next hotfix
         final String nextPatchDevelopmentVersion = this.gitflowCause.getNextPatchDevelopmentVersion();
@@ -114,12 +100,17 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
         git.commit(msgUpdatedFixesVersion);
         this.consoleLogger.print(msgUpdatedFixesVersion);
 
-        // Push the project files with the next version for the next hotfix.
+        // Push everything - the hotfix branch and its commits and the new tag.
+        String hotfixBranch = this.gitflowCause.getHotfixBranch();
+        this.git.push("origin", "refs/tags/" + tagName + ":refs/tags/" + tagName);
         this.git.push("origin", "refs/heads/" + hotfixBranch + ":refs/heads/" + hotfixBranch);
 
-        // Record the fixes development version on the release branch.
+        // Record the information about the state of the hotfix branch.
+        final RemoteBranch remoteBranchHotfix = this.gitflowPluginData.getRemoteBranch(hotfixBranch);
         remoteBranchHotfix.setLastBuildResult(Result.SUCCESS);
         remoteBranchHotfix.setLastBuildVersion(nextPatchDevelopmentVersion);
+        remoteBranchHotfix.setLastReleaseVersion(patchReleaseVersion);
+        remoteBranchHotfix.setLastReleaseVersionCommit(this.git.getHeadRev(hotfixBranch));
     }
 
     private void afterUnsuccessfulMainBuild() {
