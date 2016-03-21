@@ -110,7 +110,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         remoteBranchRelease.setLastBuildResult(Result.SUCCESS);
         remoteBranchRelease.setLastBuildVersion(nextPatchDevelopmentVersion);
         remoteBranchRelease.setLastReleaseVersion(patchReleaseVersion);
-        remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev(releaseBranch));
+        remoteBranchRelease.setLastReleaseVersionCommit(this.git.revParse(tagName));
     }
 
     private void afterUnsuccessfulMainBuild() {

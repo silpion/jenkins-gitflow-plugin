@@ -110,7 +110,7 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
         remoteBranchHotfix.setLastBuildResult(Result.SUCCESS);
         remoteBranchHotfix.setLastBuildVersion(nextPatchDevelopmentVersion);
         remoteBranchHotfix.setLastReleaseVersion(patchReleaseVersion);
-        remoteBranchHotfix.setLastReleaseVersionCommit(this.git.getHeadRev(hotfixBranch));
+        remoteBranchHotfix.setLastReleaseVersionCommit(this.git.revParse(tagName));
     }
 
     private void afterUnsuccessfulMainBuild() {

@@ -123,7 +123,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         remoteBranchRelease.setLastBuildVersion(nextPatchDevelopmentVersion);
         remoteBranchRelease.setBaseReleaseVersion(releaseVersion);
         remoteBranchRelease.setLastReleaseVersion(releaseVersion);
-        remoteBranchRelease.setLastReleaseVersionCommit(this.git.getHeadRev(releaseBranch));
+        remoteBranchRelease.setLastReleaseVersionCommit(this.git.revParse(tagName));
 
         // Record the information about the state of the develop branch.
         final RemoteBranch remoteBranchDevelop = this.gitflowPluginData.getOrAddRemoteBranch(developBranch);
