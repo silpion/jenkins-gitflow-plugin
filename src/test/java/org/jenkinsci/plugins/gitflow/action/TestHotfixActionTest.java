@@ -162,7 +162,7 @@ public class TestHotfixActionTest extends AbstractGitflowActionTest<TestHotfixAc
         verify(this.git).add("child2/pom.xml");
         verify(this.git).add("child3/pom.xml");
         verify(this.git).commit(any(String.class));
-        verify(this.git).getHeadRev(any(String.class));
+        verify(this.git).revParse(any(String.class));
         verify(this.git).tag(any(String.class), any(String.class));
 
         verify(this.remoteBranchHotfix, atLeastOnce()).setLastBuildResult(Result.SUCCESS);
