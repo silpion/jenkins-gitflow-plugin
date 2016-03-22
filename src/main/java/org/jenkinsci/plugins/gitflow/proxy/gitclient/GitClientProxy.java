@@ -261,6 +261,17 @@ public class GitClientProxy {
     }
 
     /**
+     * Retrieve commit object that is direct child for <tt>revName</tt> revision reference.
+     *
+     * @param revName a commit sha1 or tag/branch refname
+     * @throws GitException when no such commit / revName is found in repository.
+     * @see GitClient#revParse(String)
+     */
+    public ObjectId revParse(final String revName) throws InterruptedException {
+        return this.gitClient.revParse(revName);
+    }
+
+    /**
      * Find all the remote branches that include the given commit.
      *
      * @param revspec commit id to query for
