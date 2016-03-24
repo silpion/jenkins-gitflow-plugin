@@ -129,14 +129,11 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
         final RemoteBranch remoteBranchDevelop = this.gitflowPluginData.getOrAddRemoteBranch(developBranch);
         remoteBranchDevelop.setLastBuildResult(Result.SUCCESS);
         remoteBranchDevelop.setLastBuildVersion(nextReleaseDevelopmentVersion);
-
-        // TODO Might configure further branches to merge to.
     }
 
     private void afterUnsuccessfulMainBuild() {
 
         // Here we assume that there was an error on the develop branch right before we created the release branch.
-        // TODO We should not offer the Start Release action when no record for the develop branch exists - the method 'getOrAddRemoteBranch' can be used then.
         final RemoteBranch remoteBranchDevelop = this.gitflowPluginData.getOrAddRemoteBranch(getGitflowBuildWrapperDescriptor().getDevelopBranch());
         remoteBranchDevelop.setLastBuildResult(this.getBuildResultNonNull());
         remoteBranchDevelop.setLastBuildVersion(remoteBranchDevelop.getLastBuildVersion());

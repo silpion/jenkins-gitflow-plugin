@@ -1,6 +1,5 @@
 package org.jenkinsci.plugins.gitflow.action;
 
-import static hudson.model.Result.SUCCESS;
 import static org.jenkinsci.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
 
 import java.io.IOException;
