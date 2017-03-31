@@ -1,0 +1,731 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <meta name="description"
+          content="Der Gitflow von Vincent Driessen (http://nvie.com/posts/a-successful-git-branching-model/) ist ein Branching-Modell für Git, das mittlerweile in vielen Softwareprojekten erfolgreich eingesetzt wird. In Maven-Projekten gestaltet sich die Anwendung des Gitflow aber oft schwierig. Dabei stoßen die Teams oft auf Verständnisprobleme und konzeptionelle Hürden. Darüber hinaus ist die Durchführung der erforderlichen technischen Aktionen mit erhöhten Aufwänden verbunden, und die üblichen, hierfür verwendeten Werkzeuge können meistens nicht genutzt werden. In der Session wird gezeigt, wie sich der Gitflow auf Maven-Projekte anwenden lässt und welche Arbeitsschritte dafür im Einzelnen erforderlich sind. Am Ende der Session soll ein Jenkins-Plugin vorgeführt werden, das es ermöglicht, die Gitflow-Aktionen über die Benutzeroberfläche zu starten und alle erforderlichen Arbeitsschritte selbstständig ausführt.">
+    <meta name="author" content="Marc Rohlfs, T-Systems Multimedia Solutions GmbH">
+
+    <title>Maven-Projekte mit Gitflow über Jenkins steuern</title>
+
+    <link rel="stylesheet" href="node_modules/reveal.js/css/reveal.css">
+    <link rel="stylesheet" href="node_modules/reveal.js/css/theme/white.css">
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="node_modules/reveal.js/lib/css/zenburn.css">
+
+    <link rel="stylesheet" type="text/css" href="node_modules/gitgraph.js/build/gitgraph.css"/>
+    <script src="node_modules/gitgraph.js/build/gitgraph.min.js"></script>
+
+    <link rel="stylesheet" href="css/gitflow.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = window.location.search.match(/print-pdf/gi) ? 'node_modules/reveal.js/css/print/pdf.css' : 'node_modules/reveal.js/css/print/paper.css';
+        document.getElementsByTagName('head')[0].appendChild(link);
+
+        var gitGraphTemplate = new GitGraph.Template({
+            branch: {
+                lineWidth: 2,
+                spacingX: 50,
+                color: "#000000"
+            },
+            commit: {
+                spacingY: -80,
+                dot: {
+                    size: 15,
+                    strokeColor: "#000000",
+                    strokeWidth: 4
+                },
+                tag: {
+                    font: "normal 10pt Arial"
+                },
+                message: {
+                    displayAuthor: false,
+                    displayHash: false,
+                    font: "normal 14pt Arial"
+                }
+            },
+            colors: ["#FA3DB5", "#FFE43A", "#56C42A", "#56C42A", "#FD5965", "#31E5FA"]
+        });
+
+        var gitGraphColumnFeature = 0;
+        var gitGraphColumnDevelop = 1;
+        var gitGraphColumnRelease2 = 2;
+        var gitGraphColumnRelease1 = 3;
+        var gitGraphColumnHotfix = 4;
+        var gitGraphColumnMaster = 5;
+
+    </script>
+</head>
+<body>
+<div class="reveal">
+    <div class="slides">
+        <section>
+            <h1>Maven-Projekte</h1>
+            <h3>mit</h3>
+            <h1>Gitflow</h1>
+            <h3>über</h3>
+            <h1>Jenkins</h1>
+            <h3>steuern</h3>
+        </section>
+        <section>
+            <h1>Über mich</h1>
+            <p>Marc Rohlfs</p>
+            <p>Software-Architekt</p>
+            <p>T-Systems Multimedia Solutions GmbH</p>
+            <p>Marc.Rohlfs@t-systems.com</p>
+        </section>
+        <section>
+            <h1>Agenda</h1>
+            <ol>
+                <li class="fragment">Ausgangssituation</li>
+                <li class="fragment">Theoretische Lösung</li>
+                <li class="fragment">Praktische Umsetzung</li>
+            </ol>
+            <aside class="notes">
+                Ziel / Warum geht es heute?
+                <ol>
+                    <li>Wie schauen uns kurz die Ausgangssituation an</li>
+                    <li>Anschließend werden die theoretischen Ansätze zur Lösung vorgestellt (das ist der längste Teil)</li>
+                    <li>Und am Ende wird die Praktische Umsetzung vorgeführt</li>
+                </ol>
+                Beginnen wir mit der Ausgangssituation ...
+            </aside>
+        </section>
+        <section>
+            <h2>Ausgangssituation</h2>
+            <ul class="fragment">
+                <li>Gitflow</li>
+                <li>Maven</li>
+            </ul>
+            <aside class="notes">
+                <ul>
+                    <li>Worum geht es hier?</li>
+                    <li>Involviert sind (bzw. beleuchtet werden) der Gitflow, Maven und Jenkins</li>
+                    <li>Die Zuhörer sollten Gitflow und Maven kennen</li>
+                </ul>
+            </aside>
+        </section>
+        <section>
+            <h1>Gitflow</h1>
+            <p>Der Gitflow von Vincent Driessen</p>
+            <p><img data-src="images/git-model.png" height="300"/></p>
+            <p style="font-size: small"><a href="http://nvie.com/posts/a-successful-git-branching-model">http://nvie.com/posts/a-successful-git-branching-model</a></p>
+            <aside class="notes">
+                <ul>
+                    <li>Hat sich zum Quasi-Standard für Gitprojekte entwicklelt - mit Variationen</li>
+                    <li>Ermöglicht parallele Entwicklung von Releases, Bugfixes und Hotfixes</li>
+                    <li>Sehr gut geeignet für Semantic Versioning</li>
+                    <li>vs. Trunk-basierte Entwicklung</li>
+                </ul>
+            </aside>
+        </section>
+        <section>
+            <h1>Maven</h1>
+            <ul>
+                <li>Snapshots & Releases</li>
+                <li>Releases per <a href="https://maven.apache.org/components/maven-release/maven-release-plugin">Maven Release Plugin</a></li>
+                <li>Trunk-basierte Entwicklung</li>
+            </ul>
+            <aside class="notes">
+                <ul>
+                    <li>Versionierung: Snapshots & Releases</li>
+                    <li>Snapshots: Inhalte sind nicht definiert, Änderungen unterworfen</li>
+                    <li>Releases: Inhalte sind definiert, Änderungen sind (quasi) nicht möglich</li>
+                    <li>Bei Einführung des Maven Release Plugins war Gitflow noch unbekannt</li>
+                    <li>Maven Release Plugin benötigt (quasi) einen festen Branch</li>
+                    <li>(Quasi) nur im trunk-basierten Ansatz einsetzbar</li>
+                    <li>Also gibt es einen Widerspruch zum Gitflow</li>
+                </ul>
+            </aside>
+        </section>
+        <section>
+            <h1>Agenda</h1>
+            <ol>
+                <li>Ausgangssituation</li>
+                <li><strong><u>Theoretische Lösung</u></strong></li>
+                <li>Praktische Umsetzung</li>
+            </ol>
+            <aside class="notes">
+                Jetzt: Die Theorien zur Lösung
+            </aside>
+        </section>
+        <section>
+            <h1>Gitflow Übersicht</h1>
+            <canvas id="gitGraphOverview"></canvas>
+            <script>
+                var gitgraph = new GitGraph({
+                    template: gitGraphTemplate,
+                    elementId: "gitGraphOverview"
+                });
+                gitgraph.template.commit.spacingY = -70;
+
+                var masterBranch = gitgraph.branch({
+                    name: "master",
+                    column: gitGraphColumnMaster
+                });
+                masterBranch.commit("Merge branch `...` into master / Initial commit");
+                masterBranch.tag("Tag 0.1");
+
+                var developBranch = gitgraph.branch({
+                    parentBranch: masterBranch,
+                    name: "develop",
+                    column: gitGraphColumnDevelop
+                });
+                developBranch.commit("Feature");
+
+                var hotfixBranch = gitgraph.branch({
+                    parentBranch: masterBranch,
+                    name: "hotfix",
+                    column: gitGraphColumnHotfix
+                });
+                hotfixBranch.commit("Hotfix");
+                hotfixBranch.merge(masterBranch);
+                masterBranch.tag("Tag 0.2");
+
+                var releaseBranch = gitgraph.branch({
+                    parentBranch: developBranch,
+                    name: "release",
+                    column: gitGraphColumnRelease1
+                });
+
+                releaseBranch.commit("Bugfix");
+
+                releaseBranch.merge(developBranch);
+                releaseBranch.merge(masterBranch);
+                masterBranch.tag("Tag 1.0");
+            </script>
+            <aside class="notes">
+                <ul>
+                    <li>Noch mal der Blick auf die relevanten Teile des Gitflow</li>
+                    <li>Farben ähnlich denen aus der Original-Grafik</li>
+                    <li>Feature-Entwicklung</li>
+                    <li>Releases und Bugfixes</li>
+                    <li>Hotfixes</li>
+                    <li>Tags</li>
+                    <li>Publizierung von Releases</li>
+                </ul>
+            </aside>
+        </section>
+        <section>
+            <h1>Features</h1>
+            <canvas id="gitGraphFeatures"></canvas>
+            <script>
+                var gitgraph = new GitGraph({
+                    template: gitGraphTemplate,
+                    elementId: "gitGraphFeatures"
+                });
+
+                var masterBranch = gitgraph.branch({
+                    name: "master",
+                    column: gitGraphColumnMaster
+                });
+                masterBranch.commit("Initial commit: Version 1.0.0-SNAPSHOT");
+
+                var developBranch = gitgraph.branch({
+                    parentBranch: masterBranch,
+                    name: "develop",
+                    column: gitGraphColumnDevelop
+                });
+                developBranch.commit("Feature 1");
+
+                var feature2Branch = gitgraph.branch({
+                    parentBranch: developBranch,
+                    name: "feature/2",
+                    column: gitGraphColumnFeature
+                });
+                feature2Branch.commit("Feature 2.1");
+
+                developBranch.commit("Feature 3");
+                feature2Branch.commit("Feature 2.2");
+
+                feature2Branch.merge(developBranch);
+            </script>
+            <aside class="notes">
+                <ul>
+                    <li>Zeigt auch die Initialisierung (mit Version 1.0.0-SNAPSHOT)</li>
+                    <li>Features werden auf dem Development-Branch entwickelt</li>
+                    <li>Oder in Feature-Branches</li>
+                    <li>Auch parallel/konkurrierend</li>
+                    <li><strong>Aber</strong>: Feature-Entwicklung ist nicht unser Thema</li>
+                </ul>
+            </aside>
+        </section>
+        <section>
+            <h1>Start Release</h1>
+            <canvas id="gitGraphStartRelease"></canvas>
+            <script>
+                var gitgraph = new GitGraph({
+                    template: gitGraphTemplate,
+                    elementId: "gitGraphStartRelease"
+                });
+
+                var masterBranch = gitgraph.branch({
+                    name: "master",
+                    column: gitGraphColumnMaster
+                });
+                masterBranch.commit("Initial commit: Version 1.0.0-SNAPSHOT");
+
+                var developBranch = gitgraph.branch({
+                    parentBranch: masterBranch,
+                    name: "develop",
+                    column: gitGraphColumnDevelop
+                });
+                developBranch.commit("Feature 1..n");
+
+                var releaseBranch = gitgraph.branch({
+                    parentBranch: developBranch,
+                    name: "release/1.0",
+                    column: gitGraphColumnRelease1
+                });
+                releaseBranch.commit("Start Release: Version 1.0.0").tag("Tag 1.0.0");
+                releaseBranch.commit("Start Release: Version 1.0.1-SNAPSHOT");
+
+                developBranch.commit("Start Release: Version 1.1.0-SNAPSHOT");
+            </script>
+            <aside class="notes">
+                <ol>
+                    <li>Wenn Feature-Complete</li>
+                    <li>Release-Branch erstellen</li>
+                    <li>Release-Version in den Maven-POMs setzen ("-Snapshot abhängen")</li>
+                    <li>Release Tag erstellen (im Release-Branch, nicht im master-Branch)</li>
+                    <li>Jetzt wird auch das Release gebaut und in den Maven-Repository-Manager deployt</li>
+                    <li>Die Entwicklungsversion für die kommenden Release-Patches/-Bugfixes in den Maven-POMs setzen</li>
+                    <li>Im develop-Branch die Entwicklungsversion für das nächste Release in den Maven-POMs setzen</li>
+                    <li>Die Release-Version wird auf dem Test-/Staging-System installiert</li>
+                </ol>
+            </aside>
+        </section>
+        <section>
+            <h1>Test Release</h1>
+            <canvas id="gitGraphTestRelease"></canvas>
+            <script>
+                var gitgraph = new GitGraph({
+                    template: gitGraphTemplate,
+                    elementId: "gitGraphTestRelease"
+                });
+                gitgraph.template.commit.spacingY = -40;
+
+                var developBranch = gitgraph.branch({
+                    name: "develop",
+                    column: gitGraphColumnDevelop
+                });
+                developBranch.commit("Feature 1 .. n");
+
+                var releaseBranch = gitgraph.branch({
+                    parentBranch: developBranch,
+                    name: "release/1.0",
+                    column: gitGraphColumnRelease1
+                });
+                releaseBranch.commit("Start Release: Version 1.0.1-SNAPSHOT");
+                developBranch.commit("Start Release: Version 1.1.0-SNAPSHOT");
+
+                releaseBranch.commit("Bugfix 1");
+                releaseBranch.merge(developBranch, "Cherry-Pick: Bugfix 1'");
+
+                releaseBranch.commit("Bugfix 2");
+                releaseBranch.merge(developBranch, "Cherry-Pick: Bugfix 2'");
+
+                releaseBranch.commit("Test Release: Version 1.0.1").tag("Tag 1.0.1");
+                releaseBranch.commit("Test Release: Version 1.0.2-SNAPSHOT");
+
+                releaseBranch.commit("Bugfix 3");
+                releaseBranch.merge(developBranch, "Cherry-Pick: Bugfix 3'");
+            </script>
+            <aside class="notes">
+                <ol>
+                    <li>Zusätzliche Aktion (gegenüber dem Standard-Gitflow)</li>
+                    <li>Bugfix-Iteration(en)</li>
+                    <li>Alle gemeldeten Bugfixes implementieren</li>
+                    <li>Bugfixes möglichst gleich per Cherry-Pick in den develop-Branch überführen</li>
+                    <li>Cherry-Picks ggf. komplexer wg. Bugfix-Feature-Flow, Pull Request u.ä. - führt hier (zeitlich) zu weit</li>
+                    <li>Wenn alle gemeldeten Bugfixes gelöst sind:</li>
+                    <li>Patch-Release-Version in den Maven-POMs setzen ("-Snapshot abhängen")</li>
+                    <li>Patch-Release Tag erstellen</li>
+                    <li>Jetzt wird das Patch-Release gebaut und in den Maven-Repository-Manager deployt</li>
+                    <li>Die Entwicklungsversion für die nächste Bugfix-Iteration in den Maven-POMs setzen</li>
+                    <li>Die Patch-Release-Version wird auf dem Test-/Staging-System installiert</li>
+                </ol>
+            </aside>
+        </section>
+        <section>
+            <h1>Publish Release</h1>
+            <canvas id="gitGraphPublishRelease"></canvas>
+            <script>
+                var gitgraph = new GitGraph({
+                    template: gitGraphTemplate,
+                    elementId: "gitGraphPublishRelease"
+                });
+                gitgraph.template.commit.spacingY = -55;
+
+                var masterBranch = gitgraph.branch({
+                    name: "master",
+                    column: gitGraphColumnMaster
+                });
+                masterBranch.commit("Initial commit: Version 1.0.0-SNAPSHOT");
+
+                var developBranch = gitgraph.branch({
+                    name: "develop",
+                    column: gitGraphColumnDevelop
+                });
+                developBranch.commit("Feature 1 .. n");
+
+                var releaseBranch = gitgraph.branch({
+                    parentBranch: developBranch,
+                    name: "release/1.0",
+                    column: gitGraphColumnRelease1
+                });
+
+                developBranch.commit("Start Release");
+                releaseBranch.commit("Start Release, Test Release(s)");
+
+                var releaseTag = releaseBranch.commit("Test Release: Version 1.0.5").tag("Tag 1.0.5");
+
+                releaseTag.merge(masterBranch, "Publish Release: Merge version 1.0.5 into `master`");
+                releaseTag.merge(developBranch);
+
+                releaseBranch.commit("Test Release: Version 1.0.6-SNAPSHOT");
+            </script>
+            <aside class="notes">
+                <ol>
+                    <li>Wenn kein weiterer Bug gemeldet wird</li>
+                    <li>Non-Fast-Forward-Merge des letzten Release-Commits auf den master</li>
+                    <li>Wichtig: nicht den nächsten DEV-Commt (SNAPSHOT) mergen!</li>
+                    <li>Im master ist imm das letzte stabile Release</li>
+                    <li>Ggf. auch Merge auf develop: Variante zum Cherry-Pick für die Bugfixes (aber nicht so gut)</li>
+                    <li>Patch-Release Tag erstellen</li>
+                </ol>
+            </aside>
+        </section>
+        <section>
+            <h1>Finish Release</h1>
+            <canvas id="gitGraphFinishRelease"></canvas>
+            <script>
+                var gitgraph = new GitGraph({
+                    template: gitGraphTemplate,
+                    elementId: "gitGraphFinishRelease"
+                });
+                gitgraph.template.commit.spacingY = -55;
+
+                var masterBranch = gitgraph.branch({
+                    name: "master",
+                    column: gitGraphColumnMaster
+                });
+                masterBranch.commit("Initial commit: Version 1.0.0-SNAPSHOT");
+
+                var developBranch = gitgraph.branch({
+                    name: "develop",
+                    column: gitGraphColumnDevelop
+                });
+                developBranch.commit("Feature 1 .. n");
+
+                var releaseBranch = gitgraph.branch({
+                    parentBranch: developBranch,
+                    name: "release/1.0",
+                    column: gitGraphColumnRelease1
+                });
+
+                developBranch.commit("Start Release");
+                releaseBranch.commit("Start Release, Test Release(s)");
+
+                var latestReleaseTag = releaseBranch.commit("Test Release: Version 1.0.5").tag("Tag 1.0.5");
+
+                latestReleaseTag.merge(masterBranch, "Publish Release: Merge version 1.0.5 into `master`");
+                latestReleaseTag.merge(developBranch);
+
+                releaseBranch.commit("Test Release: Version 1.0.6-SNAPSHOT");
+
+                releaseBranch.commit({
+                    message: "Finish Release: Delete release branch",
+                    color: "red"
+
+                });
+                releaseBranch.delete();
+            </script>
+            <aside class="notes">
+                <ol>
+                    <li>Löschen des Release-Branches</li>
+                    <li>Abhängig vom Entwicklungs- und Release-Workflow</li>
+                    <li>Ggf. kann der Branch weiter für Bugfixes verwendet werden</li>
+                    <li>Ansonsten gibt es ja noch Hotfixes</li>
+                </ol>
+            </aside>
+        </section>
+        <section>
+            <h1>Hotfixes</h1>
+            <canvas id="gitGraphHotfix"></canvas>
+            <script>
+                var gitgraph = new GitGraph({
+                    template: gitGraphTemplate,
+                    elementId: "gitGraphHotfix"
+                });
+                gitgraph.template.commit.spacingY = -55;
+
+                var masterBranch = gitgraph.branch({
+                    name: "master",
+                    column: gitGraphColumnMaster
+                });
+                masterBranch.commit("Initial commit: Version 1.0.0-SNAPSHOT");
+
+                var developBranch = gitgraph.branch({
+                    name: "develop",
+                    column: gitGraphColumnDevelop
+                });
+
+                masterBranch.commit("Publish Release: Merge version 1.0.5 into `master`");
+
+                var hotfixBranch = gitgraph.branch({
+                    parentBranch: masterBranch,
+                    name: "hotfix/1.0",
+                    column: gitGraphColumnHotfix
+                });
+                hotfixBranch.commit("Start Hotfix: Version 1.0.6-SNAPSHOT");
+
+                hotfixBranch.commit("Hotfix 1");
+                hotfixBranch.merge(developBranch, "Cherry-Pick: Hotfix 1'");
+
+                var hotfixTag = hotfixBranch.commit("Test Hotfix: Version 1.0.6").tag("Tag 1.0.6");
+                hotfixTag.merge(masterBranch, "Publish Hotfix: Merge version 1.0.6 into `master`");
+
+                hotfixBranch.commit("Test Hotfix: Version 1.0.7-SNAPSHOT");
+                hotfixBranch.commit({
+                    message: "Finish Hotfix: Delete hotfix branch",
+                    color: "red"
+                });
+            </script>
+            <aside class="notes">
+                <ol>
+                    <li>Für Hotfixes am letzten publizierten Release</li>
+                    <li>Man könnte stattdessen auch den Release-Branch weiter laufen lassen</li>
+                    <li>Analog zu den Release-Aktionen</li>
+                    <li>Start Release setzt lediglich die Entwicklungsversion für den Hotfix (redundant, aber nötig, wenn der Release-Branch gelöscht wurde)</li>
+                    <li>Test, Publish und Finish Hotfix analog zu Releases</li>
+                    <li>Der Hotfix-Commit sollte eher nicht gemergt werden, Cherry-Picks sind hier zu 99% das Mittel der Wahl</li>
+                </ol>
+            </aside>
+        </section>
+        <section>
+            <h1>Kombinationen</h1>
+            <p><span class="fragment">Alles ist möglich</span><span class="fragment"> ... fast alles</span></p>
+            <p class="fragment">Nur die Präsentation hat ihre Grenzen ...</p>
+            <aside class="notes">
+                <ol>
+                    <li>Achtung, die nächste Grafik erschlägt etwas</li>
+                    <li>Aber ich muss ja auch meinen Spaß haben</li>
+                </ol>
+            </aside>
+        </section>
+        <section>
+            <canvas id="gitGraphCombinations"></canvas>
+            <script>
+                var gitgraph = new GitGraph({
+                    template: gitGraphTemplate,
+                    elementId: "gitGraphCombinations"
+                });
+                gitgraph.template.commit.spacingY = -35;
+
+                var masterBranch = gitgraph.branch({
+                    name: "master",
+                    column: gitGraphColumnMaster
+                });
+                masterBranch.commit("Initial commit: Version 1.0.0-SNAPSHOT");
+
+                var developBranch = gitgraph.branch({
+                    name: "develop",
+                    column: gitGraphColumnDevelop
+                });
+
+                masterBranch.commit("Publish Release: Merge version 1.0.5 into `master`");
+
+                developBranch.commit("Features 1.1: Version 1.1.0-SNAPSHOT");
+
+                var release1Branch = gitgraph.branch({
+                    parentBranch: developBranch,
+                    name: "release/1.1",
+                    column: gitGraphColumnRelease1
+                });
+                release1Branch.commit("Start Release, Test Release(s): Version 1.1.x[-SNAPSHOT]");
+
+                developBranch.commit("Features 1.2: Version 1.2.0-SNAPSHOT");
+
+                var release2Branch = gitgraph.branch({
+                    parentBranch: developBranch,
+                    name: "release/1.2",
+                    column: gitGraphColumnRelease2
+                });
+                release2Branch.commit("Start Release, Test Release(s): Version 1.2.x[-SNAPSHOT]");
+
+                var hotfixBranch = gitgraph.branch({
+                    parentBranch: masterBranch,
+                    name: "hotfix/1.0",
+                    column: gitGraphColumnHotfix
+                });
+                hotfixBranch.commit("Start Hotfix: Version 1.0.6-SNAPSHOT");
+
+                hotfixBranch.commit("Hotfix 1");
+                hotfixBranch.merge(release1Branch, "Cherry-Pick: Hotfix 1'");
+                release1Branch.merge(release2Branch, "Cherry-Pick: Hotfix 1''");
+                release2Branch.merge(developBranch, "Cherry-Pick: Hotfix 1'''");
+
+                var hotfixTag = hotfixBranch.commit("Test Hotfix: Version 1.0.6").tag("Tag 1.0.6");
+                hotfixTag.merge(masterBranch, "Publish Hotfix: Merge version 1.0.6 into `master`");
+
+                release1Branch.commit("Bugfix 1.1");
+                release1Branch.merge(release2Branch, "Cherry-Pick: Bugfix 1.1'");
+                release2Branch.merge(developBranch, "Cherry-Pick: Bugfix 1.1''");
+
+                var releaseTag = release1Branch.commit("Test Release: Version 1.1.x").tag("Tag 1.0.x");
+                releaseTag.merge(masterBranch, "Publish Release: Merge version 1.1.x into `master`");
+            </script>
+            <aside class="notes">
+                <ol>
+                    <li>Für Hotfixes am letzten publizierten Release</li>
+                    <li>Man könnte stattdessen auch den Release-Branch weiter laufen lassen</li>
+                    <li>Analog zu den Release-Aktionen</li>
+                    <li>Start Release setzt lediglich die Entwicklungsversion für den Hotfix (redundant, aber nötig, wenn der Release-Branch gelöscht wurde)</li>
+                    <li>Test, Publish und Finish Hotfix analog zu Releases</li>
+                    <li>Der Hotfix-Commit sollte eher nicht gemergt werden, Cherry-Picks sind hier zu 99% das Mittel der Wahl</li>
+                </ol>
+            </aside>
+        </section>
+        <section>
+            <h1>Agenda</h1>
+            <ol>
+                <li>Ausgangssituation</li>
+                <li>Theoretische Lösung</li>
+                <li><strong><u>Praktische Umsetzung</u></strong></li>
+            </ol>
+        </section>
+        <section>
+            <h2>Jenkins Gitflow Plugin</h2>
+            <ul>
+                <li>Automatisierung der vielen manuellen Schritte</li>
+                <li>Steuerung mittels grafischer Benutzeroberfläche</li>
+                <li>Gründe für die Umsetzung als Jenkins-Plugin:
+                    <ul>
+                        <li>Erweiterung des Maven Release Plugins sehr aufwändig, kaum vernünftig möglich</li>
+                        <li>Verbereitung von Jenkins,<br/>Einsatzhäufigkeit bei Kunden</li>
+                        <li>Build diverser Branches in einem Job</li>
+                    </ul>
+                </li>
+            </ul>
+            <aside class="notes">
+                <ul>
+                    <li>Es gibt/gab kein Werkzeug, das Gitflow <b>und</b> Maven zusammen bringt</li>
+                    <li>Keine unterschiedlichen Jobs je Branch erforderlich</li>
+                </ul>
+                <p>Screenshots or Live-Präsentation? Hängt von der Zeit ab ...</p>
+            </aside>
+        </section>
+        <section>
+            <h2>Initialer Build</h2>
+            <img data-src="images/gitflow-plugin-1.png" src="images/gitflow-plugin-1.png"/>
+        </section>
+        <section>
+            <h2>Start Release</h2>
+            <img data-src="images/gitflow-plugin-2.png" src="images/gitflow-plugin-2.png"/>
+        </section>
+        <section>
+            <h2>Test Release</h2>
+            <img data-src="images/gitflow-plugin-3.png" src="images/gitflow-plugin-3.png"/>
+        </section>
+        <section>
+            <h2>Publish Release</h2>
+            <img data-src="images/gitflow-plugin-4.png" src="images/gitflow-plugin-4.png"/>
+        </section>
+        <section>
+            <h2>Finish Release</h2>
+            <img data-src="images/gitflow-plugin-5.png" src="images/gitflow-plugin-5.png"/>
+        </section>
+        <section>
+            <h2>Start Hotfix</h2>
+            <img data-src="images/gitflow-plugin-6.png" src="images/gitflow-plugin-6.png"/>
+        </section>
+        <section>
+            <h2>Ausgeführte Builds</h2>
+            <img data-src="images/gitflow-plugin-7.png" src="images/gitflow-plugin-7.png"/>
+        </section>
+        <section>
+            <h2>Gepushte Commits</h2>
+            <img data-src="images/gitflow-plugin-8.png" src="images/gitflow-plugin-8.png"/>
+        </section>
+        <section>
+            <h2>Entwicklung & Beratung</h2>
+            <p style="font-size: smaller;">
+                <a href="https://www.silpion.de" style="color: black;">
+                    Silpion IT-Solutions GmbH<br/>
+                    <img data-src="images/Silpion.png" src="images/Silpion.png" />
+                </a>
+            </p>
+            <p style="font-size: smaller;">
+                <a href="https://www.t-systems-mms.com" style="color: black;">
+                    T-Systems Multimedia Solutions GmbH<br/>
+                    <img data-src="images/T-Systems-MMS.png" src="images/T-Systems-MMS.png" />
+                </a>
+            </p>
+            <p style="font-size: smaller;">
+                <a href="mailto:Marc.Rohlfs@t-systems.com" style="color: black;">Marc Rohlfs</a>
+            </p>
+        </section>
+        <section>
+            <h2>Veröffentlichung</h2>
+            <h2>?</h2>
+            <p class="fragment">In Kürze</p>
+        </section>
+        <section>
+            <h2>Geplante Features</h2>
+            <ul>
+                <li>Artifactory-Support</li>
+                <li>Support für Freestyle-Projekte</li>
+                <li>Automatische Downstream-Merges</li>
+                <li>Andere Workflows</li>
+            </ul>
+            <aside class="notes">
+                <ul>
+                    <li>Artifactory-Support: Für Dry Run</li>
+                    <li>Automatische Downstream-Merges: bzw. Cherry-Picks</li>
+                    <li>Keine unterschiedlichen Jobs je Branch erforderlich</li>
+                    <li>Einfachere Workflows: z.B. trunk-basiert - um einheitliche Oberfläche für Releases zu schaffen und weil das Maven-Release-Plugin nicht immer prblemfrei ist</li>
+                </ul>
+            </aside>
+        </section>
+        <section>
+            <h2>Diskussion & Fragen</h2>
+        </section>
+        <section>
+            <h2>DANKE !!!</h2>
+        </section>
+    </div>
+</div>
+
+<script src="node_modules/reveal.js/lib/js/head.min.js"></script>
+<script src="node_modules/reveal.js/js/reveal.js"></script>
+<script src="node_modules/reveal.js/js/reveal.js"></script>
+
+<script>
+    // More info https://github.com/hakimel/reveal.js#configuration
+    Reveal.initialize({
+        history: true,
+        transition: 'slide',
+
+        // More info https://github.com/hakimel/reveal.js#dependencies
+        dependencies: [
+            {src: 'node_modules/reveal.js/plugin/markdown/marked.js'},
+            {src: 'node_modules/reveal.js/plugin/markdown/markdown.js'},
+            {src: 'node_modules/reveal.js/plugin/notes/notes.js', async: true},
+            {
+                src: 'node_modules/reveal.js/plugin/highlight/highlight.js', async: true, callback: function () {
+                hljs.initHighlightingOnLoad();
+            }
+            }
+        ]
+    });
+</script>
+</body>
+</html>
