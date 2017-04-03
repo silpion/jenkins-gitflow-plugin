@@ -2,3 +2,8 @@
     border: none !important;
     box-shadow: none;
 }
+
+.reveal a:hover img {
+    border: none !important;
+    box-shadow: none;
+}

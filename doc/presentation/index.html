@@ -67,22 +67,22 @@
 <div class="reveal">
     <div class="slides">
         <section>
-            <h1>Maven-Projekte</h1>
-            <h3>mit</h3>
-            <h1>Gitflow</h1>
-            <h3>über</h3>
-            <h1>Jenkins</h1>
-            <h3>steuern</h3>
+            <h2>Maven-Projekte</h2>
+            <h4>mit</h4>
+            <h2>Gitflow</h2>
+            <h4>über</h4>
+            <h2>Jenkins</h2>
+            <h4>steuern</h4>
         </section>
         <section>
-            <h1>Über mich</h1>
+            <h2>Über mich</h2>
             <p>Marc Rohlfs</p>
             <p>Software-Architekt</p>
             <p>T-Systems Multimedia Solutions GmbH</p>
             <p>Marc.Rohlfs@t-systems.com</p>
         </section>
         <section>
-            <h1>Agenda</h1>
+            <h2>Agenda</h2>
             <ol>
                 <li class="fragment">Ausgangssituation</li>
                 <li class="fragment">Theoretische Lösung</li>
@@ -113,7 +113,7 @@
             </aside>
         </section>
         <section>
-            <h1>Gitflow</h1>
+            <h2>Gitflow</h2>
             <p>Der Gitflow von Vincent Driessen</p>
             <p><img data-src="images/git-model.png" height="300"/></p>
             <p style="font-size: small"><a href="http://nvie.com/posts/a-successful-git-branching-model">http://nvie.com/posts/a-successful-git-branching-model</a></p>
@@ -127,7 +127,7 @@
             </aside>
         </section>
         <section>
-            <h1>Maven</h1>
+            <h2>Maven</h2>
             <ul>
                 <li>Snapshots & Releases</li>
                 <li>Releases per <a href="https://maven.apache.org/components/maven-release/maven-release-plugin">Maven Release Plugin</a></li>
@@ -146,7 +146,7 @@
             </aside>
         </section>
         <section>
-            <h1>Agenda</h1>
+            <h2>Agenda</h2>
             <ol>
                 <li>Ausgangssituation</li>
                 <li><strong><u>Theoretische Lösung</u></strong></li>
@@ -157,7 +157,7 @@
             </aside>
         </section>
         <section>
-            <h1>Gitflow Übersicht</h1>
+            <h2>Gitflow Übersicht</h2>
             <canvas id="gitGraphOverview"></canvas>
             <script>
                 var gitgraph = new GitGraph({
@@ -214,7 +214,7 @@
             </aside>
         </section>
         <section>
-            <h1>Features</h1>
+            <h2>Features</h2>
             <canvas id="gitGraphFeatures"></canvas>
             <script>
                 var gitgraph = new GitGraph({
@@ -258,7 +258,7 @@
             </aside>
         </section>
         <section>
-            <h1>Start Release</h1>
+            <h2>Start Release</h2>
             <canvas id="gitGraphStartRelease"></canvas>
             <script>
                 var gitgraph = new GitGraph({
@@ -303,14 +303,14 @@
             </aside>
         </section>
         <section>
-            <h1>Test Release</h1>
+            <h2>Test Release</h2>
             <canvas id="gitGraphTestRelease"></canvas>
             <script>
                 var gitgraph = new GitGraph({
                     template: gitGraphTemplate,
                     elementId: "gitGraphTestRelease"
                 });
-                gitgraph.template.commit.spacingY = -40;
+                gitgraph.template.commit.spacingY = -45;
 
                 var developBranch = gitgraph.branch({
                     name: "develop",
@@ -355,14 +355,14 @@
             </aside>
         </section>
         <section>
-            <h1>Publish Release</h1>
+            <h2>Publish Release</h2>
             <canvas id="gitGraphPublishRelease"></canvas>
             <script>
                 var gitgraph = new GitGraph({
                     template: gitGraphTemplate,
                     elementId: "gitGraphPublishRelease"
                 });
-                gitgraph.template.commit.spacingY = -55;
+                gitgraph.template.commit.spacingY = -70;
 
                 var masterBranch = gitgraph.branch({
                     name: "master",
@@ -404,14 +404,14 @@
             </aside>
         </section>
         <section>
-            <h1>Finish Release</h1>
+            <h2>Finish Release</h2>
             <canvas id="gitGraphFinishRelease"></canvas>
             <script>
                 var gitgraph = new GitGraph({
                     template: gitGraphTemplate,
                     elementId: "gitGraphFinishRelease"
                 });
-                gitgraph.template.commit.spacingY = -55;
+                gitgraph.template.commit.spacingY = -60;
 
                 var masterBranch = gitgraph.branch({
                     name: "master",
@@ -458,14 +458,14 @@
             </aside>
         </section>
         <section>
-            <h1>Hotfixes</h1>
+            <h2>Hotfixes</h2>
             <canvas id="gitGraphHotfix"></canvas>
             <script>
                 var gitgraph = new GitGraph({
                     template: gitGraphTemplate,
                     elementId: "gitGraphHotfix"
                 });
-                gitgraph.template.commit.spacingY = -55;
+                gitgraph.template.commit.spacingY = -60;
 
                 var masterBranch = gitgraph.branch({
                     name: "master",
@@ -511,7 +511,7 @@
             </aside>
         </section>
         <section>
-            <h1>Kombinationen</h1>
+            <h2>Kombinationen</h2>
             <p><span class="fragment">Alles ist möglich</span><span class="fragment"> ... fast alles</span></p>
             <p class="fragment">Nur die Präsentation hat ihre Grenzen ...</p>
             <aside class="notes">
@@ -528,7 +528,7 @@
                     template: gitGraphTemplate,
                     elementId: "gitGraphCombinations"
                 });
-                gitgraph.template.commit.spacingY = -35;
+                gitgraph.template.commit.spacingY = -36;
 
                 var masterBranch = gitgraph.branch({
                     name: "master",
@@ -595,7 +595,7 @@
             </aside>
         </section>
         <section>
-            <h1>Agenda</h1>
+            <h2>Agenda</h2>
             <ol>
                 <li>Ausgangssituation</li>
                 <li>Theoretische Lösung</li>
