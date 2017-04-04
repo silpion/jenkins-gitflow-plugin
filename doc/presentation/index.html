@@ -78,13 +78,21 @@
             </aside>
         </section>
         <section>
-            <h2>Über mich</h2>
+            <h2>Referent</h2>
             <p>Marc Rohlfs</p>
             <p>Software-Architekt</p>
             <p>T-Systems Multimedia Solutions GmbH</p>
             <p>Marc.Rohlfs@t-systems.com</p>
             <aside class="notes">
                 <div align="right" style="color: blue; font-size: small">Zeitziel: 0:02:00</div>
+                <ul>
+                    <li>Standort: Hamburg</li>
+                    <li>Softwarearchitekt für CoreMedia, DevOps</li>
+                    <li>Java-Entwicklung: 15 Jahre</li>
+                    <li>(Kommerzielle) CMS-Produkte: 12 Jahre</li>
+                    <li>Build, CI, Automatisierungen: &gt; 10 Jahre</li>
+                    <li>Fokus auf Entwicklungsworkflows mit VCS</li>
+                </ul>
             </aside>
         </section>
         <section>
@@ -96,13 +104,6 @@
             </ol>
             <aside class="notes">
                 <div align="right" style="color: blue; font-size: small">Zeitziel: 0:03:00</div>
-                Ziel / Warum geht es heute?
-                <ol>
-                    <li>Wie schauen uns kurz die Ausgangssituation an</li>
-                    <li>Anschließend werden die theoretischen Ansätze zur Lösung vorgestellt (das ist der längste Teil)</li>
-                    <li>Und am Ende wird die Praktische Umsetzung vorgeführt</li>
-                </ol>
-                Beginnen wir mit der Ausgangssituation ...
             </aside>
         </section>
         <section>
@@ -113,11 +114,6 @@
             </ul>
             <aside class="notes">
                 <div align="right" style="color: blue; font-size: small">Zeitziel: 0:03:30</div>
-                <ul>
-                    <li>Worum geht es hier?</li>
-                    <li>Involviert sind (bzw. beleuchtet werden) der Gitflow, Maven und Jenkins</li>
-                    <li>Die Zuhörer sollten Gitflow und Maven kennen</li>
-                </ul>
             </aside>
         </section>
         <section>
@@ -128,9 +124,9 @@
             <aside class="notes">
                 <div align="right" style="color: blue; font-size: small">Zeitziel: 0:05:00</div>
                 <ul>
-                    <li>Hat sich zum Quasi-Standard für Gitprojekte entwicklelt - mit Variationen</li>
-                    <li>Ermöglicht parallele Entwicklung von Releases, Bugfixes und Hotfixes</li>
-                    <li>Sehr gut geeignet für Semantic Versioning</li>
+                    <li>Standard für Gitprojekte - einer, aber nicht der einzige</li>
+                    <li>Parallele Entwicklung von Releases, Bugfixes und Hotfixes</li>
+                    <li>Semantic Versioning ist damit sehr gut umsetzbar</li>
                     <li>vs. Trunk-basierte Entwicklung</li>
                 </ul>
             </aside>
@@ -145,13 +141,17 @@
             <aside class="notes">
                 <div align="right" style="color: blue; font-size: small">Zeitziel: 0:07:00</div>
                 <ul>
-                    <li>Versionierung: Snapshots & Releases</li>
-                    <li>Snapshots: Inhalte sind nicht definiert, Änderungen unterworfen</li>
-                    <li>Releases: Inhalte sind definiert, Änderungen sind (quasi) nicht möglich</li>
-                    <li>Bei Einführung des Maven Release Plugins war Gitflow noch unbekannt</li>
-                    <li>Maven Release Plugin benötigt (quasi) einen festen Branch</li>
-                    <li>(Quasi) nur im trunk-basierten Ansatz einsetzbar</li>
-                    <li>Also gibt es einen Widerspruch zum Gitflow</li>
+                    <li>Snapshots: Inhalte nicht definiert, änderbar</li>
+                    <li>Releases: Inhalte definiert, Änderungen (quasi) nicht möglich</li>
+                    <li>
+                        Maven Release Plugin
+                        <ul>
+                            <li>Bei Einführung war Gitflow noch unbekannt</li>
+                            <li>Benötigt (quasi) einen festen Branch</li>
+                            <li>Damit (quasi) nur trunk-basiert einsetzbar</li>
+                        </ul>
+                    </li>
+                    <li>Also: Widerspruch zum Gitflow</li>
                 </ul>
             </aside>
         </section>
@@ -164,7 +164,6 @@
             </ol>
             <aside class="notes">
                 <div align="right" style="color: blue; font-size: small">Zeitziel: 0:07:30</div>
-                Jetzt: Die Theorien zur Lösung
             </aside>
         </section>
         <section>
@@ -215,13 +214,17 @@
             <aside class="notes">
                 <div align="right" style="color: blue; font-size: small">Zeitziel: 0:08:30</div>
                 <ul>
-                    <li>Noch mal der Blick auf die relevanten Teile des Gitflow</li>
-                    <li>Farben ähnlich denen aus der Original-Grafik</li>
-                    <li>Feature-Entwicklung</li>
-                    <li>Releases und Bugfixes</li>
-                    <li>Hotfixes</li>
-                    <li>Tags</li>
-                    <li>Publizierung von Releases</li>
+                    <li>Entspricht der Original-Grafik</li>
+                    <li>
+                        Zeigt die relevanten Teile
+                        <ul>
+                            <li>Feature-Entwicklung (auf develop)</li>
+                            <li>Releases und Bugfixes</li>
+                            <li>Hotfixes</li>
+                            <li>Tags</li>
+                            <li>Publizierung</li>
+                        </ul>
+                    </li>
                 </ul>
             </aside>
         </section>
@@ -262,11 +265,15 @@
             <aside class="notes">
                 <div align="right" style="color: blue; font-size: small">Zeitziel: 0:10:00</div>
                 <ul>
-                    <li>Zeigt auch die Initialisierung (mit Version 1.0.0-SNAPSHOT)</li>
-                    <li>Features werden auf dem Development-Branch entwickelt</li>
-                    <li>Oder in Feature-Branches</li>
-                    <li>Auch parallel/konkurrierend</li>
-                    <li><strong>Aber</strong>: Feature-Entwicklung ist nicht unser Thema</li>
+                    <li>Initialisierung: Version 1.0.0-SNAPSHOT</li>
+                    <li>
+                        Feature-Entwicklung
+                        <ul>
+                            <li>auf develop<br/>und/oder</li>
+                            <li>in Feature-Branches</li>
+                        </ul>
+                    </li>
+                    <li><strong>Aber</strong>: Feature-Entwicklung hier nicht relevant</li>
                 </ul>
             </aside>
         </section>
@@ -290,7 +297,7 @@
                     name: "develop",
                     column: gitGraphColumnDevelop
                 });
-                developBranch.commit("Feature 1..n");
+                developBranch.commit("Features 1.0");
 
                 var releaseBranch = gitgraph.branch({
                     parentBranch: developBranch,
@@ -304,18 +311,24 @@
             </script>
             <aside class="notes">
                 <div align="right" style="color: blue; font-size: small">Zeitziel: 0:13:00</div>
-                <ol>
-                    <li>Wenn Feature-Complete</li>
-                    <li>Release-Branch erstellen</li>
-                    <li>Release-Version in den Maven-POMs setzen ("-Snapshot abhängen")</li>
-                    <li>Release Tag erstellen (im Release-Branch, nicht im master-Branch)</li>
-                    <li>Jetzt wird auch das Release gebaut und in den Maven-Repository-Manager deployt</li>
-                    <li>Die Entwicklungsversion für die kommenden Release-Patches/-Bugfixes in den Maven-POMs setzen</li>
-                    <li>Im develop-Branch die Entwicklungsversion für das nächste Release in den Maven-POMs setzen</li>
-                    <li>Die Release-Version wird auf dem Test-/Staging-System installiert</li>
-                </ol>
+                <ul style="font-size: smaller;">
+                    <li>Vorbedingung: Alle Features implementiert</li>
+                    <li>
+                        Gitflow Arbeitsschritte:
+                        <ol>
+                            <li><span style="color: #F44D27">Git:</span> Release-Branch anlegen</li>
+                            <li><span style="color: #82297B">Maven:</span> Release-Version ("-SNAPSHOT" abhängen)</li>
+                            <li><span style="color: #82297B">Maven:</span> Build und Deployment in Repo-Manager</li>
+                            <li><span style="color: #F44D27">Git:</span> Release Tag erstellen - nicht im 'master'!</li>
+                            <li><span style="color: #82297B">Maven:</span> DEV-Version für kommende Release-Patches/-Bugfixes</li>
+                            <li><span style="color: #82297B">Maven:</span> DEV-Version für nächstes Release</li>
+                        </ol>
+                    </li>
+                    <li>Anschließend Release-Installation auf Test-/Staging</li>
+                </ul>
             </aside>
         </section>
+
         <section>
             <h2>Test Release</h2>
             <canvas id="gitGraphTestRelease"></canvas>
@@ -330,7 +343,7 @@
                     name: "develop",
                     column: gitGraphColumnDevelop
                 });
-                developBranch.commit("Feature 1 .. n");
+                developBranch.commit("Features 1.0");
 
                 var releaseBranch = gitgraph.branch({
                     parentBranch: developBranch,
@@ -353,20 +366,24 @@
                 releaseBranch.merge(developBranch, "Cherry-Pick: Bugfix 3'");
             </script>
             <aside class="notes">
-                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:15:30</div>
-                <ol>
-                    <li>Zusätzliche Aktion (gegenüber dem Standard-Gitflow)</li>
-                    <li>Bugfix-Iteration(en)</li>
-                    <li>Alle gemeldeten Bugfixes implementieren</li>
-                    <li>Bugfixes möglichst gleich per Cherry-Pick in den develop-Branch überführen</li>
-                    <li>Cherry-Picks ggf. komplexer wg. Bugfix-Feature-Flow, Pull Request u.ä. - führt hier (zeitlich) zu weit</li>
-                    <li>Wenn alle gemeldeten Bugfixes gelöst sind:</li>
-                    <li>Patch-Release-Version in den Maven-POMs setzen ("-Snapshot abhängen")</li>
-                    <li>Patch-Release Tag erstellen</li>
-                    <li>Jetzt wird das Patch-Release gebaut und in den Maven-Repository-Manager deployt</li>
-                    <li>Die Entwicklungsversion für die nächste Bugfix-Iteration in den Maven-POMs setzen</li>
-                    <li>Die Patch-Release-Version wird auf dem Test-/Staging-System installiert</li>
-                </ol>
+                <div align="right" style="color: blue; font-size: xx-small">Zeitziel: 0:15:30</div>
+                <ul style="font-size: smaller;">
+                    <li>Zusätzliche Aktion (vgl. Standard-Gitflow)</li>
+                    <li>Je Bugfix-Iteration</li>
+                    <li>Bugfixes per Cherry-Pick nach 'develop'</li>
+                    <li>Vorbedingung: Alle gemeldeten Fehler gefixt</li>
+                    <li>
+                        Gitflow Arbeitsschritte:
+                        <ol>
+                            <li><span style="color: #F44D27">Git:</span> Release-Branch anlegen</li>
+                            <li><span style="color: #82297B">Maven:</span> Patch-Release-Version ("-SNAPSHOT" abhängen)</li>
+                            <li><span style="color: #82297B">Maven:</span> Build und Deployment in Repo-Manager</li>
+                            <li><span style="color: #F44D27">Git:</span> Release Tag erstellen - nicht im 'master'!</li>
+                            <li><span style="color: #82297B">Maven:</span> DEV-Version für weitere Release-Patches/-Bugfixes</li>
+                        </ol>
+                    </li>
+                    <li>Anschließend Release-Installation auf Test-/Staging</li>
+                </ul>
             </aside>
         </section>
         <section>
@@ -389,7 +406,7 @@
                     name: "develop",
                     column: gitGraphColumnDevelop
                 });
-                developBranch.commit("Feature 1 .. n");
+                developBranch.commit("Features 1.0");
 
                 var releaseBranch = gitgraph.branch({
                     parentBranch: developBranch,
@@ -409,14 +426,18 @@
             </script>
             <aside class="notes">
                 <div align="right" style="color: blue; font-size: small">Zeitziel: 0:17:00</div>
-                <ol>
-                    <li>Wenn kein weiterer Bug gemeldet wird</li>
-                    <li>Non-Fast-Forward-Merge des letzten Release-Commits auf den master</li>
-                    <li>Wichtig: nicht den nächsten DEV-Commt (SNAPSHOT) mergen!</li>
-                    <li>Im master ist imm das letzte stabile Release</li>
-                    <li>Ggf. auch Merge auf develop: Variante zum Cherry-Pick für die Bugfixes (aber nicht so gut)</li>
-                    <li>Patch-Release Tag erstellen</li>
-                </ol>
+                <ul style="font-size: smaller;">
+                    <li>Vorbedingung: Keine weiteren Fehler gemeldet</li>
+                    <li>
+                        Gitflow Arbeitsschritte:
+                        <ol>
+                            <li><span style="color: #F44D27">Git:</span> No-FF-Merge des letzten Release(!!!)-Commits auf 'den 'master'</li>
+                            <li><span style="color: #F44D27">Git:</span> Ggf. auch Merge auf develop: Variante zum Cherry-Pick für die Bugfixes (aber nicht so gut)</li>
+                        </ol>
+                    </li>
+                    <li>Anschließend Release-Installation auf Produktion</li>
+                    <li>Im 'master' ist immer das letzte stabile Release</li>
+                </ul>
             </aside>
         </section>
         <section>
@@ -439,7 +460,7 @@
                     name: "develop",
                     column: gitGraphColumnDevelop
                 });
-                developBranch.commit("Feature 1 .. n");
+                developBranch.commit("Features 1.0");
 
                 var releaseBranch = gitgraph.branch({
                     parentBranch: developBranch,
@@ -466,12 +487,17 @@
             </script>
             <aside class="notes">
                 <div align="right" style="color: blue; font-size: small">Zeitziel: 0:18:00</div>
-                <ol>
-                    <li>Löschen des Release-Branches</li>
-                    <li>Abhängig vom Entwicklungs- und Release-Workflow</li>
-                    <li>Ggf. kann der Branch weiter für Bugfixes verwendet werden</li>
-                    <li>Ansonsten gibt es ja noch Hotfixes</li>
-                </ol>
+                <ul style="font-size: smaller;">
+                    <li>
+                        Gitflow Arbeitsschritte:
+                        <ol>
+                            <li><span style="color: #F44D27">Git:</span> Löschen des Release-Branches</li>
+                        </ol>
+                    </li>
+                    <li>Wann? Abhängig vom Entwicklungs- und Release-Workflow</li>
+                    <li>Ggf. Weiter-Verwendung des Branches für Bugfixes</li>
+                    <li>Ansonsten: Hotfixes</li>
+                </ul>
             </aside>
         </section>
         <section>
@@ -518,14 +544,13 @@
             </script>
             <aside class="notes">
                 <div align="right" style="color: blue; font-size: small">Zeitziel: 0:20:00</div>
-                <ol>
-                    <li>Für Hotfixes am letzten publizierten Release</li>
-                    <li>Man könnte stattdessen auch den Release-Branch weiter laufen lassen</li>
-                    <li>Analog zu den Release-Aktionen</li>
-                    <li>Start Release setzt lediglich die Entwicklungsversion für den Hotfix (redundant, aber nötig, wenn der Release-Branch gelöscht wurde)</li>
-                    <li>Test, Publish und Finish Hotfix analog zu Releases</li>
-                    <li>Der Hotfix-Commit sollte eher nicht gemergt werden, Cherry-Picks sind hier zu 99% das Mittel der Wahl</li>
-                </ol>
+                <ul style="font-size: smaller;">
+                    <li>Vorbedingung: Release-Branch gelöscht, Bugfix an Produktion erforderlich</li>
+                    <li>4 Aktionen, analog zu Release-Flow</li>
+                    <li>Start Release: lediglich die DEV-Version für den Hotfix (redundant aber nötig, wenn Release-Branch gelöscht wurde)</li>
+                    <li>Test, Publish und Finish Hotfix analog zu Release-Flow</li>
+                    <li>Hotfix-Commit besser nicht mergen, Cherry-Picks sind hier zu 99% das Mittel der Wahl</li>
+                </ul>
             </aside>
         </section>
         <section>
@@ -604,14 +629,12 @@
             </script>
             <aside class="notes">
                 <div align="right" style="color: blue; font-size: small">Zeitziel: 0:22:00</div>
-                <ol>
-                    <li>Für Hotfixes am letzten publizierten Release</li>
-                    <li>Man könnte stattdessen auch den Release-Branch weiter laufen lassen</li>
+                <ul>
+                    <li>Kombinationen von Hotfix und Releases</li>
+                    <li>Hotfixes / Bugfixes per Cherry-Pick bis 'develop'</li>
                     <li>Analog zu den Release-Aktionen</li>
-                    <li>Start Release setzt lediglich die Entwicklungsversion für den Hotfix (redundant, aber nötig, wenn der Release-Branch gelöscht wurde)</li>
-                    <li>Test, Publish und Finish Hotfix analog zu Releases</li>
-                    <li>Der Hotfix-Commit sollte eher nicht gemergt werden, Cherry-Picks sind hier zu 99% das Mittel der Wahl</li>
-                </ol>
+                    <li>Sehr flexibel</li>
+                </ul>
             </aside>
         </section>
         <section>
@@ -642,9 +665,7 @@
                 <div align="right" style="color: blue; font-size: small">Zeitziel: 0:24:30</div>
                 <ul>
                     <li>Es gibt/gab kein Werkzeug, das Gitflow <b>und</b> Maven zusammen bringt</li>
-                    <li>Keine unterschiedlichen Jobs je Branch erforderlich</li>
                 </ul>
-                <p>Screenshots or Live-Präsentation? Hängt von der Zeit ab ...</p>
             </aside>
         </section>
         <section>
@@ -667,6 +688,11 @@
             <aside class="notes">
                 <div align="right" style="color: blue; font-size: small">Zeitziel: 0:25:00</div>
                 <div align="right" style="color: blue; font-size: small">Zeitziel Vorführung: 0:35:00</div>
+                <ul>
+                    <li>Plugin geplant und entwickelt von mir bei Silpion</li>
+                    <li>Jetzt Kooperation Silpion und MMS</li>
+                </ul>
+                <p>Vorführung: Screenshots or Live-Präsentation? Hängt von verbleibender Zeit ab ...</p>
             </aside>
         </section>
         <section>
@@ -731,6 +757,9 @@
             <p class="fragment">In Kürze</p>
             <aside class="notes">
                 <div align="right" style="color: blue; font-size: small">Zeitziel: 0:36:00</div>
+                <ul>
+                    <li>Absprachen erforderlich</li>
+                </ul>
             </aside>
         </section>
         <section>
@@ -745,9 +774,14 @@
                 <div align="right" style="color: blue; font-size: small">Zeitziel: 0:38:00</div>
                 <ul>
                     <li>Artifactory-Support: Für Dry Run</li>
+                    <li>Freestyle-Projekte: Gradle, Ant, Shell, ...</li>
                     <li>Automatische Downstream-Merges: bzw. Cherry-Picks</li>
-                    <li>Keine unterschiedlichen Jobs je Branch erforderlich</li>
-                    <li>Einfachere Workflows: z.B. trunk-basiert - um einheitliche Oberfläche für Releases zu schaffen und weil das Maven-Release-Plugin nicht immer prblemfrei ist</li>
+                    <li>
+                        Einfachere Workflows:<br/>
+                        z.B. trunk-basiert<br/>
+                        einheitliche Oberfläche<br/>
+                        Maven-Release-Plugin nicht immer problemfrei
+                    </li>
                 </ul>
             </aside>
         </section>
