@@ -73,6 +73,9 @@
             <h4>über</h4>
             <h2>Jenkins</h2>
             <h4>steuern</h4>
+            <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:01:00</div>
+            </aside>
         </section>
         <section>
             <h2>Über mich</h2>
@@ -80,6 +83,9 @@
             <p>Software-Architekt</p>
             <p>T-Systems Multimedia Solutions GmbH</p>
             <p>Marc.Rohlfs@t-systems.com</p>
+            <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:02:00</div>
+            </aside>
         </section>
         <section>
             <h2>Agenda</h2>
@@ -89,6 +95,7 @@
                 <li class="fragment">Praktische Umsetzung</li>
             </ol>
             <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:03:00</div>
                 Ziel / Warum geht es heute?
                 <ol>
                     <li>Wie schauen uns kurz die Ausgangssituation an</li>
@@ -105,6 +112,7 @@
                 <li>Maven</li>
             </ul>
             <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:03:30</div>
                 <ul>
                     <li>Worum geht es hier?</li>
                     <li>Involviert sind (bzw. beleuchtet werden) der Gitflow, Maven und Jenkins</li>
@@ -118,6 +126,7 @@
             <p><img data-src="images/git-model.png" height="300"/></p>
             <p style="font-size: small"><a href="http://nvie.com/posts/a-successful-git-branching-model">http://nvie.com/posts/a-successful-git-branching-model</a></p>
             <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:05:00</div>
                 <ul>
                     <li>Hat sich zum Quasi-Standard für Gitprojekte entwicklelt - mit Variationen</li>
                     <li>Ermöglicht parallele Entwicklung von Releases, Bugfixes und Hotfixes</li>
@@ -134,6 +143,7 @@
                 <li>Trunk-basierte Entwicklung</li>
             </ul>
             <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:07:00</div>
                 <ul>
                     <li>Versionierung: Snapshots & Releases</li>
                     <li>Snapshots: Inhalte sind nicht definiert, Änderungen unterworfen</li>
@@ -153,6 +163,7 @@
                 <li>Praktische Umsetzung</li>
             </ol>
             <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:07:30</div>
                 Jetzt: Die Theorien zur Lösung
             </aside>
         </section>
@@ -202,6 +213,7 @@
                 masterBranch.tag("Tag 1.0");
             </script>
             <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:08:30</div>
                 <ul>
                     <li>Noch mal der Blick auf die relevanten Teile des Gitflow</li>
                     <li>Farben ähnlich denen aus der Original-Grafik</li>
@@ -248,6 +260,7 @@
                 feature2Branch.merge(developBranch);
             </script>
             <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:10:00</div>
                 <ul>
                     <li>Zeigt auch die Initialisierung (mit Version 1.0.0-SNAPSHOT)</li>
                     <li>Features werden auf dem Development-Branch entwickelt</li>
@@ -290,6 +303,7 @@
                 developBranch.commit("Start Release: Version 1.1.0-SNAPSHOT");
             </script>
             <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:13:00</div>
                 <ol>
                     <li>Wenn Feature-Complete</li>
                     <li>Release-Branch erstellen</li>
@@ -339,6 +353,7 @@
                 releaseBranch.merge(developBranch, "Cherry-Pick: Bugfix 3'");
             </script>
             <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:15:30</div>
                 <ol>
                     <li>Zusätzliche Aktion (gegenüber dem Standard-Gitflow)</li>
                     <li>Bugfix-Iteration(en)</li>
@@ -393,6 +408,7 @@
                 releaseBranch.commit("Test Release: Version 1.0.6-SNAPSHOT");
             </script>
             <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:17:00</div>
                 <ol>
                     <li>Wenn kein weiterer Bug gemeldet wird</li>
                     <li>Non-Fast-Forward-Merge des letzten Release-Commits auf den master</li>
@@ -449,6 +465,7 @@
                 releaseBranch.delete();
             </script>
             <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:18:00</div>
                 <ol>
                     <li>Löschen des Release-Branches</li>
                     <li>Abhängig vom Entwicklungs- und Release-Workflow</li>
@@ -500,6 +517,7 @@
                 });
             </script>
             <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:20:00</div>
                 <ol>
                     <li>Für Hotfixes am letzten publizierten Release</li>
                     <li>Man könnte stattdessen auch den Release-Branch weiter laufen lassen</li>
@@ -515,6 +533,7 @@
             <p><span class="fragment">Alles ist möglich</span><span class="fragment"> ... fast alles</span></p>
             <p class="fragment">Nur die Präsentation hat ihre Grenzen ...</p>
             <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel nächste Folie: 0:22:00</div>
                 <ol>
                     <li>Achtung, die nächste Grafik erschlägt etwas</li>
                     <li>Aber ich muss ja auch meinen Spaß haben</li>
@@ -584,6 +603,7 @@
                 releaseTag.merge(masterBranch, "Publish Release: Merge version 1.1.x into `master`");
             </script>
             <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:22:00</div>
                 <ol>
                     <li>Für Hotfixes am letzten publizierten Release</li>
                     <li>Man könnte stattdessen auch den Release-Branch weiter laufen lassen</li>
@@ -601,6 +621,9 @@
                 <li>Theoretische Lösung</li>
                 <li><strong><u>Praktische Umsetzung</u></strong></li>
             </ol>
+            <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:22:30</div>
+            </aside>
         </section>
         <section>
             <h2>Jenkins Gitflow Plugin</h2>
@@ -616,6 +639,7 @@
                 </li>
             </ul>
             <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:24:30</div>
                 <ul>
                     <li>Es gibt/gab kein Werkzeug, das Gitflow <b>und</b> Maven zusammen bringt</li>
                     <li>Keine unterschiedlichen Jobs je Branch erforderlich</li>
@@ -640,43 +664,74 @@
             <p style="font-size: smaller;">
                 <a href="mailto:Marc.Rohlfs@t-systems.com" style="color: black;">Marc Rohlfs</a>
             </p>
+            <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:25:00</div>
+                <div align="right" style="color: blue; font-size: small">Zeitziel Vorführung: 0:35:00</div>
+            </aside>
         </section>
         <section>
             <h2>Initialer Build</h2>
             <img data-src="images/gitflow-plugin-1.png" src="images/gitflow-plugin-1.png"/>
+            <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:26:00</div>
+            </aside>
         </section>
         <section>
             <h2>Start Release</h2>
             <img data-src="images/gitflow-plugin-2.png" src="images/gitflow-plugin-2.png"/>
+            <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:28:00</div>
+            </aside>
         </section>
         <section>
             <h2>Test Release</h2>
             <img data-src="images/gitflow-plugin-3.png" src="images/gitflow-plugin-3.png"/>
+            <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:30:00</div>
+            </aside>
         </section>
         <section>
             <h2>Publish Release</h2>
             <img data-src="images/gitflow-plugin-4.png" src="images/gitflow-plugin-4.png"/>
+            <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:31:00</div>
+            </aside>
         </section>
         <section>
             <h2>Finish Release</h2>
             <img data-src="images/gitflow-plugin-5.png" src="images/gitflow-plugin-5.png"/>
+            <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:32:00</div>
+            </aside>
         </section>
         <section>
             <h2>Start Hotfix</h2>
             <img data-src="images/gitflow-plugin-6.png" src="images/gitflow-plugin-6.png"/>
+            <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:33:00</div>
+            </aside>
         </section>
         <section>
             <h2>Ausgeführte Builds</h2>
             <img data-src="images/gitflow-plugin-7.png" src="images/gitflow-plugin-7.png"/>
+            <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:34:00</div>
+            </aside>
         </section>
         <section>
             <h2>Gepushte Commits</h2>
             <img data-src="images/gitflow-plugin-8.png" src="images/gitflow-plugin-8.png"/>
+            <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:35:00</div>
+            </aside>
         </section>
         <section>
             <h2>Veröffentlichung</h2>
             <h2>?</h2>
             <p class="fragment">In Kürze</p>
+            <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:36:00</div>
+            </aside>
         </section>
         <section>
             <h2>Geplante Features</h2>
@@ -687,6 +742,7 @@
                 <li>Andere Workflows</li>
             </ul>
             <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:38:00</div>
                 <ul>
                     <li>Artifactory-Support: Für Dry Run</li>
                     <li>Automatische Downstream-Merges: bzw. Cherry-Picks</li>
@@ -697,9 +753,15 @@
         </section>
         <section>
             <h2>Diskussion & Fragen</h2>
+            <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:44:00</div>
+            </aside>
         </section>
         <section>
             <h2>DANKE !!!</h2>
+            <aside class="notes">
+                <div align="right" style="color: blue; font-size: small">Zeitziel: 0:45:00</div>
+            </aside>
         </section>
     </div>
 </div>
