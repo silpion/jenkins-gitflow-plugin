@@ -20,6 +20,14 @@
         <name>Silpion IT-Solutions GmbH</name>
         <url>http://www.silpion.de</url>
     </organization>
+    <licenses>
+        <license>
+            <name>The MIT License</name>
+            <url>https://mitlicense.org</url>
+            <distribution>repo</distribution>
+            <comments>All source code is under the MIT license</comments>
+        </license>
+    </licenses>
 
     <developers>
         <developer>
