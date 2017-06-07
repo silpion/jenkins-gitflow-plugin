@@ -1,23 +1,17 @@
 package de.silpion.jenkins.plugins.gitflow.it.action;
 
-import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.HtmlCheckBoxInput;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlOption;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.gargoylesoftware.htmlunit.html.HtmlSelect;
-import com.gargoylesoftware.htmlunit.html.HtmlTableRow;
 import de.silpion.jenkins.plugins.gitflow.data.GitflowPluginData;
 import hudson.EnvVars;
 import hudson.model.Result;
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.gitclient.Git;
 import org.jenkinsci.plugins.gitclient.GitClient;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
 import java.io.File;
-import java.util.List;
 import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -78,33 +72,5 @@ public class FinishHotfixIT extends AbstractGitflowActionIT {
         gitClient.clone(gitRepro.getAbsolutePath(), "origin", false, null);
 
         return getRemoteBranches(gitClient).keySet();
-    }
-
-    private HtmlTableRow findParentTableRow(final DomNode htmlNode) {
-        final DomNode parentNode = htmlNode.getParentNode();
-        if (parentNode instanceof HtmlTableRow) {
-            return (HtmlTableRow) parentNode;
-        } else if (parentNode != null) {
-            return this.findParentTableRow(parentNode);
-        }
-        return null;
-    }
-
-    /**
-     * finding the HtmlSelect by the Value-Attribute.
-     *
-     * @param selects the list of Selects
-     * @param name the Name to Find
-     * @return null or the a Matching Select.
-     */
-    private HtmlSelect getHtmlSelect(final List<HtmlSelect> selects, String name) {
-        for (HtmlSelect select : selects) {
-            for (HtmlOption htmlOption : select.getOptions()) {
-                if (StringUtils.startsWith(htmlOption.getValueAttribute(), name)) {
-                    return select;
-                }
-            }
-        }
-        return null;
     }
 }
