@@ -53,6 +53,7 @@ public abstract class AbstractGitflowActionIT {
         this.jenkinsRule.configureDefaultMaven();
         this.mavenProject = this.jenkinsRule.createMavenProject();
         this.mavenProject.getBuildWrappersList().add(new GitflowBuildWrapper());
+        this.mavenProject.setMavenOpts("-Djava.awt.headless=true");
     }
 
     /**
