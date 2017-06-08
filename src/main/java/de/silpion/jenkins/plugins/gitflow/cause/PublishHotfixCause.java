@@ -19,7 +19,7 @@ public class PublishHotfixCause extends AbstractHotfixBranchCause {
      * @param releaseBranch the <i>release</i> branch containing base data for the cause.
      */
     public PublishHotfixCause(final RemoteBranch releaseBranch) {
-        super(releaseBranch);
+        super(releaseBranch, true);
 
         this.lastPatchReleaseVersion = releaseBranch.getLastReleaseVersion();
         this.lastPatchReleaseCommit = releaseBranch.getLastReleaseVersionCommit();

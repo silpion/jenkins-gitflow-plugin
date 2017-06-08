@@ -7,6 +7,10 @@ package de.silpion.jenkins.plugins.gitflow.cause;
  */
 public class NoGitflowCause extends AbstractGitflowCause {
 
+    public NoGitflowCause() {
+        super(false);
+    }
+
     @Override
     public String getVersionForBadge() {
         return "";

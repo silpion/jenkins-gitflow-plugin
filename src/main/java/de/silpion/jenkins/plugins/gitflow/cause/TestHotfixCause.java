@@ -19,7 +19,7 @@ public class TestHotfixCause extends AbstractHotfixBranchCause {
      * @param hotfixBranch the <i>hotfix</i> branch containing base data for the cause.
      */
     public TestHotfixCause(final RemoteBranch hotfixBranch) {
-        super(hotfixBranch);
+        super(hotfixBranch, false);
 
         final Version semverPatchReleaseVersion = Version.parse(hotfixBranch.getLastBuildVersion()).toReleaseVersion();
         this.patchReleaseVersion = semverPatchReleaseVersion.toString();

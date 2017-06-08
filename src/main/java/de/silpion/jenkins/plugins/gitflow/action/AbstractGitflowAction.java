@@ -144,6 +144,11 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
         // Execute the action-specific tasks.
         this.beforeMainBuildInternal();
 
+        // Some of the actions should not execute the main build.
+        if (this.gitflowCause.isOmitMainBuild()) {
+            this.omitMainBuild();
+        }
+
         // Don't publish/deploy archives on Dry Run.
         if (this.gitflowCause.isDryRun()) {
             this.buildTypeAction.preventArchivePublication(this.additionalBuildEnvVars);

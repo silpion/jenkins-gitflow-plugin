@@ -16,8 +16,11 @@ public abstract class AbstractReleaseBranchCause extends AbstractGitflowCause {
      * Creates a cause instance for the <i>Gitflow</i> build.
      *
      * @param releaseBranch the <i>release</i> branch containing base data for the cause.
+     * @param omitMainBuild denotes if the regarding {@link de.silpion.jenkins.plugins.gitflow.action.AbstractGitflowAction}
+     *                      should omit the main (Maven) build.
      */
-    public AbstractReleaseBranchCause(final RemoteBranch releaseBranch) {
+    public AbstractReleaseBranchCause(final RemoteBranch releaseBranch, final boolean omitMainBuild) {
+        super(omitMainBuild);
         assert "release".equals(GitflowBuildWrapper.getGitflowBuildWrapperDescriptor().getBranchType(releaseBranch.getBranchName()));
         this.releaseBranch = releaseBranch.getBranchName();
     }

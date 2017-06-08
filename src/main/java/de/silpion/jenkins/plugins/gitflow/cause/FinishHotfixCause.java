@@ -18,7 +18,7 @@ public class FinishHotfixCause extends AbstractHotfixBranchCause {
      * @param hotfixBranch the <i>hotfix</i> branch containing base data for the cause.
      */
     public FinishHotfixCause(final RemoteBranch hotfixBranch) {
-        super(hotfixBranch);
+        super(hotfixBranch, true);
     }
 
     @Override

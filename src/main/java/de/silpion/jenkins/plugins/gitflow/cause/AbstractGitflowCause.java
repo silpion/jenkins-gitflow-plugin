@@ -12,6 +12,17 @@ public abstract class AbstractGitflowCause extends Cause {
     protected static final String MAVEN_SNAPSHOT_VERSION_SUFFIX = "-SNAPSHOT";
 
     private boolean dryRun;
+    private boolean omitMainBuild;
+
+    /**
+     * Creates a cause instance for the <i>Gitflow</i> build.
+     *
+     * @param omitMainBuild defines if the regarding {@link de.silpion.jenkins.plugins.gitflow.action.AbstractGitflowAction}
+     *                      should omit the main (Maven) build.
+     */
+    protected AbstractGitflowCause(final boolean omitMainBuild) {
+        this.omitMainBuild = omitMainBuild;
+    }
 
     @Override
     public String getShortDescription() {
@@ -24,6 +35,16 @@ public abstract class AbstractGitflowCause extends Cause {
 
     public void setDryRun(final boolean dryRun) {
         this.dryRun = dryRun;
+    }
+
+    /**
+     * Denotes if the regarding {@link de.silpion.jenkins.plugins.gitflow.action.AbstractGitflowAction} should omit the
+     * main (Maven) build.
+     *
+     * @return {@code true} if the main build should be omitted, otherwise returns {@code true}.
+     */
+    public boolean isOmitMainBuild() {
+        return this.omitMainBuild;
     }
 
     /**

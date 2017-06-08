@@ -19,7 +19,7 @@ public class PublishReleaseCause extends AbstractReleaseBranchCause {
      * @param releaseBranch the <i>release</i> branch containing base data for the cause.
      */
     public PublishReleaseCause(final RemoteBranch releaseBranch) {
-        super(releaseBranch);
+        super(releaseBranch, true);
 
         this.lastPatchReleaseVersion = releaseBranch.getLastReleaseVersion();
         this.lastPatchReleaseCommit = releaseBranch.getLastReleaseVersionCommit();
