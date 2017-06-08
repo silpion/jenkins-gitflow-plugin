@@ -45,7 +45,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
     }
 
     @Override
-    protected String getActionName() {
+    public String getActionName() {
         return ACTION_NAME;
     }
 

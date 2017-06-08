@@ -38,7 +38,7 @@ public class FinishHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractG
     }
 
     @Override
-    protected String getActionName() {
+    public String getActionName() {
         return ACTION_NAME;
     }
 

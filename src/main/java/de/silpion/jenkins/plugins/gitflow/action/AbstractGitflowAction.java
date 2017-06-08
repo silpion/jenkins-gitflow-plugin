@@ -12,7 +12,6 @@ import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.GitClientProxy;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
-import hudson.model.Executor;
 import hudson.model.Result;
 import hudson.plugins.git.Branch;
 import org.apache.commons.collections.MapUtils;
@@ -24,10 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper.OMIT_MAIN_BUILD_PARAMETER_NAME;
-import static de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper.OMIT_MAIN_BUILD_PARAMETER_VALUE_TRUE;
 import static de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
-import static hudson.model.Result.SUCCESS;
 
 /**
  * Abstract base class for the different Gitflow actions to be executed - before and after the main build.
@@ -38,8 +34,6 @@ import static hudson.model.Result.SUCCESS;
  */
 public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C extends AbstractGitflowCause> extends AbstractActionBase<B> {
 
-    private static final String MSG_ABORTING_TO_OMIT_MAIN_BUILD = "Intentionally aborting to omit the main build";
-    private static final String MSG_PATTERN_ABORTING_TO_OMIT_MAIN_BUILD = "Gitflow - %s: " + MSG_ABORTING_TO_OMIT_MAIN_BUILD + "%n";
     private static final String MSG_PATTERN_CLEANED_UP_WORKING_DIRECTORY = "Gitflow - %s: Cleaned up working/checkout directory%n";
     private static final String MSG_PATTERN_DELETED_BRANCH = "Gitflow - %s: Deleted branch %s%n";
     private static final String MSG_PATTERN_RESULT_TO_UNSTABLE = "Gitflow - %s: Changing result of successful build to unstable, because there are unstable branches: %s%n";
@@ -144,13 +138,8 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
         // Execute the action-specific tasks.
         this.beforeMainBuildInternal();
 
-        // Some of the actions should not execute the main build.
-        if (this.gitflowCause.isOmitMainBuild()) {
-            this.omitMainBuild();
-        }
-
-        // Don't publish/deploy archives on Dry Run.
-        if (this.gitflowCause.isDryRun()) {
+        // Don't publish/deploy archives on Dry Run or if the main build is omitted.
+        if (this.gitflowCause.isDryRun() || this.gitflowCause.isOmitMainBuild()) {
             this.buildTypeAction.preventArchivePublication(this.additionalBuildEnvVars);
         }
     }
@@ -243,32 +232,11 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
     }
 
     /**
-     * Cause the omission of the main build - the build will be interrupted by a subsequent build wrapper then.
-     * Furthermore the method ensures proper settings for some post build actions that might the results of miss
-     * the main build.
-     *
-     * @throws IOException if an error occurs that causes or should cause the build to fail.
-     */
-    protected void omitMainBuild() throws IOException {
-
-        // Publication must be prevented, otherwise the publisher raises an error when not artifacts are to be deployed.
-        this.buildTypeAction.preventArchivePublication(this.additionalBuildEnvVars);
-
-        // The result of the interrupted build must be set to SUCCESS. Otherwise the build would be declared as FAILED.
-        Executor.currentExecutor().interrupt(SUCCESS);
-
-        // The build must be interrupted by a subsequent build wrapper, otherwise configurations for the post build actions aren't properly provided.
-        this.additionalBuildEnvVars.put(OMIT_MAIN_BUILD_PARAMETER_NAME, OMIT_MAIN_BUILD_PARAMETER_VALUE_TRUE);
-
-        this.consoleLogger.printf(MSG_PATTERN_ABORTING_TO_OMIT_MAIN_BUILD, this.getActionName());
-    }
-
-    /**
      * Returns the action-specific name for console messages.
      *
      * @return the action-specific name for console messages.
      */
-    protected abstract String getActionName();
+    public abstract String getActionName();
 
     public Map<String, String> getAdditionalBuildEnvVars() {
         return this.additionalBuildEnvVars;

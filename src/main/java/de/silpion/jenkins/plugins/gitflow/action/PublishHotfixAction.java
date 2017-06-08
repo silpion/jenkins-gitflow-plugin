@@ -53,7 +53,7 @@ public class PublishHotfixAction<B extends AbstractBuild<?, ?>> extends Abstract
 
     /** {@inheritDoc} */
     @Override
-    protected String getActionName() {
+    public String getActionName() {
         return ACTION_NAME;
     }
 

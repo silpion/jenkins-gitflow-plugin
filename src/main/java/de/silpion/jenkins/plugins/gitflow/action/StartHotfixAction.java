@@ -41,7 +41,7 @@ public class StartHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
     /** {@inheritDoc} */
     @Override
-    protected String getActionName() {
+    public String getActionName() {
         return ACTION_NAME;
     }
 
