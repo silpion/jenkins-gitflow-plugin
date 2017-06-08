@@ -1,20 +1,9 @@
 package de.silpion.jenkins.plugins.gitflow.action;
 
-import static hudson.model.Result.SUCCESS;
-import static org.eclipse.jgit.api.MergeCommand.FastForwardMode.NO_FF;
-import static org.jenkinsci.plugins.gitclient.MergeCommand.Strategy.RECURSIVE;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-
 import de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper;
 import de.silpion.jenkins.plugins.gitflow.cause.PublishReleaseCause;
 import de.silpion.jenkins.plugins.gitflow.data.RemoteBranch;
 import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.GitClientProxy;
-import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand;
-import org.eclipse.jgit.lib.ObjectId;
-
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
@@ -22,6 +11,17 @@ import hudson.plugins.git.Branch;
 import hudson.plugins.git.Revision;
 import hudson.plugins.git.util.Build;
 import hudson.plugins.git.util.BuildData;
+import org.eclipse.jgit.lib.ObjectId;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+
+import static de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
+import static de.silpion.jenkins.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand.StrategyOption.THEIRS;
+import static hudson.model.Result.SUCCESS;
+import static org.eclipse.jgit.api.MergeCommand.FastForwardMode.NO_FF;
+import static org.jenkinsci.plugins.gitclient.MergeCommand.Strategy.RECURSIVE;
 
 /**
  * This class executes the required steps for the Gitflow action <i>Publish Release</i>.
@@ -63,7 +63,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
     protected void beforeMainBuildInternal() throws IOException, InterruptedException {
 
         // Checkout the master branch.
-        final GitflowBuildWrapper.DescriptorImpl buildWrapperDescriptor = GitflowBuildWrapper.getGitflowBuildWrapperDescriptor();
+        final GitflowBuildWrapper.DescriptorImpl buildWrapperDescriptor = getGitflowBuildWrapperDescriptor();
         final String masterBranch = buildWrapperDescriptor.getMasterBranch();
         final ObjectId targetBranchRev = this.git.getHeadRev(masterBranch);
         this.git.checkoutBranch(masterBranch, targetBranchRev.getName());
@@ -71,7 +71,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
 
         // Merge the last fixes release to the master branch.
         final ObjectId lastFixesReleaseCommit = this.gitflowCause.getLastPatchReleaseCommit();
-        this.git.merge(lastFixesReleaseCommit, NO_FF, RECURSIVE, GenericMergeCommand.StrategyOption.THEIRS, false);
+        this.git.merge(lastFixesReleaseCommit, NO_FF, RECURSIVE, THEIRS, false);
         final String lastFixesReleaseVersion = this.gitflowCause.getLastPatchReleaseVersion();
         final String msgMergedLastFixesRelease = formatPattern(MSG_PATTERN_MERGED_LAST_PATCH_RELEASE, ACTION_NAME, lastFixesReleaseVersion, masterBranch);
         this.git.commit(msgMergedLastFixesRelease);
@@ -101,7 +101,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         // Add environment and property variables
         this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", masterBranch);
         this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/" + masterBranch);
-        this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", GitflowBuildWrapper.getGitflowBuildWrapperDescriptor().getBranchType(masterBranch));
+        this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getGitflowBuildWrapperDescriptor().getBranchType(masterBranch));
 
         // There's no need to execute the main build.
         this.omitMainBuild();

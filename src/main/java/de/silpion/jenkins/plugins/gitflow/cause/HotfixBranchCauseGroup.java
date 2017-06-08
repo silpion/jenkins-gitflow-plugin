@@ -7,9 +7,9 @@ import org.apache.commons.lang.StringUtils;
 /**
  * Encapsulates a group of hotfix branch {@link hudson.model.Cause Cause} objects:
  * <ul>
- * <li>{@link TestHotfixCause TestHotfixCause}</li>
- * <li>{@link PublishHotfixCause PublishHotfixCause}</li>
- * <li>{@link FinishHotfixCause FinishHotfixCause}</li>
+ * <li>{@link TestHotfixCause}</li>
+ * <li>{@link PublishHotfixCause}</li>
+ * <li>{@link FinishHotfixCause}</li>
  * </ul>
  *
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
