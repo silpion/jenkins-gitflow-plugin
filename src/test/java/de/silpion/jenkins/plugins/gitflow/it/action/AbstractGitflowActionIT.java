@@ -1,6 +1,6 @@
 package de.silpion.jenkins.plugins.gitflow.it.action;
 
-import com.gargoylesoftware.htmlunit.html.HtmlElement;
+import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlRadioButtonInput;
 import de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper;
@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.ToolInstallations;
 
 import java.io.File;
 import java.io.FileReader;
@@ -50,8 +51,8 @@ public abstract class AbstractGitflowActionIT {
 
     @Before
     public void setUp() throws Exception {
-        this.jenkinsRule.configureDefaultMaven();
-        this.mavenProject = this.jenkinsRule.createMavenProject();
+        ToolInstallations.configureDefaultMaven();
+        this.mavenProject = this.jenkinsRule.getInstance().createProject(MavenModuleSet.class, this.getClass().getName());
         this.mavenProject.getBuildWrappersList().add(new GitflowBuildWrapper());
         this.mavenProject.setMavenOpts("-Djava.awt.headless=true");
     }
@@ -106,8 +107,8 @@ public abstract class AbstractGitflowActionIT {
      * @param page             the Page with the Button on it
      */
     protected static void checkRadioButton(final String radioButtonGroup, final String buttonName, final HtmlPage page) {
-        final List<HtmlElement> elementList = page.getElementsByName(radioButtonGroup);
-        for (final HtmlElement element : elementList) {
+        final List<DomElement> elementList = page.getElementsByName(radioButtonGroup);
+        for (final DomElement element : elementList) {
             if (element instanceof HtmlRadioButtonInput) {
                 final HtmlRadioButtonInput radioButtonInput = (HtmlRadioButtonInput) element;
                 final String value = radioButtonInput.getAttributesMap().get("value").getValue();
