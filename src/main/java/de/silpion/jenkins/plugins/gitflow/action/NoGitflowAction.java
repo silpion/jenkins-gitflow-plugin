@@ -1,17 +1,17 @@
 package de.silpion.jenkins.plugins.gitflow.action;
 
-import java.io.IOException;
-import java.util.List;
-
-import de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper;
 import de.silpion.jenkins.plugins.gitflow.cause.NoGitflowCause;
 import de.silpion.jenkins.plugins.gitflow.data.RemoteBranch;
-import org.apache.commons.lang.StringUtils;
 import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.GitClientProxy;
-
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import org.apache.commons.lang.StringUtils;
+
+import java.io.IOException;
+import java.util.List;
+
+import static de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
 
 /**
  * This class executes some actions that are required when the <i>Gitflow</i> plugin is configured for a project and the standard (non-Gitflow) job is started.
@@ -55,7 +55,7 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
         final String simpleBranchName = StringUtils.split(remoteBranchName, "/", 2)[1];
         this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", simpleBranchName);
         this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", remoteBranchName);
-        this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", GitflowBuildWrapper.getGitflowBuildWrapperDescriptor().getBranchType(simpleBranchName));
+        this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getGitflowBuildWrapperDescriptor().getBranchType(simpleBranchName));
     }
 
     @Override

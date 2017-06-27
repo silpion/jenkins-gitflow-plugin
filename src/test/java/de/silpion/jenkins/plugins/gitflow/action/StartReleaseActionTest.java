@@ -1,19 +1,17 @@
 package de.silpion.jenkins.plugins.gitflow.action;
 
-import static org.mockito.Matchers.startsWith;
-import static org.powermock.api.mockito.PowerMockito.when;
+import de.silpion.jenkins.plugins.gitflow.cause.StartReleaseCause;
+import hudson.model.AbstractBuild;
+import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import de.silpion.jenkins.plugins.gitflow.cause.StartReleaseCause;
-import org.junit.Before;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import hudson.model.AbstractBuild;
+import static org.mockito.Matchers.startsWith;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
  * Unit tests for the {@link StartReleaseAction} class.
@@ -47,8 +45,8 @@ public class StartReleaseActionTest extends AbstractGitflowActionTest<StartRelea
         // Mock relevant method calls.
         when(this.cause.getReleaseVersion()).thenReturn("1.0");
         when(this.cause.getReleaseBranch()).thenReturn("release/1.0");
-        PowerMockito.when(this.gitflowBuildWrapperDescriptor.getReleaseBranchPrefix()).thenReturn("release/");
-        PowerMockito.when(this.gitflowBuildWrapperDescriptor.getBranchType(startsWith("release/"))).thenReturn("release");
+        when(this.gitflowBuildWrapperDescriptor.getReleaseBranchPrefix()).thenReturn("release/");
+        when(this.gitflowBuildWrapperDescriptor.getBranchType(startsWith("release/"))).thenReturn("release");
 
         // Define expectations.
         expectedAdditionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", "release/1.0");

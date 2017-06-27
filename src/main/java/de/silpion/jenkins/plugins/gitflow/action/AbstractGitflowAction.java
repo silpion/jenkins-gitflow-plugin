@@ -1,6 +1,21 @@
 package de.silpion.jenkins.plugins.gitflow.action;
 
-import static hudson.model.Result.SUCCESS;
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
+import de.silpion.jenkins.plugins.gitflow.GitflowBadgeAction;
+import de.silpion.jenkins.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
+import de.silpion.jenkins.plugins.gitflow.action.buildtype.BuildTypeActionFactory;
+import de.silpion.jenkins.plugins.gitflow.cause.AbstractGitflowCause;
+import de.silpion.jenkins.plugins.gitflow.data.GitflowPluginData;
+import de.silpion.jenkins.plugins.gitflow.data.RemoteBranch;
+import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.GitClientProxy;
+import hudson.Launcher;
+import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
+import hudson.model.Executor;
+import hudson.model.Result;
+import hudson.plugins.git.Branch;
+import org.apache.commons.collections.MapUtils;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -9,25 +24,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import de.silpion.jenkins.plugins.gitflow.GitflowBadgeAction;
-import de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper;
-import de.silpion.jenkins.plugins.gitflow.action.buildtype.AbstractBuildTypeAction;
-import de.silpion.jenkins.plugins.gitflow.action.buildtype.BuildTypeActionFactory;
-import de.silpion.jenkins.plugins.gitflow.cause.AbstractGitflowCause;
-import de.silpion.jenkins.plugins.gitflow.data.GitflowPluginData;
-import de.silpion.jenkins.plugins.gitflow.data.RemoteBranch;
-import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.GitClientProxy;
-import org.apache.commons.collections.MapUtils;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
-
-import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
-import hudson.model.Executor;
-import hudson.model.Result;
-import hudson.plugins.git.Branch;
+import static de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper.OMIT_MAIN_BUILD_PARAMETER_NAME;
+import static de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper.OMIT_MAIN_BUILD_PARAMETER_VALUE_TRUE;
+import static de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
+import static hudson.model.Result.SUCCESS;
 
 /**
  * Abstract base class for the different Gitflow actions to be executed - before and after the main build.
@@ -161,7 +161,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
 
         // Mark successful build as unstable if there are unstable branches.
         final Result buildResult = this.getBuildResultNonNull();
-        if (buildResult.isBetterThan(Result.UNSTABLE) && GitflowBuildWrapper.getGitflowBuildWrapperDescriptor().isMarkSuccessfulBuildUnstableOnBrokenBranches()) {
+        if (buildResult.isBetterThan(Result.UNSTABLE) && getGitflowBuildWrapperDescriptor().isMarkSuccessfulBuildUnstableOnBrokenBranches()) {
             final Map<Result, Collection<RemoteBranch>> unstableBranchesGroupedByResult = this.gitflowPluginData.getUnstableRemoteBranchesGroupedByResult();
             if (MapUtils.isNotEmpty(unstableBranchesGroupedByResult)) {
                 this.consoleLogger.printf(MSG_PATTERN_RESULT_TO_UNSTABLE, this.getActionName(), unstableBranchesGroupedByResult.toString());
@@ -253,7 +253,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
         Executor.currentExecutor().interrupt(SUCCESS);
 
         // The build must be interrupted by a subsequent build wrapper, otherwise configurations for the post build actions aren't properly provided.
-        this.additionalBuildEnvVars.put(GitflowBuildWrapper.OMIT_MAIN_BUILD_PARAMETER_NAME, GitflowBuildWrapper.OMIT_MAIN_BUILD_PARAMETER_VALUE_TRUE);
+        this.additionalBuildEnvVars.put(OMIT_MAIN_BUILD_PARAMETER_NAME, OMIT_MAIN_BUILD_PARAMETER_VALUE_TRUE);
 
         this.consoleLogger.printf(MSG_PATTERN_ABORTING_TO_OMIT_MAIN_BUILD, this.getActionName());
     }

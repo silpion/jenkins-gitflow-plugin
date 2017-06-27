@@ -1,15 +1,15 @@
 package de.silpion.jenkins.plugins.gitflow.action;
 
-import java.io.IOException;
-
-import de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper;
 import de.silpion.jenkins.plugins.gitflow.cause.StartHotfixCause;
 import de.silpion.jenkins.plugins.gitflow.data.RemoteBranch;
 import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.GitClientProxy;
-
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+
+import java.io.IOException;
+
+import static de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
 
 /**
  * This class executes the required steps for the Gitflow action <i>Start Hotfix</i>.
@@ -51,7 +51,7 @@ public class StartHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
         // Create a new hotfix branch based on the master branch.
         final String hotfixBranch = this.gitflowCause.getHotfixBranch();
-        final String masterBranch = GitflowBuildWrapper.getGitflowBuildWrapperDescriptor().getMasterBranch();
+        final String masterBranch = getGitflowBuildWrapperDescriptor().getMasterBranch();
         this.git.checkoutBranch(hotfixBranch, "origin/" + masterBranch);
         this.consoleLogger.printf(MSG_PATTERN_CREATED_BRANCH_BASED_ON_OTHER, this.getActionName(), hotfixBranch, masterBranch);
 
@@ -77,7 +77,7 @@ public class StartHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         // Add environment and property variables
         this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", hotfixBranch);
         this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/" + hotfixBranch);
-        this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", GitflowBuildWrapper.getGitflowBuildWrapperDescriptor().getBranchType(hotfixBranch));
+        this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getGitflowBuildWrapperDescriptor().getBranchType(hotfixBranch));
 
         // There's no need to execute the main build.
         this.omitMainBuild();

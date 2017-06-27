@@ -7,9 +7,9 @@ import de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper;
 /**
  * Encapsulates a group of release branch {@link hudson.model.Cause Cause} objects:
  * <ul>
- * <li>{@link TestReleaseCause TestReleaseCause}</li>
- * <li>{@link PublishReleaseCause PublishReleaseCause}</li>
- * <li>{@link FinishReleaseCause FinishReleaseCause}</li>
+ * <li>{@link TestReleaseCause}</li>
+ * <li>{@link PublishReleaseCause}</li>
+ * <li>{@link FinishReleaseCause}</li>
  * </ul>
  *
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de

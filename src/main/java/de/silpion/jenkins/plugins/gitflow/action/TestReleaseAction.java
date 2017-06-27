@@ -1,17 +1,17 @@
 package de.silpion.jenkins.plugins.gitflow.action;
 
-import java.io.IOException;
-
-import de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper;
+import de.silpion.jenkins.plugins.gitflow.cause.TestReleaseCause;
 import de.silpion.jenkins.plugins.gitflow.data.RemoteBranch;
 import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.GitClientProxy;
-import org.eclipse.jgit.lib.ObjectId;
-import de.silpion.jenkins.plugins.gitflow.cause.TestReleaseCause;
-
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.model.Result;
+import org.eclipse.jgit.lib.ObjectId;
+
+import java.io.IOException;
+
+import static de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
 
 /**
  * This class executes the required steps for the Gitflow action <i>Test Release</i>.
@@ -71,7 +71,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
         // Add environment and property variables
         this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", releaseBranch);
         this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/" + releaseBranch);
-        this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", GitflowBuildWrapper.getGitflowBuildWrapperDescriptor().getBranchType(releaseBranch));
+        this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getGitflowBuildWrapperDescriptor().getBranchType(releaseBranch));
     }
 
     @Override
@@ -87,7 +87,7 @@ public class TestReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractGi
 
         // Create a tag for the release version.
         final String patchReleaseVersion = this.gitflowCause.getPatchReleaseVersion();
-        final String tagName = GitflowBuildWrapper.getGitflowBuildWrapperDescriptor().getVersionTagPrefix() + patchReleaseVersion;
+        final String tagName = getGitflowBuildWrapperDescriptor().getVersionTagPrefix() + patchReleaseVersion;
         final String msgCreatedReleaseTag = formatPattern(MSG_PATTERN_CREATED_RELEASE_TAG, ACTION_NAME, tagName);
         this.git.tag(tagName, msgCreatedReleaseTag);
         this.consoleLogger.print(msgCreatedReleaseTag);

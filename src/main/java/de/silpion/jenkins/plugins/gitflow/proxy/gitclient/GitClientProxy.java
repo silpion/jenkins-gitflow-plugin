@@ -1,18 +1,16 @@
 package de.silpion.jenkins.plugins.gitflow.proxy.gitclient;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.net.URISyntaxException;
-import java.util.Formatter;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import de.silpion.jenkins.plugins.gitflow.proxy.git.GitSCMProxy;
 import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.merge.CliGitMergeCommand;
 import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand;
+import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand.StrategyOption;
 import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.merge.JGitMergeCommand;
+import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
+import hudson.plugins.git.Branch;
+import hudson.plugins.git.GitException;
+import hudson.util.VersionNumber;
+import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
 import org.eclipse.jgit.lib.ObjectId;
@@ -22,13 +20,14 @@ import org.jenkinsci.plugins.gitclient.GitClient;
 import org.jenkinsci.plugins.gitclient.JGitAPIImpl;
 import org.jenkinsci.plugins.gitclient.MergeCommand.Strategy;
 
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
-import hudson.plugins.git.Branch;
-import hudson.plugins.git.GitException;
-import hudson.util.VersionNumber;
-
-import jenkins.model.Jenkins;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.net.URISyntaxException;
+import java.util.Formatter;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Proxy implementation for the Jenkins {@link GitClient}. Uses <i>Reflections</i> to
@@ -157,7 +156,7 @@ public class GitClientProxy {
      * @param strategyOption the option for the merge strategy.
      * @throws InterruptedException if the build is interrupted during execution.
      */
-    public void merge(final ObjectId rev, final FastForwardMode fastForwardMode, final Strategy strategy, final GenericMergeCommand.StrategyOption strategyOption, final boolean autoCommit) throws InterruptedException {
+    public void merge(final ObjectId rev, final FastForwardMode fastForwardMode, final Strategy strategy, final StrategyOption strategyOption, final boolean autoCommit) throws InterruptedException {
 
         // Create  merge command object regarding to the underlying (configured) Git client implementation.
         final GenericMergeCommand<? extends GitClient> mergeCommand;
