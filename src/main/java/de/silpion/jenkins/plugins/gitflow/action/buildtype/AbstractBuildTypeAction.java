@@ -70,7 +70,7 @@ public abstract class AbstractBuildTypeAction<T extends AbstractBuild<?, ?>> ext
 
     /**
      * Add environmental variables to the given map that change the behaviour of the build so that it doesn't publish the built archives.
-     * <p/>
+     * <p>
      * <b>Please note</b> that the default behaviour of the main build might depend on the actual build configuration in the source code that is checked out
      * and built by the Jenkins jobs. E.g. if it overwrites the {@code skip} parameter of the Maven Deploy Plugin, it might also overwrite the configuration
      * change that is intended by this method.

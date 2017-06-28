@@ -4,7 +4,7 @@ import hudson.Plugin;
 
 /**
  * Base class of the <i>Jenkins Gitflow Plugin</i>.
- * <p/>
+ * <p>
  * Copied from {@code org.jvnet.hudson.plugins.m2release.PluginImpl}.
  *
  * @author Kohsuke Kawaguchi

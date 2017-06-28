@@ -136,7 +136,7 @@ public class GitflowPluginData implements Action, Serializable, Cloneable {
     /**
      * Returns the {@link RemoteBranch} with the given remote alias and name. If there is no record for the requested
      * branch, a new {@link RemoteBranch} object is created, attached to the {@link GitflowPluginData} and returned.
-     * <p />
+     * <p>
      * In <i>Dry Run</i> mode, a copy of the {@link RemoteBranch} is returned. It's a dummy object that is not attached to the persited data.
      *
      * @param branchName the simple name of the branch.
@@ -156,7 +156,7 @@ public class GitflowPluginData implements Action, Serializable, Cloneable {
 
     /**
      * Returns the {@link RemoteBranch} with the given remote alias and name.
-     * <p />
+     * <p>
      * In <i>Dry Run</i> mode, a copy of the {@link RemoteBranch} is returned. It's a dummy object that is not attached to the persited data.
      *
      * @param branchName the simple name of the branch.

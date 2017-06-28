@@ -38,6 +38,7 @@ public class StartReleaseAction<B extends AbstractBuild<?, ?>> extends AbstractG
      * @param listener can be used to send any message.
      * @param git the Git client used to execute commands for the Gitflow actions.
      * @param gitflowCause the cause for the new action.
+     * @param <BC> the build in progress.
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
