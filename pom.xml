@@ -94,7 +94,7 @@
     </distributionManagement>
 
     <properties>
-        <jenkins.version>1.609</jenkins.version>
+        <jenkins.version>2.7</jenkins.version>
         <maven.compiler.source>1.${java.level}</maven.compiler.source>
         <maven.compiler.target>1.${java.level}</maven.compiler.target>
         <jenkinsHome>${project.basedir}/work</jenkinsHome>
@@ -107,12 +107,12 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>git</artifactId>
-            <version>2.3</version>
+            <version>2.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>git-client</artifactId>
-            <version>1.11.1</version>
+            <version>1.19.0</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
@@ -123,7 +123,7 @@
         <dependency>
             <groupId>org.jenkins-ci.main</groupId>
             <artifactId>maven-plugin</artifactId>
-            <version>2.5</version>
+            <version>2.13</version>
         </dependency>
 
         <dependency>
