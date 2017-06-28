@@ -1,10 +1,10 @@
 package de.silpion.jenkins.plugins.gitflow.data;
 
-import java.io.Serializable;
-
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import hudson.model.Result;
 import org.eclipse.jgit.lib.ObjectId;
 
-import hudson.model.Result;
+import java.io.Serializable;
 
 /**
  * The object holding the information about a Git remote branch for a Jenkins job/project.
@@ -41,6 +41,7 @@ public class RemoteBranch implements Serializable, Cloneable, Comparable<RemoteB
     }
 
     /** {@inheritDoc} */
+    @SuppressFBWarnings("EQ_COMPARETO_USE_OBJECT_EQUALS")
     public int compareTo(final RemoteBranch remoteBranch) {
         return String.CASE_INSENSITIVE_ORDER.compare(this.getBranchName(), remoteBranch.getBranchName());
     }

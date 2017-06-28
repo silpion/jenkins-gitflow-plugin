@@ -1,5 +1,27 @@
 package de.silpion.jenkins.plugins.gitflow;
 
+import com.google.common.annotations.VisibleForTesting;
+import de.silpion.jenkins.plugins.gitflow.cause.AbstractGitflowCause;
+import de.silpion.jenkins.plugins.gitflow.cause.HotfixBranchCauseGroup;
+import de.silpion.jenkins.plugins.gitflow.cause.ReleaseBranchCauseGroup;
+import de.silpion.jenkins.plugins.gitflow.cause.StartHotfixCause;
+import de.silpion.jenkins.plugins.gitflow.cause.StartReleaseCause;
+import de.silpion.jenkins.plugins.gitflow.cause.TestHotfixCause;
+import de.silpion.jenkins.plugins.gitflow.cause.TestReleaseCause;
+import de.silpion.jenkins.plugins.gitflow.data.GitflowPluginData;
+import de.silpion.jenkins.plugins.gitflow.data.RemoteBranch;
+import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.GitClientProxy;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.PermalinkProjectAction;
+import hudson.model.StreamBuildListener;
+import hudson.util.NullStream;
+import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
+
+import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -7,33 +29,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
-import javax.servlet.ServletException;
-
-import de.silpion.jenkins.plugins.gitflow.cause.ReleaseBranchCauseGroup;
-import de.silpion.jenkins.plugins.gitflow.cause.StartHotfixCause;
-import de.silpion.jenkins.plugins.gitflow.cause.StartReleaseCause;
-import de.silpion.jenkins.plugins.gitflow.cause.TestHotfixCause;
-import de.silpion.jenkins.plugins.gitflow.data.GitflowPluginData;
-import de.silpion.jenkins.plugins.gitflow.data.RemoteBranch;
-import org.apache.commons.lang.StringUtils;
-import de.silpion.jenkins.plugins.gitflow.cause.AbstractGitflowCause;
-import de.silpion.jenkins.plugins.gitflow.cause.HotfixBranchCauseGroup;
-import de.silpion.jenkins.plugins.gitflow.cause.PublishHotfixCause;
-import de.silpion.jenkins.plugins.gitflow.cause.TestReleaseCause;
-import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.GitClientProxy;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
-
-import net.sf.json.JSONObject;
-
-import com.google.common.annotations.VisibleForTesting;
-
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.PermalinkProjectAction;
-import hudson.model.StreamBuildListener;
-import hudson.util.NullStream;
 
 /**
  * The action that appears as link in the side bar of a project. Users will click on it in order to execute a Gitflow action.
@@ -70,7 +65,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
             final String[] versionNumberTokens2 = StringUtils.split(versionNumber2, ".");
 
             for (int i = 0; i < Math.min(versionNumberTokens1.length, versionNumberTokens2.length); i++) {
-                result = Integer.compare(Integer.valueOf(versionNumberTokens1[i]).intValue(), Integer.valueOf(versionNumberTokens2[i]).intValue());
+                result = Integer.compare(Integer.parseInt(versionNumberTokens1[i]), Integer.parseInt(versionNumberTokens2[i]));
                 if (result != 0) {
                     break;
                 }
@@ -145,13 +140,19 @@ public class GitflowProjectAction implements PermalinkProjectAction {
     }
 
     private static GitClientProxy createGitClient(final AbstractProject<?, ?> job) {
-        try {
-            return new GitClientProxy(job.getLastBuild(), new StreamBuildListener(new NullStream()), false);
-        } catch (final Exception ignored) {
-            // NOTE that proper error handling for Git client problems is not possible here.
-            // That's why exceptions are swallowed instead of being handled in any way.
-            return null;
+        GitClientProxy gitClientProxy = null;
+
+        final AbstractBuild<?, ?> lastBuild = job.getLastBuild();
+        if (lastBuild != null) {
+            try {
+                gitClientProxy = new GitClientProxy(lastBuild, new StreamBuildListener(new NullStream()), false);
+            } catch (final Exception ignored) {
+                // NOTE that proper error handling for Git client problems is not possible here.
+                // That's why exceptions are swallowed instead of being handled in any way.
+            }
         }
+
+        return gitClientProxy;
     }
 
     private static boolean isExistingBlessedRemoteBranch(final GitClientProxy git, final String branchName) {
@@ -224,9 +225,7 @@ public class GitflowProjectAction implements PermalinkProjectAction {
         } else if (action.startsWith(KEY_PREFIX_PUBLISH_HOTFIX)) {
             final String hotfixVersion = submittedAction.getString(KEY_PREFIX_PUBLISH_HOTFIX + "_" + KEY_POSTFIX_HOTFIX_VERSION);
             final HotfixBranchCauseGroup causeGroup = this.hotfixBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_PUBLISH_HOTFIX + "_" + KEY_POSTFIX_HOTFIX_VERSION));
-            final PublishHotfixCause publishHotfixCause = causeGroup.getPublishHotfixCause();
-            final String hotfixVersionDotfree = causeGroup.getHotfixVersionDotfree();
-            gitflowCause = publishHotfixCause;
+            gitflowCause = causeGroup.getPublishHotfixCause();
         } else if (action.startsWith(KEY_PREFIX_FINISH_HOTFIX)) {
             gitflowCause = this.hotfixBranchCauseGroupsByVersion.get(submittedAction.getString(KEY_PREFIX_FINISH_HOTFIX + "_" + KEY_POSTFIX_HOTFIX_VERSION)).getFinishHotfixCause();
         } else {

@@ -1,18 +1,7 @@
 package de.silpion.jenkins.plugins.gitflow.action.buildtype;
 
-import static de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
 import de.silpion.jenkins.plugins.gitflow.data.GitflowPluginData;
-import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.StringUtils;
-
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Launcher;
 import hudson.maven.MavenArgumentInterceptorAction;
 import hudson.maven.MavenModule;
@@ -23,6 +12,17 @@ import hudson.model.BuildListener;
 import hudson.tasks.Maven;
 import hudson.tasks.Publisher;
 import hudson.util.ArgumentListBuilder;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import static de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper.getGitflowBuildWrapperDescriptor;
 
 /**
  * This class implements the different actions, that are required to apply the <i>Gitflow</i> to Maven projects.
@@ -94,6 +94,7 @@ public class MavenBuildTypeAction extends AbstractBuildTypeAction<MavenModuleSet
 
     /** {@inheritDoc} */
     @Override
+    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public List<String> updateVersion(final String version) throws IOException, InterruptedException {
         final List<String> modifiedFiles;
 

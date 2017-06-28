@@ -1,5 +1,14 @@
 package de.silpion.jenkins.plugins.gitflow.action.buildtype;
 
+import de.silpion.jenkins.plugins.gitflow.action.AbstractActionBase;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import hudson.Launcher;
+import hudson.console.ConsoleNote;
+import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
+import hudson.model.Cause;
+import hudson.model.Result;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -8,15 +17,6 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
-
-import de.silpion.jenkins.plugins.gitflow.action.AbstractActionBase;
-
-import hudson.Launcher;
-import hudson.console.ConsoleNote;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
-import hudson.model.Cause;
-import hudson.model.Result;
 
 /**
  * Abstract base class for the different build-type-specific actions.
@@ -93,6 +93,7 @@ public abstract class AbstractBuildTypeAction<T extends AbstractBuild<?, ?>> ext
         private final PrintStream logger;
 
         @SuppressWarnings("ResultOfMethodCallIgnored")
+        @SuppressFBWarnings({"DM_DEFAULT_ENCODING", "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE"})
         public BuildListenerDelegate(final BuildListener delegate, final File outputLogFile) throws FileNotFoundException {
             outputLogFile.getParentFile().mkdirs();
             this.logger = new PrintStream(new FileOutputStream(outputLogFile));

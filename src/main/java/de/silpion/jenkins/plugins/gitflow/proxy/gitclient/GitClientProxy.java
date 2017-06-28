@@ -5,6 +5,7 @@ import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.merge.CliGitMergeComma
 import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand;
 import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand.StrategyOption;
 import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.merge.JGitMergeCommand;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.plugins.git.Branch;
@@ -61,6 +62,7 @@ public class GitClientProxy {
      * @throws IOException if the version of the Git or the Git Client plugin is not supported.
      * @throws InterruptedException if the build is interrupted during execution.
      */
+    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public GitClientProxy(final AbstractBuild<?, ?> build, final BuildListener listener, final boolean dryRun) throws IOException, InterruptedException {
         this.gitClient = new GitSCMProxy(build).createClient(build, listener);
         this.consoleLogger = listener.getLogger();

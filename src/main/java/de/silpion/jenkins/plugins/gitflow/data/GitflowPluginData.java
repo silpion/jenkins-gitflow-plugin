@@ -1,5 +1,11 @@
 package de.silpion.jenkins.plugins.gitflow.data;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Maps;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import hudson.model.Action;
+import hudson.model.Result;
+
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -10,12 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
-
-import com.google.common.base.Predicate;
-import com.google.common.collect.Maps;
-
-import hudson.model.Action;
-import hudson.model.Result;
 
 /**
  * The root (action) object holding the Gitflow plugin data of a Jenkins job/project.
@@ -37,7 +37,10 @@ public class GitflowPluginData implements Action, Serializable, Cloneable {
     private static final Predicate<Result> RESULT_UNSTABLE_OR_WORSE_PREDICATE = new Predicate<Result>() {
 
         /** {@inheritDoc} */
+        @SuppressFBWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
         public boolean apply(final Result result) {
+            // Interpretation of 'null' results is unclear as it's differently handled by the different job types.
+            // But here the result object cannot be 'null' anyway, hence there's not need for a 'null' check.
             return Result.UNSTABLE.isBetterOrEqualTo(result);
         }
     };
