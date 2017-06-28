@@ -50,7 +50,7 @@ public class OmitMainBuildParametersAction extends ParametersAction {
     };
 
     public OmitMainBuildParametersAction() {
-        super(singletonList(OMIT_MAIN_BUILD_PARAMETER_VALUE));
+        super(singletonList(OMIT_MAIN_BUILD_PARAMETER_VALUE), singletonList(OMIT_MAIN_BUILD_PARAMETER_NAME));
     }
 
     public void interrupt(final PrintStream consoleLogger, final String gitflowActionName) {
