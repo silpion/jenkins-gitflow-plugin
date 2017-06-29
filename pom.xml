@@ -65,19 +65,20 @@
     </developers>
 
     <issueManagement>
-        <system>JIRA</system>
-        <url>https://jira.silpion.de/projects/JGP</url>
+        <system>GitHub</system>
+        <url>https://github.com/jenkinsci/gitflow-plugin/issues</url>
     </issueManagement>
 
     <scm>
-        <connection>scm:git:ssh://git@git.silpion.de:jenkins-gitflow-plugin.git</connection>
-        <developerConnection>scm:git:ssh://git@git.silpion.de:jenkins-gitflow-plugin.git</developerConnection>
-        <url>https://git.silpion.de/projects/SESJNKNSPLG/repos/jenkins-gitflow-plugin</url>
+        <connection>scm:git:git://github.com/jenkinsci/gitflow-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:jenkinsci/gitflow-plugin.git</developerConnection>
+        <url>https://github.com/jenkinsci/gitflow-plugin</url>
+        <tag>HEAD</tag>
     </scm>
 
     <ciManagement>
         <system>Jenkins</system>
-        <url>https://ci.office.silpion.de/dope/job/jenkins-gitflow-plugin</url>
+        <url>https://ci.jenkins.io/job/Plugins/job/gitflow-plugin</url>
     </ciManagement>
 
     <properties>
