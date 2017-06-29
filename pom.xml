@@ -31,16 +31,16 @@
 
     <developers>
         <developer>
-            <id>rohlfs</id>
+            <id>marcrohlfs</id>
             <name>Marc Rohlfs</name>
-            <email>rohlfs@silpion.de</email>
+            <email>Marc.Rohlfs@t-system.com</email>
             <roles>
                 <role>architect</role>
                 <role>developer</role>
             </roles>
             <timezone>+1</timezone>
             <properties>
-                <picUrl>https://www.xing.com/pubimg/users/6/1/a/67a6e4c87.3386148,3.140x185.jpg</picUrl>
+                <picUrl>https://avatars0.githubusercontent.com/u/6331380</picUrl>
             </properties>
         </developer>
         <developer>
