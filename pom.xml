@@ -80,19 +80,6 @@
         <url>https://ci.office.silpion.de/dope/job/jenkins-gitflow-plugin</url>
     </ciManagement>
 
-    <distributionManagement>
-        <repository>
-            <id>silpion-artifactory-releases</id>
-            <name>Silpion Artifactory: Release Repository</name>
-            <url>http://artifactory.office.silpion.de/artifactory/libs-release-local</url>
-        </repository>
-        <snapshotRepository>
-            <id>silpion-artifactory-snapshots</id>
-            <name>Silpion Artifactory: Snapshot Repository</name>
-            <url>http://artifactory.office.silpion.de/artifactory/libs-snapshot-local</url>
-        </snapshotRepository>
-    </distributionManagement>
-
     <properties>
         <jenkins.version>2.7</jenkins.version>
         <maven.compiler.source>1.${java.level}</maven.compiler.source>
