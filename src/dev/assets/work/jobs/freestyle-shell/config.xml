@@ -44,6 +44,6 @@
   </builders>
   <publishers/>
   <buildWrappers>
-    <org.jenkinsci.plugins.gitflow.GitflowBuildWrapper plugin="${project.artifactId}@${project.version}"/>
+    <de.silpion.jenkins.plugins.gitflow.GitflowBuildWrapper plugin="${project.artifactId}@${project.version}"/>
   </buildWrappers>
 </project>
