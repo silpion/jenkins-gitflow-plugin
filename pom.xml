@@ -179,12 +179,9 @@
 
     <build>
         <plugins>
-
-            <!-- https://maven.apache.org/enforcer/maven-enforcer-plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>1.4.1</version>
                 <configuration>
                     <rules>
                         <requireMavenVersion>
@@ -194,19 +191,18 @@
                     </rules>
                 </configuration>
             </plugin>
-
-            <!-- http://maven.apache.org/plugins/maven-failsafe-plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.16</version>
                 <configuration>
                     <excludes combine.children="append">
                         <exclude>**/Test*IT.java</exclude>
                     </excludes>
+                    <systemPropertyVariables combine.children="append">
+                        <java.awt.headless>true</java.awt.headless>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
 
@@ -299,12 +295,14 @@
             </activation>
             <build>
                 <plugins>
-
-                    <!-- http://maven.apache.org/plugins/maven-failsafe-plugin -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>2.16</version>
+                        <configuration>
+                            <systemPropertyVariables combine.children="append">
+                                <java.awt.headless>true</java.awt.headless>
+                            </systemPropertyVariables>
+                        </configuration>
                         <executions>
                             <execution>
                                 <id>integration-test</id>
@@ -315,7 +313,6 @@
                             </execution>
                         </executions>
                     </plugin>
-
                 </plugins>
             </build>
         </profile>
