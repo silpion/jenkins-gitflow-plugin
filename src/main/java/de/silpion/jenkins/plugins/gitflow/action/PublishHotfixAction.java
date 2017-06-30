@@ -53,7 +53,7 @@ public class PublishHotfixAction<B extends AbstractBuild<?, ?>> extends Abstract
 
     /** {@inheritDoc} */
     @Override
-    protected String getActionName() {
+    public String getActionName() {
         return ACTION_NAME;
     }
 
@@ -100,9 +100,6 @@ public class PublishHotfixAction<B extends AbstractBuild<?, ?>> extends Abstract
         this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", masterBranch);
         this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/" + masterBranch);
         this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getGitflowBuildWrapperDescriptor().getBranchType(masterBranch));
-
-        // There's no need to execute the main build.
-        this.omitMainBuild();
     }
 
     /** {@inheritDoc} */

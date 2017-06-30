@@ -18,7 +18,7 @@ public class FinishReleaseCause extends AbstractReleaseBranchCause {
      * @param releaseBranch the <i>release</i> branch containing base data for the cause.
      */
     public FinishReleaseCause(final RemoteBranch releaseBranch) {
-        super(releaseBranch);
+        super(releaseBranch, true);
 
     }
 

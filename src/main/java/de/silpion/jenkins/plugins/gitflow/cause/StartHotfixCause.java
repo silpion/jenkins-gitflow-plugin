@@ -24,6 +24,7 @@ public class StartHotfixCause extends AbstractGitflowCause {
      * @param masterBranch the <i>develop</i> branch containing base data for the cause.
      */
     public StartHotfixCause(final RemoteBranch masterBranch) {
+        super(true);
         assert "master".equals(getGitflowBuildWrapperDescriptor().getBranchType(masterBranch.getBranchName()));
 
         final Version semverLastReleaseVersion = Version.parse(masterBranch.getLastReleaseVersion());

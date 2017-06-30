@@ -38,7 +38,7 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
     }
 
     @Override
-    protected String getActionName() {
+    public String getActionName() {
         return ACTION_NAME;
     }
 

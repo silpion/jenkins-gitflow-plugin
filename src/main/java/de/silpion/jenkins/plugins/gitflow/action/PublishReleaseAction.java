@@ -54,7 +54,7 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
 
     /** {@inheritDoc} */
     @Override
-    protected String getActionName() {
+    public String getActionName() {
         return ACTION_NAME;
     }
 
@@ -102,9 +102,6 @@ public class PublishReleaseAction<B extends AbstractBuild<?, ?>> extends Abstrac
         this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", masterBranch);
         this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/" + masterBranch);
         this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getGitflowBuildWrapperDescriptor().getBranchType(masterBranch));
-
-        // There's no need to execute the main build.
-        this.omitMainBuild();
     }
 
     /** {@inheritDoc} */

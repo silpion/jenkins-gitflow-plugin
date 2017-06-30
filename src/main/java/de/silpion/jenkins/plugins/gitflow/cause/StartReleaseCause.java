@@ -23,6 +23,7 @@ public class StartReleaseCause extends AbstractGitflowCause {
      * @param developBranch the <i>develop</i> branch containing base data for the cause.
      */
     public StartReleaseCause(final RemoteBranch developBranch) {
+        super(false);
         assert "develop".equals(getGitflowBuildWrapperDescriptor().getBranchType(developBranch.getBranchName()));
 
         final Version semverReleaseVersion = Version.parse(developBranch.getLastBuildVersion()).toReleaseVersion();

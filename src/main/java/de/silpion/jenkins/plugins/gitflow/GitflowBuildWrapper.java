@@ -1,18 +1,8 @@
 package de.silpion.jenkins.plugins.gitflow;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
 import de.silpion.jenkins.plugins.gitflow.action.AbstractGitflowAction;
 import de.silpion.jenkins.plugins.gitflow.action.GitflowActionFactory;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
-
-import net.sf.json.JSONObject;
-
+import de.silpion.jenkins.plugins.gitflow.cause.AbstractGitflowCause;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -20,16 +10,22 @@ import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.Item;
-import hudson.model.ParameterValue;
-import hudson.model.ParametersAction;
 import hudson.plugins.git.GitSCM;
 import hudson.security.Permission;
 import hudson.security.PermissionScope;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
-
 import jenkins.model.Jenkins;
 import jenkins.util.NonLocalizable;
+import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.StaplerRequest;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Wraps a build that works on a Git repository. It enables the creation of Git releases, respecting the
@@ -38,35 +34,6 @@ import jenkins.util.NonLocalizable;
  * @author Marc Rohlfs, Silpion IT-Solutions GmbH - rohlfs@silpion.de
  */
 public class GitflowBuildWrapper extends BuildWrapper {
-
-    public static final String OMIT_MAIN_BUILD_PARAMETER_NAME = "GITFLOW_OMIT_MAIN_BUILD";
-    public static final String OMIT_MAIN_BUILD_PARAMETER_VALUE_TRUE = Boolean.TRUE.toString();
-
-    private static final ParameterValue OMIT_MAIN_BUILD_PARAMETER_VALUE = new ParameterValue("omitMainBuild") {
-
-        private static final long serialVersionUID = -1731562051491908414L;
-
-        /** {@inheritDoc} */
-        @Override
-        public BuildWrapper createBuildWrapper(final AbstractBuild<?, ?> build) {
-            return OMIT_MAIN_BUILD_WRAPPER;
-        }
-    };
-
-    private static final BuildWrapper OMIT_MAIN_BUILD_WRAPPER = new BuildWrapper() {
-
-        /** {@inheritDoc} */
-        @Override
-        public Environment setUp(@SuppressWarnings("rawtypes") final AbstractBuild build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
-            if (OMIT_MAIN_BUILD_PARAMETER_VALUE_TRUE.equals(build.getEnvironment(listener).get(OMIT_MAIN_BUILD_PARAMETER_NAME))) {
-                throw new InterruptedException("Intentionally thrown to omit the main build");
-            } else {
-                return new Environment() {
-
-                };
-            }
-        }
-    };
 
     @DataBoundConstructor
     public GitflowBuildWrapper() {
@@ -79,13 +46,9 @@ public class GitflowBuildWrapper extends BuildWrapper {
         super.preCheckout(build, launcher, listener);
 
         // Provide a parameter value object, that creates a build wrapper which omits the main build on demand.
-        ParametersAction parametersAction = build.getAction(ParametersAction.class);
-        if (parametersAction == null) {
-            parametersAction = new ParametersAction(OMIT_MAIN_BUILD_PARAMETER_VALUE);
-            build.addAction(parametersAction);
-        } else {
-            parametersAction = parametersAction.createUpdated(Collections.singleton(OMIT_MAIN_BUILD_PARAMETER_VALUE));
-            build.replaceAction(parametersAction);
+        final AbstractGitflowCause gitflowCause = (AbstractGitflowCause) build.getCause(AbstractGitflowCause.class);
+        if (gitflowCause != null && gitflowCause.isOmitMainBuild()) {
+            build.addAction(new OmitMainBuildParametersAction());
         }
     }
 
@@ -97,6 +60,12 @@ public class GitflowBuildWrapper extends BuildWrapper {
         final AbstractGitflowAction<?, ?> gitflowAction = GitflowActionFactory.newInstance(build, launcher, listener);
 
         gitflowAction.beforeMainBuild();
+
+        // Cause the omission of the main build - the build will be interrupted by a subsequent build wrapper then.
+        final OmitMainBuildParametersAction omitMainBuildParametersAction = build.getAction(OmitMainBuildParametersAction.class);
+        if (omitMainBuildParametersAction != null) {
+            omitMainBuildParametersAction.interrupt(listener.getLogger(), gitflowAction.getActionName());
+        }
 
         buildEnvironment = new Environment() {
 

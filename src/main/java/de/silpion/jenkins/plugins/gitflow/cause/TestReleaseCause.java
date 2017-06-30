@@ -19,7 +19,7 @@ public class TestReleaseCause extends AbstractReleaseBranchCause {
      * @param releaseBranch the <i>release</i> branch containing base data for the cause.
      */
     public TestReleaseCause(final RemoteBranch releaseBranch) {
-        super(releaseBranch);
+        super(releaseBranch, false);
 
         final Version semverPatchReleaseVersion = Version.parse(releaseBranch.getLastBuildVersion()).toReleaseVersion();
         this.patchReleaseVersion = semverPatchReleaseVersion.toString();

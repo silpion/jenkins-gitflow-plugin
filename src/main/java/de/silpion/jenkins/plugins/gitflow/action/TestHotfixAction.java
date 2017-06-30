@@ -46,7 +46,7 @@ public class TestHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractGit
     }
 
     @Override
-    protected String getActionName() {
+    public String getActionName() {
         return ACTION_NAME;
     }
 

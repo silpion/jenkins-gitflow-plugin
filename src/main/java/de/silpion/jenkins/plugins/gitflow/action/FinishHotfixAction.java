@@ -38,7 +38,7 @@ public class FinishHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractG
     }
 
     @Override
-    protected String getActionName() {
+    public String getActionName() {
         return ACTION_NAME;
     }
 
@@ -53,9 +53,6 @@ public class FinishHotfixAction<B extends AbstractBuild<?, ?>> extends AbstractG
         this.additionalBuildEnvVars.put("GIT_SIMPLE_BRANCH_NAME", hotfixBranch);
         this.additionalBuildEnvVars.put("GIT_REMOTE_BRANCH_NAME", "origin/" + hotfixBranch);
         this.additionalBuildEnvVars.put("GIT_BRANCH_TYPE", getGitflowBuildWrapperDescriptor().getBranchType(hotfixBranch));
-
-        // There's no need to execute the main build.
-        this.omitMainBuild();
     }
 
     @Override

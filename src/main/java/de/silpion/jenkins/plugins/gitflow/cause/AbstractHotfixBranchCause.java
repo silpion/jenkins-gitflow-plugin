@@ -15,9 +15,12 @@ public abstract class AbstractHotfixBranchCause extends AbstractGitflowCause {
     /**
      * Creates a cause instance for the <i>Gitflow</i> build.
      *
-     * @param hotfixBranch the <i>hotfix</i> branch containing base data for the cause.
+     * @param hotfixBranch  the <i>hotfix</i> branch containing base data for the cause.
+     * @param omitMainBuild denotes if the regarding {@link de.silpion.jenkins.plugins.gitflow.action.AbstractGitflowAction}
+     *                      should omit the main (Maven) build.
      */
-    public AbstractHotfixBranchCause(final RemoteBranch hotfixBranch) {
+    public AbstractHotfixBranchCause(final RemoteBranch hotfixBranch, final boolean omitMainBuild) {
+        super(omitMainBuild);
         assert "hotfix".equals(GitflowBuildWrapper.getGitflowBuildWrapperDescriptor().getBranchType(hotfixBranch.getBranchName()));
         this.hotfixBranch = hotfixBranch.getBranchName();
     }
