@@ -1,16 +1,15 @@
 package de.silpion.jenkins.plugins.gitflow.proxy.git;
 
-import java.io.IOException;
-import java.util.Formatter;
-
-import org.jenkinsci.plugins.gitclient.GitClient;
-
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.plugins.git.GitSCM;
 import hudson.util.VersionNumber;
-
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.gitclient.GitClient;
+
+import java.io.IOException;
+import java.util.Formatter;
 
 /**
  * Proxy implementation for the Jenkins {@link GitSCM}. Uses <i>Reflections</i> to
@@ -32,6 +31,7 @@ public class GitSCMProxy {
      * @param build the build that is in progress.
      * @throws IOException if the version of the Git plugin is not supported.
      */
+    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public GitSCMProxy(final AbstractBuild<?, ?> build) throws IOException {
         this.gitSCM = (GitSCM) build.getProject().getScm();
 

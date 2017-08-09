@@ -5,6 +5,7 @@ import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.merge.CliGitMergeComma
 import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand;
 import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.merge.GenericMergeCommand.StrategyOption;
 import de.silpion.jenkins.plugins.gitflow.proxy.gitclient.merge.JGitMergeCommand;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.plugins.git.Branch;
@@ -61,6 +62,7 @@ public class GitClientProxy {
      * @throws IOException if the version of the Git or the Git Client plugin is not supported.
      * @throws InterruptedException if the build is interrupted during execution.
      */
+    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public GitClientProxy(final AbstractBuild<?, ?> build, final BuildListener listener, final boolean dryRun) throws IOException, InterruptedException {
         this.gitClient = new GitSCMProxy(build).createClient(build, listener);
         this.consoleLogger = listener.getLogger();
@@ -105,7 +107,7 @@ public class GitClientProxy {
      * (no dirty files and no staged changes, although this method will not touch untracked files
      * in the workspace.)
      * </ul>
-     * <p/>
+     * <p>
      * The method's Javadoc has been copied from {@link GitClient#checkoutBranch(String, String)}.
      *
      * @param branch the name of the branch.
@@ -154,6 +156,7 @@ public class GitClientProxy {
      * @param fastForwardMode the fast forward mode for the merge.
      * @param strategy the merge strategy.
      * @param strategyOption the option for the merge strategy.
+     * @param autoCommit sets the merge option {@code --commit} if {@code true}, otherwise sets the merge option {@code --no-commit}.
      * @throws InterruptedException if the build is interrupted during execution.
      */
     public void merge(final ObjectId rev, final FastForwardMode fastForwardMode, final Strategy strategy, final StrategyOption strategyOption, final boolean autoCommit) throws InterruptedException {
@@ -183,7 +186,7 @@ public class GitClientProxy {
      * <a href="https://www.kernel.org/pub/software/scm/git/docs/git-reset.html">git-reset(1) --hard</a> then
      * <a href="https://www.kernel.org/pub/software/scm/git/docs/git-clean.html">git-clean(1)</a> for working copy to
      * match a fresh clone.
-     * <p/>
+     * <p>
      * The method's Javadoc has been copied from {@link GitClient#clean()}.
      *
      * @throws InterruptedException if the build is interrupted during execution.
@@ -215,7 +218,7 @@ public class GitClientProxy {
 
     /**
      * Create (or update) a tag. If tag already exist it gets updated (equivalent to <tt>git tag --force</tt>)
-     * <p/>
+     * <p>
      * The method's Javadoc has been copied from {@link GitClient#tag(String, String)}.
      *
      * @param tagName the name of the tag.
@@ -229,7 +232,7 @@ public class GitClientProxy {
 
     /**
      * Returns the ref for the head commit of the specified remote branch.
-     * <p/>
+     * <p>
      * This method fixes/prevents a bug in the {@link GitClient#getHeadRev(String, String)}
      * method: When the {@code branch} is provided with a simple branch name that contains
      * slashes, the original method might mix up branches. E.g.: When looking for branch
@@ -237,7 +240,7 @@ public class GitClientProxy {
      *
      * @param branch the name of the branch.
      * @return the ref for the head commit of the specified branch or {@code null}.
-     * @throws InterruptedException
+     * @throws InterruptedException if the build is interrupted during execution.
      */
     public ObjectId getHeadRev(final String branch) throws InterruptedException {
         ObjectId headRev = null;
@@ -262,7 +265,8 @@ public class GitClientProxy {
      * Retrieve commit object that is direct child for <tt>revName</tt> revision reference.
      *
      * @param revName a commit sha1 or tag/branch refname
-     * @throws GitException when no such commit / revName is found in repository.
+     * @return the commit object that is direct child for <tt>revName</tt> revision reference.
+     * @throws InterruptedException if the build is interrupted during execution.
      * @see GitClient#revParse(String)
      */
     public ObjectId revParse(final String revName) throws InterruptedException {

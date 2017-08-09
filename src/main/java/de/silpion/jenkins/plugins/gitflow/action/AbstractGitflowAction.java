@@ -182,7 +182,7 @@ public abstract class AbstractGitflowAction<B extends AbstractBuild<?, ?>, C ext
 
     /**
      * Adds the provided files to the Git stages - executing {@code git add [file1] [file2] ...}.
-     * <p/>
+     * <p>
      * TODO Instead of adding the modified files manually, it would be more reliable to ask the Git client for the files that have been mofified and add those.
      * Unfortunately the {@link org.jenkinsci.plugins.gitclient.GitClient GitClient} class doesn't offer a method to get the modified files. We might file a
      * feature request and/or implement it ourselves and then do a pull request on GitHub. The method to be implemented should execute something like

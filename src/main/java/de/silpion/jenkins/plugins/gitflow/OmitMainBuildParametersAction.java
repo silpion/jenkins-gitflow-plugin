@@ -1,5 +1,6 @@
 package de.silpion.jenkins.plugins.gitflow;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
@@ -49,7 +50,7 @@ public class OmitMainBuildParametersAction extends ParametersAction {
     };
 
     public OmitMainBuildParametersAction() {
-        super(singletonList(OMIT_MAIN_BUILD_PARAMETER_VALUE));
+        super(singletonList(OMIT_MAIN_BUILD_PARAMETER_VALUE), singletonList(OMIT_MAIN_BUILD_PARAMETER_NAME));
     }
 
     public void interrupt(final PrintStream consoleLogger, final String gitflowActionName) {
@@ -60,6 +61,7 @@ public class OmitMainBuildParametersAction extends ParametersAction {
         consoleLogger.printf(MSG_PATTERN_ABORTING_TO_OMIT_MAIN_BUILD, gitflowActionName);
     }
 
+    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     private static Executor getExecutor() {
         return Executor.currentExecutor();
     }

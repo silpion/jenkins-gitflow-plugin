@@ -3,6 +3,7 @@ package de.silpion.jenkins.plugins.gitflow;
 import de.silpion.jenkins.plugins.gitflow.action.AbstractGitflowAction;
 import de.silpion.jenkins.plugins.gitflow.action.GitflowActionFactory;
 import de.silpion.jenkins.plugins.gitflow.cause.AbstractGitflowCause;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -104,6 +105,7 @@ public class GitflowBuildWrapper extends BuildWrapper {
      * @return the one and only {@link GitflowBuildWrapper.DescriptorImpl} instance.
      * @throws AssertionError if the descriptor is missing.
      */
+    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public static DescriptorImpl getGitflowBuildWrapperDescriptor() {
         return (GitflowBuildWrapper.DescriptorImpl) Jenkins.getInstance().getDescriptorOrDie(GitflowBuildWrapper.class);
     }

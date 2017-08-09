@@ -30,6 +30,7 @@ public class NoGitflowAction<B extends AbstractBuild<?, ?>> extends AbstractGitf
      * @param launcher can be used to launch processes for this build - even if the build runs remotely.
      * @param listener can be used to send any message.
      * @param git the Git client used to execute commands for the Gitflow actions.
+     * @param <BC> the build in progress.
      * @throws IOException if an error occurs that causes/should cause the build to fail.
      * @throws InterruptedException if the build is interrupted during execution.
      */
