@@ -10,7 +10,7 @@
 
     <groupId>de.silpion.jenkins.plugins</groupId>
     <artifactId>gitflow</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>hpi</packaging>
 
     <name>Gitflow Plugin</name>
