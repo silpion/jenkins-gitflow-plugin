@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core">
+    <j:choose>
+        <j:if test="${it.isGitflowCause()}">
+            <j:when test="${it.isDryRun()}">
+                <img width="16" height="16" title="${it.tooltipText}" src="${rootURL}/plugin/gitflow/img/${it.gitflowActionName}-dryrun.png" />
+            </j:when>
+            <j:otherwise>
+                <img width="16" height="16" title="${it.tooltipText}" src="${rootURL}/plugin/gitflow/img/${it.gitflowActionName}.png" />
+            </j:otherwise>
+        </j:if>
+    </j:choose>
+</j:jelly>

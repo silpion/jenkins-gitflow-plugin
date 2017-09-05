@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <l:layout norefresh="true">
+        <l:main-panel>
+            <f:form method="post" action="submit" name="performGitflowRelease">
+                <f:section title="Gitflow">
+                    <f:entry>
+                       <img src="${rootURL}/plugin/gitflow/img/unused/Gitflow-Large-PNG.png" height="30" width="120" style="position: absolute; right:0; padding-right:1em"/>
+                    </f:entry>
+
+                    <j:set var="startReleaseCause" value="${it.startReleaseCause}" />
+                    <j:if test="${startReleaseCause == null}">
+                        <f:entry>
+                            <span style="color:red; font-weight: bold">Warning:</span>
+                            <br />
+                            The existence of the develop branch is essential for the Gitflow, but builds for this branch haven't been recorded so far.
+                            <br />
+                            Ensure that a develop branch exists in the repository and trigger a build for this job, that build the develop branch.
+                        </f:entry>
+                        <f:entry />
+                    </j:if>
+
+                    <j:set var="releaseBranchCauseGroups" value="${it.releaseBranchCauseGroups}" />
+                    <j:forEach var="releaseBranchCauseGroup" items="${releaseBranchCauseGroups}">
+                        <j:set var="releaseVersion" value="${releaseBranchCauseGroup.releaseVersion}" />
+                        <j:set var="releaseVersionDotfree" value="${releaseBranchCauseGroup.releaseVersionDotfree}" />
+                        <f:entry title="Release ${releaseVersion} - Branch: ${releaseBranchCauseGroup.branchName}">
+
+                            <j:set var="testReleaseCause" value="${releaseBranchCauseGroup.testReleaseCause}" />
+                            <f:radioBlock name="action" value="testRelease_${releaseVersion}" title="Test Release ${releaseVersion}" checked="false">
+                                <f:invisibleEntry>
+                                    <input name="testRelease_releaseVersion" value="${releaseVersion}" type="hidden" />
+                                </f:invisibleEntry>
+                                <f:entry title="Patch Release Version">
+                                    <f:textbox name="testRelease_${releaseVersionDotfree}_patchReleaseVersion" value="${testReleaseCause.patchReleaseVersion}" />
+                                </f:entry>
+                                <f:entry title="Next Patch Development Version">
+                                    <f:textbox name="testRelease_${releaseVersionDotfree}_nextPatchDevelopmentVersion" value="${testReleaseCause.nextPatchDevelopmentVersion}" />
+                                </f:entry>
+                            </f:radioBlock>
+
+                            <j:set var="publishReleaseCause" value="${releaseBranchCauseGroup.publishReleaseCause}" />
+                            <f:radioBlock name="action" value="publishRelease_${releaseVersion}" title="Publish Release ${releaseVersion}" checked="false">
+                                <f:invisibleEntry>
+                                    <input name="publishRelease_releaseVersion" value="${releaseVersion}" type="hidden" />
+                                </f:invisibleEntry>
+                                <f:entry title="Last Patch Release Version">
+                                    ${publishReleaseCause.lastPatchReleaseVersion} (Commit ${publishReleaseCause.lastPatchReleaseCommit.name})
+                                </f:entry>
+                            </f:radioBlock>
+
+                            <j:set var="finishReleaseCause" value="${releaseBranchCauseGroup.finishReleaseCause}" />
+                            <f:radioBlock name="action" value="finishRelease_${releaseVersion}" title="Finish Release ${releaseVersion}" checked="false">
+                                <f:invisibleEntry>
+                                    <input name="finishRelease_releaseVersion" value="${releaseVersion}" type="hidden" />
+                                </f:invisibleEntry>
+                            </f:radioBlock>
+
+                        </f:entry>
+                        <f:entry />
+                    </j:forEach>
+
+                    <j:if test="${startReleaseCause != null}">
+                        <f:radioBlock name="action" value="startRelease" title="Start Next Release" checked="false">
+                            <f:entry title="Release Version">
+                                <f:textbox name="startRelease_releaseVersion" value="${startReleaseCause.releaseVersion}" />
+                            </f:entry>
+                            <f:entry title="Next Patch Development Version">
+                                <f:textbox name="startRelease_nextPatchDevelopmentVersion" value="${startReleaseCause.nextPatchDevelopmentVersion}" />
+                            </f:entry>
+                            <f:entry title="Next Release Development Version">
+                                <f:textbox name="startRelease_nextReleaseDevelopmentVersion" value="${startReleaseCause.nextReleaseDevelopmentVersion}" />
+                            </f:entry>
+                        </f:radioBlock>
+                        <f:entry />
+                    </j:if>
+
+                    <j:set var="startHotfixCause" value="${it.startHotfixCause}" />
+                    <j:if test="${startHotfixCause != null}">
+                        <f:radioBlock name="action" value="startHotfix" title="Start Hotfix" checked="false">
+                            <f:entry title="Release/Hotfix Version">
+                                ${startHotfixCause.hotfixVersion}
+                            </f:entry>
+                            <f:entry title="Published (Patch) Release Version">
+                                ${startHotfixCause.publishedPatchReleaseVersion}
+                            </f:entry>
+                            <f:entry title="Next Patch Development Version">
+                                <f:textbox name="startHotfix_nextPatchDevelopmentVersion" value="${startHotfixCause.nextPatchDevelopmentVersion}" />
+                            </f:entry>
+                        </f:radioBlock>
+                        <f:entry />
+                    </j:if>
+
+                    <j:set var="hotfixBranchCauseGroups" value="${it.hotfixBranchCauseGroups}" />
+                    <j:forEach var="hotfixBranchCauseGroup" items="${hotfixBranchCauseGroups}">
+                        <j:set var="hotfixVersion" value="${hotfixBranchCauseGroup.hotfixVersion}" />
+                        <j:set var="hotfixVersionDotfree" value="${hotfixBranchCauseGroup.hotfixVersionDotfree}" />
+                        <f:entry title="Hotfix ${hotfixVersion} - Branch: ${hotfixBranchCauseGroup.branchName}">
+
+                            <j:set var="testHotfixCause" value="${hotfixBranchCauseGroup.testHotfixCause}" />
+                            <f:radioBlock name="action" value="testHotfix_${hotfixVersion}" title="Test Hotfix ${hotfixVersion}" checked="false">
+                                <f:invisibleEntry>
+                                    <input name="testHotfix_hotfixVersion" value="${hotfixVersion}" type="hidden" />
+                                </f:invisibleEntry>
+                                <f:entry title="Patch Release Version">
+                                    <f:textbox name="testHotfix_${hotfixVersionDotfree}_patchReleaseVersion" value="${testHotfixCause.patchReleaseVersion}" />
+                                </f:entry>
+                                <f:entry title="Next Patch Development Version">
+                                    <f:textbox name="testHotfix_${hotfixVersionDotfree}_nextPatchDevelopmentVersion" value="${testHotfixCause.nextPatchDevelopmentVersion}" />
+                                </f:entry>
+                            </f:radioBlock>
+
+                            <j:set var="publishHotfixCause" value="${hotfixBranchCauseGroup.publishHotfixCause}" />
+                            <f:radioBlock name="action" value="publishHotfix_${hotfixVersion}" title="Publish Hotfix ${hotfixVersion}" checked="false">
+                                <f:invisibleEntry>
+                                    <input name="publishHotfix_hotfixVersion" value="${hotfixVersion}" type="hidden" />
+                                </f:invisibleEntry>
+                                <f:entry title="Last Patch Release Version">
+                                    ${publishHotfixCause.lastPatchReleaseVersion} (Commit ${publishHotfixCause.lastPatchReleaseCommit.name})
+                                </f:entry>
+                            </f:radioBlock>
+
+                            <j:set var="finishHotfixCause" value="${hotfixBranchCauseGroup.finishHotfixCause}" />
+                            <f:radioBlock name="action" value="finishHotfix_${hotfixVersion}" title="Finish Hotfix ${hotfixVersion}" checked="false">
+                                <f:invisibleEntry>
+                                    <input name="finishHotfix_hotfixVersion" value="${hotfixVersion}" type="hidden" />
+                                </f:invisibleEntry>
+                            </f:radioBlock>
+
+                            <f:entry />
+                        </f:entry>
+                    </j:forEach>
+
+                    <f:entry title="Dry Run">
+                        <f:checkbox name="dryRun" title="Don't push Git commits and don't publish/deploy artifacts." checked="false" />
+                    </f:entry>
+                    <f:entry />
+
+                </f:section>
+                <tr>
+                    <td colspan="4" align="left">
+                        <f:submit value="Execute Gitflow Action..." />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4" align="right">
+                        <a href="http://www.silpion.de" target="_blank" style="position: absolute; right:0; padding-right:1em">Developed by <img src="${rootURL}/plugin/gitflow/img/Silpion-Logo-2.jpg" height="10" width="40" /></a>
+                    </td>
+                </tr>
+            </f:form>
+        </l:main-panel>
+    </l:layout>
+</j:jelly>
