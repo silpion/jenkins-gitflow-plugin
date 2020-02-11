@@ -1,5 +1,7 @@
 # Jenkins Gitflow Plugin
 
+This plugin is maintained here: https://github.com/jenkinsci/gitflow-plugin
+
 ## Installation
 
 ### Requirements
